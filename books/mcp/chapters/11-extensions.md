@@ -33,9 +33,9 @@ flowchart LR
 
 **想让 AI 编程助手帮你写 Server**——Agent Skills 把 MCP 开发的设计决策（部署模型、工具模式、鉴权选择）编码成助手可读的知识包，先审问你的用例再生成脚手架。
 
-## 概述：扩展机制怎么工作
+## 11.1 概述：扩展机制怎么工作
 
-扩展在**能力协商**阶段接入（第 3.2 节）：双方在 `capabilities.extensions` 字段里互相声明，扩展标识符格式 `{vendor-prefix}/{extension-name}`，规则与 `_meta` 键一致。官方扩展用 `io.modelcontextprotocol/` 前缀；第三方**必须**用自己拥有的反向域名（如 `com.example/my-extension`），防碰撞——类似 Java 包命名。
+把可选能力放进展（extension）而不是塞进核心，是协议保持演进速度的常见手法：核心层小而稳定，所有实现都能跟上；创新功能以扩展形式先行，成熟条件具备再考虑收编。MCP 的扩展在**能力协商**阶段接入（扩展框架于 2025-11-25 版本进入协议，第 3 章）：双方在 `capabilities.extensions` 字段里互相声明，扩展标识符格式 `{vendor-prefix}/{extension-name}`，规则与 `_meta` 键一致。官方扩展用 `io.modelcontextprotocol/` 前缀；第三方**必须**用自己拥有的反向域名（如 `com.example/my-extension`），防碰撞——类似 Java 包命名。
 
 ```json
 { "capabilities": {
@@ -45,27 +45,27 @@ flowchart LR
 
 一条协商规则要记住：一方支持扩展而另一方不支持时，支持方**必须**回退到核心协议行为或以明确错误拒绝——扩展文档应写明自己的回退行为。扩展的「可选性」是协议级契约，不是口头约定。
 
-## 四条官方扩展线
+## 11.2 四条官方扩展线
 
 ### Tasks（`io.modelcontextprotocol/tasks`，ext-tasks）
 
-异步长任务：「call-now, fetch-later」。2026-07-28 的重新设计（SEP-2663）要点：`tasks/result` 阻塞方法改为 `tasks/get` **轮询**；新增 `tasks/update` 支持 client 在任务执行中途补输入；移除 `tasks/list`；Server 可不经请求主动返回任务句柄。适用：批量操作、长耗时报表、任何「发起后要等」的动作。轻量替代：自建「提交任务 → 轮询状态」的工具对（第 6 章贯穿案例的选择——协议面更薄，代价是没有标准化的中途输入）。
+异步长任务：「call-now, fetch-later」。设想一个批量对账工具：请求发出后要跑五分钟，同步等待必然超时，模型的轮次也耗不起。Tasks 的形态是 Server 立即返回任务句柄，client 用 `tasks/get` 轮询进度，中途还能经 `tasks/update` 补充输入。2026-07-28 的重新设计（SEP-2663）要点：`tasks/result` 阻塞方法改为 `tasks/get` **轮询**；新增 `tasks/update` 支持 client 在任务执行中途补输入；移除 `tasks/list`；Server 可不经请求主动返回任务句柄。适用：批量操作、长耗时报表、任何「发起后要等」的动作。轻量替代：自建「提交任务 → 轮询状态」的工具对（第 7 章贯穿案例的选择——协议面更薄，代价是没有标准化的中途输入）。
 
 ### Apps（`io.modelcontextprotocol/apps`，ext-apps）
 
-MCP Apps 让 Server 在**聊天界面内**渲染交互式 UI：可搜索选择器、图表、实时仪表盘、视频播放器。定位：当 elicitation 的平面表单不够时（build-with-agent-skills 教程的原话），Apps 接管。集成视角：CopilotKit 一类前端 Host 对它的支持度，是评估前端接入面的新维度（第 8 章矩阵的 ⚠️ 格子回填时一并核）。
+MCP Apps 让 Server 在**聊天界面内**渲染交互式 UI：可搜索选择器、图表、实时仪表盘、视频播放器。定位：当 elicitation 的平面表单不够时（build-with-agent-skills 教程的原话），Apps 接管。典型场景：让用户在一个可搜索的列表里选商品，而不是在平面表单里手输 SKU；在对话里直接渲染退款进度仪表盘。集成视角：CopilotKit 一类前端 Host 对它的支持度，是评估前端接入面的新维度（第 8 章矩阵的 ⚠️ 格子回填时一并核）。
 
 ### Auth（`io.modelcontextprotocol/auth` 系，ext-auth）
 
-核心规范（第 8 章）覆盖「有人在场」的 OAuth 授权码流程；auth 扩展补两块企业场景：**OAuth Client Credentials**（机器对机器，无用户参与的 token 获取）与 **Enterprise-Managed Authorization**（企业集中管控授权的框架）。中台的定时任务与服务间调用走前者；「所有工具调用要过企业权限中枢」的场景看后者。
+核心规范（第 10 章）覆盖「有人在场」的 OAuth 授权码流程；auth 扩展补两块企业场景：**OAuth Client Credentials**（机器对机器，无用户参与的 token 获取）与 **Enterprise-Managed Authorization**（企业集中管控授权的框架）。中台的定时任务与服务间调用走前者；「所有工具调用要过企业权限中枢」的场景看后者。
 
 ### Skills（`io.modelcontextprotocol/skills`，ext-skills，SEP-2640 已 Final）
 
 把 **Agent Skills**（见下节）搬上 MCP：Server 通过协议**发现并读取** Agent Skills。它连接了两个世界——技能作为便携指令集，可以由 Server 分发、由任意实现该标准的 Agent 消费。
 
-## Agent Skills：用知识包加速 Server 开发
+## 11.3 Agent Skills：用知识包加速 Server 开发
 
-另一个方向的「Skills」：**给 AI 编程助手**的便携指令集（agentskills.io 开放格式，`SKILL.md` + `references/` 支撑材料），教会助手某个领域的决策知识。官方提供了 MCP 开发的参考技能包 **`mcp-server-dev`**，三个技能相互组合：
+另一个方向的「Skills」：**给 AI 编程助手**的便携指令集（agentskills.io 开放格式，`SKILL.md` + `references/` 支撑材料），教会助手某个领域的决策知识。它的价值在于把「老手脑子里的设计决策」显式化：一个没写过 MCP Server 的工程师，配上技能包也能先被问对问题、再拿到结构合理的脚手架。官方提供了 MCP 开发的参考技能包 **`mcp-server-dev`**，三个技能相互组合：
 
 | 技能 | 职责 |
 |------|------|
@@ -79,11 +79,11 @@ MCP Apps 让 Server 在**聊天界面内**渲染交互式 UI：可搜索选择�
 
 对团队的意义：这套技能包把第 4-5 章的手工流程（选型 → 脚手架 → 描述精修 → 测试）的前半段自动化了。脚手架生成后的迭代——工具描述、错误处理、Inspector 验证（第 9 章）——仍然是人的工作，也是质量所在。
 
-## 发布与发现
+## 11.4 发布与发现
 
-Server 做完的最后一公里：发布到 **MCP Registry** 使其可被发现（registry/quickstart）。中台场景（自建域 Server、内网消费）通常不需要公共 Registry，但「域 Server 上线要在目录登记」的治理动作（第 6.6 节）与之同构。
+Server 做完的最后一公里：发布到 **MCP Registry** 使其可被发现（registry/quickstart）。中台场景（自建域 Server、内网消费）通常不需要公共 Registry，但「域 Server 上线要在目录登记」的治理动作（7.6）与之同构——登记的条目、负责人、状态，内外逻辑一致。
 
-## 本章小结
+## 11.5 本章小结
 
 1. **扩展机制**：capabilities.extensions 协商；ID 带强制前缀；不支持方回退核心行为是协议级契约。
 2. **官方四系**：tasks（异步长任务，轮询+中途输入）、apps（聊天内 UI）、auth（M2M 与企业管控）、skills（经 MCP 发现 Agent Skills）。
@@ -110,12 +110,12 @@ Server 做完的最后一公里：发布到 **MCP Registry** 使其可被发现�
 |----|----|
 | 扩展协商 | `capabilities.extensions`，ID = `{vendor-prefix}/{name}` |
 | 官方前缀 | `io.modelcontextprotocol/` |
-| Tasks 扩展 | `io.modelcontextprotocol/tasks`(SEP-2663;tasks/get 轮询 + tasks/update) |
-| Apps | `io.modelcontextprotocol/apps`(ext-apps;聊天内 UI) |
-| Auth 扩展 | ext-auth(Client Credentials / Enterprise-Managed) |
-| Skills 扩展 | `io.modelcontextprotocol/skills`(SEP-2640 Final,ext-skills) |
-| 开发技能包 | `mcp-server-dev`(build-mcp-server / build-mcp-app / build-mcpb) |
-| 打包格式 | MCPB(`.mcpb` 存档,含运行时) |
+| Tasks 扩展 | `io.modelcontextprotocol/tasks`（SEP-2663；tasks/get 轮询 + tasks/update） |
+| Apps | `io.modelcontextprotocol/apps`（ext-apps；聊天内 UI） |
+| Auth 扩展 | ext-auth（Client Credentials / Enterprise-Managed） |
+| Skills 扩展 | `io.modelcontextprotocol/skills`（SEP-2640 Final，ext-skills） |
+| 开发技能包 | `mcp-server-dev`（build-mcp-server / build-mcp-app / build-mcpb） |
+| 打包格式 | MCPB（`.mcpb` 存档，含运行时） |
 
 ## 延伸阅读
 
@@ -126,7 +126,7 @@ Server 做完的最后一公里：发布到 **MCP Registry** 使其可被发现�
 
 ## 复核清单（发布前）
 
-- [ ] extensions/apps 快速上手通读,聊天内 UI 示例补一个实测
-- [ ] extensions/skills 规范（SEP-2640）通读,发现与读取流程补节
+- [ ] extensions/apps 快速上手通读，聊天内 UI 示例补一个实测
+- [ ] extensions/skills 规范（SEP-2640）通读，发现与读取流程补节
 - [ ] ext-auth 两个扩展的细节（client credentials 流程、企业管控框架）对照原文补全
 - [ ] mcp-server-dev 技能包实际安装并用贯穿案例跑一遍发现阶段
