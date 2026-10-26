@@ -25,15 +25,15 @@ flowchart LR
 
 ## 你什么时候需要它
 
-**接手了一个「不知道什么年代」的 MCP Server**——先看 3.4 的七格矩阵与 3.3 的版本协商：跑一次 `server/discover` 或发一个带版本的请求，它属于哪一格、该怎么处理，立刻清楚。
+**接手了一个「不知道什么年代」的 MCP Server**——先看 3.5 的七格矩阵与 3.4 的版本协商：跑一次 `server/discover` 或发一个带版本的请求，它属于哪一格、该怎么处理，立刻清楚。
 
-**要规划存量 Server 升级到 2026-07-28**——直接看 3.5 的八步清单，每步对应官方 changelog 条目。
+**要规划存量 Server 升级到 2026-07-28**——直接看 3.6 的八步清单，每步对应官方 changelog 条目。
 
 **评估网上教程/文章是否可用**——看 3.1 的五版时间线：任何未标注 spec 版本日期的 MCP 材料，默认按 2025 年中形态理解，对照后再用。
 
 前置：第 2 章的 Modern 模型（`_meta`、discover、resultType）——本章讲它们「怎么来的」。
 
-## 概述：五版时间线与官方术语
+## 3.1 概述：五版时间线与官方术语
 
 ```mermaid
 flowchart LR
@@ -49,9 +49,11 @@ flowchart LR
 - **Legacy**：2025-11-25 及以前——靠 `initialize` 握手建立会话
 - **Dual-era**：两者都支持的实现
 
-## 五个版本，一条主线
+## 3.2 五个版本，一条主线
 
-**2024-11-05（初版）**：stdio + HTTP+SSE 双传输；initialize 握手建立会话；tools/resources/prompts 三类能力成型。确立了「模型上下文」的协议骨架——**后来所有版本都在还这一版「有状态」欠下的债**：每个 Server 都要管会话，服务化困难。
+五个版本连起来看，是一条「从 Demo 到生产」的还债之路：每一版都在解决上一版留下的最大障碍。
+
+**2024-11-05（初版）**：stdio + HTTP+SSE 双传输；initialize 握手建立会话；tools/resources/prompts 三类能力成型。它确立了「模型上下文」的协议骨架，也欠下了贯穿后续所有版本的债——**有状态**。会话由 Server 保管，意味着每个 Server 都要管握手、管粘性、管恢复，服务化困难。
 
 **2025-03-26**：Streamable HTTP 取代 HTTP+SSE。SSE 的单向流 + 会话粘性难以服务化，传输层先向「普通 HTTP 服务」靠拢。信号明确：Server 要进生产。
 
@@ -66,7 +68,7 @@ flowchart LR
 
 **2026-07-28（无状态重构，破坏性）**：下一节专述。
 
-## 2026-07-28 九大变更逐条读
+## 3.3 2026-07-28 九大变更逐条读
 
 官方 changelog 的 Major changes 九条，按主题归组（每条标注 SEP 编号可溯源）：
 
@@ -92,19 +94,19 @@ flowchart LR
 
 移除 SSE 断流恢复与消息重投（`Last-Event-ID`）：响应流断了，进行中的请求即丢失，client **必须以新 ID 重发**。用复杂度换简单性——Server 不再需要事件重放缓冲。
 
-### 组五：长任务转正为扩展（SEP-2663)
+### 组五：长任务转正为扩展（SEP-2663）
 
 实验性 Tasks 移出核心，成为扩展 `io.modelcontextprotocol/tasks`，并重新设计：`tasks/result` 阻塞方法改为 `tasks/get` **轮询**；新增 `tasks/update` 供 client 中途输入；移除 `tasks/list`；Server 可不经请求主动返回任务句柄。
 
-### 弃用清单（Deprecated，12 个月窗口后移除)
+### 弃用清单（Deprecated，12 个月窗口后移除）
 
 | 弃用项 | 迁移建议 |
 |--------|----------|
 | **Roots**（client 告知可访问目录） | 目录/文件经工具参数、资源 URI 或 Server 配置传入 |
 | **Sampling**（借 Host 模型推理） | 直接对接 LLM provider API |
-| **Logging**（协议内建日志） | stderr(stdio) 或 OpenTelemetry |
-| HTTP+SSE 传输(2025-03-26 起废) | Streamable HTTP |
-| OAuth DCR(RFC 7591) 注册机制 | CIMD(保留对旧 AS 的兼容) |
+| **Logging**（协议内建日志） | stderr（stdio）或 OpenTelemetry |
+| HTTP+SSE 传输（2025-03-26 起废） | Streamable HTTP |
+| OAuth DCR（RFC 7591）注册机制 | CIMD（保留对旧 AS 的兼容） |
 | `includeContext` 的 thisServer/allServers | 省略或 none |
 
 这是全书最重要的迁移事实：**Roots/Sampling/Logging 三个 v1 核心特性整体进入弃用**——新实现不应再添加对它们的支持。
@@ -118,16 +120,16 @@ flowchart LR
 ### 其他值得知道的
 
 - `inputSchema`/`outputSchema` 放宽为任意 JSON Schema 2020-12 关键词；`structuredContent` 允许任意 JSON（第 6 章建模自由度的来源）；`$ref` 不得自动解引用网络 URI、组合关键字需资源上限（防 DoS）
-- Streamable HTTP 必带标准头 `Mcp-Method`、`Mcp-Name`；`x-mcp-header` 支持工具参数映射自定义头（第 5 章）
+- Streamable HTTP 必带标准头 `Mcp-Method`、`Mcp-Name`；`x-mcp-header` 支持工具参数映射自定义头（第 6 章）
 - 资源未找到错误码从 `-32002` 改为 `-32602`（对齐 JSON-RPC）；错误码分区政策定型（legacy 区 -32000~-32019；规范保留区 -32020~-32099；本轮 -32001→-32020、-32003→-32021、-32004→-32022）
 - 弃用 `notifications/elicitation/complete` 与 `elicitationId`：MRTR 下 client 靠重试得知结果，跨重试关联用 `requestState`
 - 治理：确立**特性生命周期政策**（Active/Deprecated/Removed，弃用窗最少 12 个月）与弃用注册表
 
-## 版本协商：每请求声明 + 探针
+## 3.4 版本协商：每请求声明 + 探针
 
 无握手之后，「你说哪个版本」变成每请求的事：
 
-1. **每个请求**在 `_meta` 声明 `protocolVersion`（HTTP 上另有 `MCP-Protocol-Version` 头，两者必须一致，第 8 章）
+1. **每个请求**在 `_meta` 声明 `protocolVersion`（HTTP 上另有 `MCP-Protocol-Version` 头，两者必须一致，第 10 章）
 2. Server 不支持时返回 `-32022`，`data.supported` 列出支持的版本：
    ```json
    { "error": { "code": -32022, "message": "Unsupported protocol version",
@@ -136,7 +138,7 @@ flowchart LR
 3. client 从 `supported` 里选双方都支持的版本**重试**，或报错给人
 4. 想提前知道？先调 `server/discover`（可选，但接入前值得）
 
-## 七格兼容矩阵：官方版
+## 3.5 七格兼容矩阵：官方版
 
 versioning 规范给出的完整矩阵（client × server 的 era 组合），比「新旧兼容」的笼统说法精确得多：
 
@@ -154,7 +156,7 @@ versioning 规范给出的完整矩阵（client × server 的 era 组合），�
 
 Era 判定缓存于 Server 进程（stdio）/源（HTTP）生命周期，可跨重启保留、失效再重探。
 
-## 存量迁移：八步清单
+## 3.6 存量迁移：八步清单
 
 按序执行（每步对应 changelog 条目）：
 
@@ -167,21 +169,21 @@ Era 判定缓存于 Server 进程（stdio）/源（HTTP）生命周期，可跨�
 7. **授权**：client 加 `iss` 校验；消费端身份迁 CIMD；凭据按 issuer 键控
 8. **双代过渡**：legacy 入口开启灰度，新旧 client 并行后收紧
 
-## 选型建议
+## 3.7 选型建议
 
 - **新项目：直接 2026-07-28 + v2 大版本 SDK**（TS v2.x / Java mcp-core 2.0.x）——不为旧教程兼容性买单
 - **存量：按八步清单评估**。改造量与「用了多少 server→client 交互与自定义头/会话」成正比；纯 tools 型 Server（中台的主力形态）迁移最轻——这正是无状态重构偏爱的形态
 - **教学中**：任何未标注 spec 版本日期的 MCP 教程（包括本书以外的），默认按 2025 年中形态理解，对照本章后再用
 
-## 本章小结
+## 3.8 本章小结
 
-1. **主线**：初版有状态 → 传输规范化 → 安全规范化 → 企业化补课 → 无状态重构。
+1. **主线**：初版有状态 → 传输规范化 → 安全规范化 → 企业化补课 → 无状态重构——一路还「有状态」的债。
 2. **九大变更四组**：状态之死（会话/握手/discover）、交互重构（MRTR/listen/resultType）、缓存一等公民、授权收紧；另有 Roots/Sampling/Logging 整体弃用。
 3. **七格矩阵**：Dual-era 是迁移期的桥；legacy client 无前向机制。
 4. **迁移八步**：会话、meta、交互、长任务、订阅、缓存、授权、双代过渡。
 5. **选型**：新项目 latest；存量按清单；外源教程先对版本。
 
-→ 协议与生产的主体（第 2、4-8 章）完整；**第 12 章**谈组织与路线。
+→ 协议的「为什么」到此讲完。**第 4 章**动手验证这些行为；**第 12 章**谈组织与路线。
 
 ## 验收清单
 
@@ -198,21 +200,21 @@ Era 判定缓存于 Server 进程（stdio）/源（HTTP）生命周期，可跨�
 
 | 项 | 值 |
 |----|----|
-| 版本时间线 | 2024-11-05 → 2025-03-26 → 2025-06-18 → 2025-11-25 → 2026-07-28(latest) |
-| 版本声明 | `_meta.io.modelcontextprotocol/protocolVersion`(每请求);HTTP 头 `MCP-Protocol-Version` |
+| 版本时间线 | 2024-11-05 → 2025-03-26 → 2025-06-18 → 2025-11-25 → 2026-07-28（latest） |
+| 版本声明 | `_meta.io.modelcontextprotocol/protocolVersion`（每请求）；HTTP 头 `MCP-Protocol-Version` |
 | 版本不匹配 | -32022 + `data.supported` 清单 → client 换版本重试 |
-| 探针 | `server/discover`(Server 必须实现;client 可选) |
-| 时代术语 | Modern(2026-07-28+)/Legacy(≤2025-11-25)/Dual-era |
-| 弃用三特性 | Roots / Sampling / Logging(12 个月窗口) |
-| 生命周期 | Active / Deprecated / Removed;弃用窗最少 12 个月 |
-| 错误码分区 | -32000~-32019 legacy 区;-32020~-32099 规范保留区(HeaderMismatch/ MissingRequiredClientCapability/UnsupportedProtocolVersion) |
+| 探针 | `server/discover`（Server 必须实现；client 可选） |
+| 时代术语 | Modern（2026-07-28+）/ Legacy（≤2025-11-25）/ Dual-era |
+| 弃用三特性 | Roots / Sampling / Logging（12 个月窗口） |
+| 生命周期 | Active / Deprecated / Removed；弃用窗最少 12 个月 |
+| 错误码分区 | -32000~-32019 legacy 区；-32020~-32099 规范保留区（HeaderMismatch/ MissingRequiredClientCapability/UnsupportedProtocolVersion） |
 
 ## 延伸阅读
 
-- **第 2 章(协议核心概念)**——Modern 模型的完整语义；本章讲它的来龙去脉。
-- **第 8 章(构建 Client)**——七格矩阵中 client 侧的实践(era 探测与回退)。
-- **第 11 章(扩展生态)**——Tasks 与 extensions 框架的现状。
-- **官方 changelog 原文**(2025-11-25 / 2026-07-28)——本章的逐条依据,争议时回原文。
+- **第 2 章（协议核心概念）**——Modern 模型的完整语义；本章讲它的来龙去脉。
+- **第 8 章（构建 Client）**——七格矩阵中 client 侧的实践（era 探测与回退）。
+- **第 11 章（扩展生态）**——Tasks 与 extensions 框架的现状。
+- **官方 changelog 原文**（2025-11-25 / 2026-07-28）——本章的逐条依据，争议时回原文。
 
 ## 复核清单（发布前）
 
