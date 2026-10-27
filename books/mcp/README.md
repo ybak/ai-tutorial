@@ -1,7 +1,7 @@
 # MCP:跨框架工具接入协议
 
-> 状态:**初稿 v2(2026-10-24)——基于官方规范原文([modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) 2026-07-28)逐章对照重写**;TS SDK v2.4.0 双端实测。
-> ⚠️ 形态欠账:当前各章为"规范对照 + 实测记录"形态(100-160 行/章),**尚未达到书稿标准**(≥500 行/章,骨架见[编写规范](../../docs/book-writing-guide.md))。下一步:按规范逐章扩充——补章首导读与导览图、"你什么时候需要它"、验收清单等骨架,内容厚度向 agentscope-java 书对齐。完成后按各章「复核清单」终核,升 status: published 进站点。
+> 状态:**修订稿(2026-10-27)——基于官方规范原文([modelcontextprotocol/modelcontextprotocol](https://github.com/modelcontextprotocol/modelcontextprotocol) 2026-07-28)逐章对照重写;TS SDK v2.4.0 双端实测。12 章成稿并完成全书统一修订(章内 X.Y 小节编号、引用归位、全角标点与文风统一),已 `status: 'published'` 进站点构建。**
+> ⚠️ 形态欠账:多数章节仍为"规范对照 + 实测记录"的紧凑形态(约 100-370 行/章),**尚未达到书稿标准**(≥500 行/章,骨架见[编写规范](../../docs/book-writing-guide.md))。后续:逐章扩充内容厚度,向 agentscope-java 书对齐;完成后按各章「复核清单」终核。
 
 ## 定位
 
@@ -42,7 +42,7 @@ Model Context Protocol,统一工具接入的跨框架标准。本书讲两件事
 | [第 11 章 Agent Skills 与扩展生态](chapters/11-extensions.md) | build-with-agent-skills;扩展四系:apps/auth/skills/tasks | 中 |
 | [第 12 章 企业落地路线图](chapters/12-adoption-roadmap.md) | 四阶段、组织分工、成本模型、反模式、决策树 | 中 |
 
-> 12 章初稿全部完成(2026-10-24 成稿,2026-10-27 全书统一编号体系、修复章节重排后的引用残骸、全角标点与文风统一);发布前按各章复核清单收尾。
+> 12 章全部成稿(2026-10-24 成稿,2026-10-27 全书统一修订);剩余欠账见顶部状态行。
 
 ---
 

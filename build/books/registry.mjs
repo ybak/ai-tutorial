@@ -21,7 +21,7 @@ export const PLANNED_BOOKS = [
   {
     bookId: 'ragflow',
     status: 'planned',
-    title: 'RagFlow:从入门到进阶',
+    title: 'RAGFlow:从入门到进阶',
     tagline: 'RAG 引擎实战,从搭建知识库到生产级检索调优',
   },
   {
