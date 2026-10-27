@@ -1,7 +1,7 @@
 /**
  * ragflow.mjs — 《RAGFlow:从入门到进阶》书配置
  *
- * 第三本立项书(书架第三格,2026-10-27 立项)。结构与 mcp.mjs 一致:
+ * 第三本 published 书(书架第三格,2026-10-27 立项并成稿)。结构与 mcp.mjs 一致:
  * - book:书级元数据 + 渲染层文案字段 + chaptersDir/assetsDir 等路径约定
  * - book.PARTS:4 篇 13 章(基于官方文档撰写的对照书,sources 记录各章
  *   对应的官方仓库 docs/ 路径,供溯源与未来 --check 用)
@@ -9,14 +9,12 @@
  * - book.EXCLUDED_SOURCES:空
  * - legacyRootChapters: false(本仓库新增的书,不拥有旧站点根 chapters/ 路径)
  *
- * ⚠️ 当前 status: 'planned',未在 registry.mjs 中 import——成稿并完成全链路
- * 预演后,升 'published' 并 import 进 BUILDABLE_BOOKS(参照 mcp 书流程)。
  * 版本基线:官方 docs v1.0.0-rc2(2026-10-16),核实日期 2026-10-27。
  */
 
 export const book = {
   bookId: 'ragflow',
-  status: 'planned',
+  status: 'published',
   title: 'RAGFlow:从入门到进阶',
   subtitle: '从搭建知识库到生产级检索调优',
   date: '2026-10-27',
@@ -28,6 +26,7 @@ export const book = {
   chaptersDir: 'books/ragflow/chapters',
   assetsDir: 'books/ragflow/assets',
   demoGithubBase: 'https://github.com/ybak/ai-tutorial/blob/main/books/ragflow/demo/',
+  pdfFileName: 'RAGFlow-从入门到进阶.pdf',
   legacyRootChapters: false,
 };
 

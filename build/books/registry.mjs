@@ -12,18 +12,13 @@
 
 import { book as agentscopeJava } from './agentscope-java.mjs';
 import { book as mcp } from './mcp.mjs';
+import { book as ragflow } from './ragflow.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
-  {
-    bookId: 'ragflow',
-    status: 'planned',
-    title: 'RAGFlow:从入门到进阶',
-    tagline: 'RAG 引擎实战,从搭建知识库到生产级检索调优',
-  },
   {
     bookId: 'copilotkit',
     status: 'planned',
