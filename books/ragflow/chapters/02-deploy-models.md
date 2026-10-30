@@ -10,20 +10,17 @@ source: docs/quickstart.mdx
 
 ```mermaid
 flowchart LR
-    A["现状<br/>一台装好 Docker 的机器<br/>三份售后种子文档"] --> B["部署与模型通道<br/>容器族 · 配置体系 · 模型接入"]
-    B --> C["容器族拓扑<br/>nginx 入口 + 检索/元数据/存储/缓存/队列"]
-    B --> D["Docker Compose 部署<br/>vm.max_map_count → clone → up → healthz 200"]
-    B --> E["配置体系<br/>.env 管部署面 · service_conf.yaml.template 管服务面"]
-    B --> F["模型通道<br/>七类角色：起步只需 chat + embedding<br/>在线 API key 或本地 Ollama/vLLM"]
-    B --> G["首条链路验证<br/>建数据集 → 上传 → 解析 → 助手 → 提问"]
-    C --> H["收益<br/>服务健康、模型验证通过<br/>after-sales-policy.pdf 问答带引用可溯源"]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
+    A["五步启动容器族（2.2）<br/>max_map_count → clone → up -d<br/>tag 与 RAGFLOW_IMAGE 必须一致"] --> B["healthz 200 后再登录（2.2）<br/>改 .env → 全栈重启 → 复查（2.3）<br/>避开解析窗口"]
+    B --> C{"接入模型（2.4）<br/>按模型来源选路线"}
+    C -->|"在线 Provider"| D["建 Provider 实例（2.4.2）<br/>填 API Key 与 Base URL<br/>测试与生产分开建实例"]
+    C -->|"本地 · 内网或省费用"| E["Ollama / vLLM 起服务（2.4.3）<br/>容器内 localhost 不是宿主机<br/>Base URL 用 host.docker.internal"]
+    D --> F["验证后设默认模型（2.4.2）<br/>Default LLM 与 Default embedding<br/>rerank 留给第 7 章"]
+    E --> F
+    F --> G["建数据集、上传并解析（2.5）<br/>embedding 选定是单向门（2.4.4）<br/>after-sales-policy.pdf（50 页）"]
+    G --> H["建售后助手提问验收（2.5）<br/>Empty response 必设<br/>带引用可溯源 · 建库见第 3 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

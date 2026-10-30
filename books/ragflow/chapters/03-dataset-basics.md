@@ -10,22 +10,15 @@ source: docs/guides/dataset/dataset_overview.md
 
 ```mermaid
 flowchart LR
-    A["第 2 章成果<br/>RAGFlow 已部署，模型通道打通"] --> B["第 3 章 数据集<br/>知识库的载体"]
-    B --> C["认识数据集<br/>不只是文件夹：<br/>切片化·启用状态·元数据·供数"]
-    B --> D["创建 after-sales-kb<br/>基本信息五件套<br/>embedding 选型：准不可逆"]
-    B --> E["文档接入四条路<br/>手动上传·文件管理<br/>数据源·API（第 11 章）"]
-    B --> F["数据源与同步<br/>七类选型·刷新间隔<br/>同步删除·连接日志"]
-    B --> G["元数据规划<br/>文档类型·生效日期·适用站点<br/>支撑过滤与检索限域"]
-    B --> H["数据集页五入口<br/>File list·Retrieval Testing<br/>Artifacts·Logs·Configuration"]
-    C --> I["收益<br/>文档进得来·更新跟得上<br/>检索滤得准·后续章节有落点"]
-    D --> I
-    E --> I
-    F --> I
-    G --> I
-    H --> I
+    A["创建并配置数据集（3.2 · 3.5）<br/>embedding 选型准不可逆<br/>元数据字段先规划"] --> B{"批量接入文档（3.3）<br/>按更新频率选路线"}
+    B -->|"低频 · 季度级"| C["政策手册 · 物流公告<br/>手动上传——改版先评审再入库"]
+    B -->|"高频 · 每周"| D["商品 FAQ（钉钉 AI 表格）<br/>建连接并启动同步（3.4）"]
+    C --> E["解析生成切片<br/>文件页点 Run（第 4 章）"]
+    D --> E
+    E --> F["检索测试验证召回（3.6）<br/>完整调优见第 7 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 
@@ -318,4 +311,4 @@ flowchart LR
 - [ ] 在线表格类数据源接入实测：创建连接 → Test connection → Link data source → 首次同步 → 增量刷新与同步删除；
 - [ ] Auto Metadata 的 Generation 字段实际生成效果与 Built-in(update_time / file_name）实测；
 - [ ] 文件管理单文件关联「替换」语义与批量「追加」语义实测；
-- [ ] 章首导览图 GitHub 网页端渲染检查。
+- [ ] 章首操作流程图 GitHub 网页端渲染检查。

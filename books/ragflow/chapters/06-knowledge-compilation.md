@@ -10,20 +10,18 @@ source: docs/guides/knowledge_compilation/overview.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>切片能答「点」上的问题<br/>答不了「面」上的问题"] --> B["第 6 章 知识编译与知识工件<br/>模板 · 配置 · 应用 · 消费"]
-    B --> C["总览<br/>五步工作流 · 三大概念<br/>Compiler 挂进 Pipeline"]
-    B --> D["选模板<br/>Graph · Tree · PageIndex<br/>MindMap · Timeline · Wiki"]
-    B --> E["专属配置<br/>全局规则 · 实体/关系规格<br/>聚类参数 · Blueprint"]
-    B --> F["应用与管理<br/>基础信息 · Pipeline 引用<br/>Artifacts 查看 · Update 同步"]
-    B --> G["贯穿案例<br/>售后手册生成导航工件<br/>客服 Agent 先目录后下钻"]
-    C --> H["收益<br/>结构化知识工件<br/>给 Agent 的「面」级上下文"]
-    D --> H
-    E --> H
-    F --> H
+    A["在 Agent 页创建编译模板（6.2 · 6.4）<br/>Compilation Operator 入口<br/>六项基础信息与全局规则"] --> B{"模板怎么选（6.3）<br/>组织方式与文档结构同构"}
+    B -->|"手册/规范 · 保章节结构"| C["PageIndex（6.3 · 6.7）<br/>title/fact/conclusion 三字段<br/>表格多开 Re-chunk"]
+    B -->|"实体关系 · 互链知识页"| D["Graph 建关系网 · Wiki 建互链页（6.3）<br/>实体/关系规格按业务裁剪"]
+    C --> E["Pipeline 挂 Compiler 引用模板（6.4）<br/>Dataset 选文档应用 Pipeline<br/>Parser→Chunker→Compiler→Indexer 依次完成"]
+    D --> E
+    E --> F{"工件分两级（6.5）<br/>文档级还是知识库级"}
+    F -->|"文档级 · 编译即得"| H["Artifacts 页下拉查看（6.5）<br/>对照六类检查表验收<br/>检索效果第 7 章过堂"]
+    F -->|"知识库级 Wiki"| G["Artifacts 页手动 generate（6.5）<br/>库级任务有独立日志"]
     G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,18 +10,17 @@ source: docs/guides/search/create_search.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>知识库建好、助手调好<br/>但用户还在墙外"] --> B["第 9 章 搜索应用与接入渠道<br/>知识的三种出口"]
-    B --> C["Search 应用<br/>检索式搜索页<br/>找原文 · 查出处"]
-    B --> D["Chat Channel<br/>接进第三方 IM<br/>飞书 · 企微 · Discord 等"]
-    B --> E["网页嵌入<br/>Fullscreen / Floating widget<br/>把助手或 Agent 嵌进站点"]
-    B --> F["贯穿案例<br/>售后助手三路发布<br/>帮助中心 · 客服工作台 · 内部检索"]
-    C --> G["收益<br/>知识有出口 · 场景有归宿<br/>选型有据"]
-    D --> G
-    E --> G
-    F --> G
+    A{"为发布需求选形态（9.1）<br/>按用户是谁、在哪、要什么"}
+    A -->|"要原文与出处"| B["内部检索入口（9.2 · 9.5）<br/>五步创建 Search，绑 after-sales-kb<br/>开切片元数据 · 向量权重调低"]
+    A -->|"用户在 IM 里"| C["客服工作台（9.3 · 9.5）<br/>建飞书渠道：AppID + AppSecret<br/>Domain 选 Feishu(mainland)"]
+    A -->|"用户在自有网页上"| D["帮助中心页（9.4 · 9.5）<br/>取 API key，选浮窗或整页<br/>勾 Published 再复制 Embed code"]
+    C --> E["连接「售后助手」，发测试消息（9.3）<br/>无回复按四查排查<br/>连接 → bot 在线 → 权限 → Chat"]
+    B --> F["三路发布完成（9.5）<br/>逐出口验证：发消息 · @bot · 跑测试问题集<br/>知识底座改一处全生效 · 运维见第 12 章"]
+    D --> F
+    E --> F
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

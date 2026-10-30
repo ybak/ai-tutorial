@@ -10,20 +10,18 @@ source: docs/guides/dataset/configuration.md
 
 ```mermaid
 flowchart LR
-    A["第 4 章产出<br/>Parser + Chunker 切好片"] --> B["第 5 章 检索增强与索引<br/>Extractor 补语义 · Indexer 定索引"]
-    B --> C["自动关键词<br/>加语义线索"]
-    B --> D["自动问题 + 标签<br/>问法对得上 · 分类滤得动"]
-    B --> E["增强上下文<br/>切片脱离原文仍可懂"]
-    B --> F["Auto Metadata<br/>Generation + Built-in"]
-    B --> G["Indexer 策略<br/>检索方式 · 文件名权重 · 索引字段"]
-    C --> H["收益<br/>召回对得上 · 成本算得清<br/>第 7 章测试验证"]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
+    A["选定 Extractor 模型（5.2）<br/>便宜、快、中文稳即可"] --> B{"按文档形态选增强项（5.8）<br/>哪类失败模式补哪项"}
+    B -->|"问法不匹配"| C["FAQ 开自动问题（5.3 · 5.7）<br/>每片 2-3 条 · 索引字段换 Questions"]
+    B -->|"缺独立背景"| D["政策手册开增强上下文（5.5）<br/>为条款补上章节背景"]
+    B -->|"词不匹配"| E["物流公告开自动关键词（5.2）<br/>补「时效/线路」类语义锚点"]
+    C --> F["配 Auto Metadata（5.6）<br/>Generation 三字段定值域<br/>Built-in 两个顺手开"]
+    D --> F
+    E --> F
+    F --> G["定 Indexer 策略（5.7）<br/>双路 + Processed text 起步<br/>文件名有语义才调高"]
+    G --> H["重解析使新配置生效（5.6 · 5.8）<br/>逐项加，一次只动一处<br/>检索测试见第 7 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

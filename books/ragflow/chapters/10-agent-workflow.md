@@ -10,16 +10,17 @@ source: docs/guides/agent/agent_overview.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>助手能答疑,流程办不了事"] --> B["Agent 与工作流<br/>画布 · 组件 · 变量 · 管线 · 记忆"]
-    B --> C["10.1 画布模型<br/>节点+边+变量,与助手分工"]
-    B --> D["10.2 画布速览<br/>创建 · 连接 · Run 调试 · Publish"]
-    B --> E["10.3 组件族地图<br/>对话·数据·流程·工具四族"]
-    B --> F["10.4 摄取管线<br/>Parser 到 Indexer,test run"]
-    B --> G["10.5 记忆<br/>写回会话,检索历史"]
-    B --> H["10.6 贯穿案例<br/>售后客服 Agent 逐节点走查"]
+    A["Agent 页创建空白 Workflow 画布（10.2）<br/>Begin 唯一不可删,先配 Begin 再接组件"] --> B["Begin 配触发模式与开场白（10.3）<br/>按四族选组件,变量经选择器插引用<br/>确定性 Switch,语义 Categorize"]
+    B --> C{"解析能对号入座内建 11 种？（10.4）"}
+    C -->|"能对号入座"| D["不上管线,内建方法即选即用（第 4 章）"]
+    C -->|"还差一步加工"| E["建摄取管线（10.4）<br/>Parser→Chunker→Transformer→Indexer<br/>过 Checklist,先 test run 后全量"]
+    D --> F["创建 Memory 并双向接入（10.5）<br/>Message 挂 Save to Memory 写回<br/>Retrieval source 选 Memory 读出"]
+    E --> F
+    F --> G["搭售后客服 Agent（10.6）<br/>Categorize 读 sys.query 意图分流<br/>产品咨询答问 · 安装预约登记工单"]
+    G --> H["Run 三问走查通过后 Publish（10.2 · 10.6）<br/>与第 8 章助手并存,同一知识库两个入口<br/>对外暴露经 API 与 MCP（第 11 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,22 +10,18 @@ source: docs/administrator/setup/configuration.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>单机试跑可用,生产六问未答"] --> B["生产运维<br/>配置 · 可观测 · 备份 · 升级 · 管理面 · 沙箱"]
-    B --> C["12.2 生产配置<br/>.env 与 service_conf 要点 · SSL 入口"]
-    B --> D["12.3 可观测<br/>Langfuse tracing 接入"]
-    B --> E["12.4 备份与恢复<br/>八类持久数据 · 恢复演练"]
-    B --> F["12.5 升级与迁移<br/>检查点路线 · 不可逆边界"]
-    B --> G["12.6 CLI 与 Admin UI<br/>巡检 · 用户 · 系统状态"]
-    B --> H["12.7 沙箱与安全面<br/>Code 组件隔离 · 安全清单"]
-    C --> I["收益<br/>after-sales-kb 敢全员上线<br/>故障有据 · 升级有路 · 代码有笼"]
-    D --> I
-    E --> I
-    F --> I
-    G --> I
-    H --> I
+    A["收紧生产配置（12.2）<br/>关闭注册 · SSL 持久挂载<br/>改模板重启全容器生效"] --> B["tracing 进 Langfuse（12.3）<br/>租户级配好三元组<br/>上线当天产出首批 trace"]
+    B --> C["备份并演练恢复（12.4）<br/>八类持久数据 + 配置证书<br/>独立环境走通登录验证"]
+    C --> D{"当前部署还在 v0.x？"}
+    D -->|"是 · 逐级升"| E["v0→v1 检查点迁移（12.5）<br/>每个检查点启动并验证<br/>v0.27.2→v1.0.0-rc1 不可逆"]
+    D -->|"否 · 已在 v1.x"| F{"画布是否用 Code 组件？"}
+    E --> F
+    F -->|"是"| G["配置沙箱 provider（12.7）<br/>私有部署选 Self-Managed<br/>Test connection 通过再 Save"]
+    F -->|"否 · 暂不配"| H["过生产化检查表上线（12.6 · 12.8）<br/>CLI 与 Admin UI 每日巡检<br/>八项核销 · 第 13 章运营接棒"]
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

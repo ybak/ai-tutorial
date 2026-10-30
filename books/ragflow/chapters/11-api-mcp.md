@@ -10,18 +10,15 @@ source: docs/references/http_api_reference.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>能力锁在 RAGFlow 界面里"] --> B["对外集成:API 与 MCP<br/>三层开放面 · 双向 MCP"]
-    B --> C["HTTP API<br/>全功能 RESTful · 域分组导航"]
-    B --> D["Python SDK<br/>端点同构封装"]
-    B --> E["作为 MCP Server<br/>知识库暴露为 Agent 工具"]
-    B --> F["作为 MCP Client<br/>外部工具挂进画布 Agent"]
-    C --> G["收益<br/>脚本可自动化 · 后端可嵌入<br/>平台 Agent 可复用知识库"]
-    D --> G
-    E --> G
-    F --> G
+    A["生成 API Key（11.2）<br/>头像 → API 页生成并复制<br/>请求统一带 Bearer 头"] --> B["走通四步链路（11.3.1 · 11.4）<br/>建库 parse_type 必填 → 上传文档<br/>→ 触发解析 → 检索测试"]
+    B --> C{"按消费方选开放路径（11.7）"}
+    C -->|"外部 Agent 自主查库"| D["作为 MCP Server 暴露知识库（11.5）<br/>内置路由或 9382 监听器<br/>多人接入选 host 模式"]
+    D --> E["tools/list 发现三个只读工具<br/>Agent 循环自主调 ragflow_retrieval<br/>（11.5.3 · 11.7 路线 A）"]
+    C -->|"自有后端确定性流程"| F["后端直连 /api/v1/retrieval<br/>元数据过滤等全量参数（11.3.2）<br/>返回 chunks 与聚合计数（11.7 路线 B）"]
+    C -->|"画布 Agent 调外部工具"| G["User settings → MCP → Add MCP（11.6）<br/>仅支持 Streamable HTTP 与 SSE<br/>测试通过且发现工具才可保存"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,19 +10,17 @@ source: docs/guides/dataset/configuration.md
 
 ```mermaid
 flowchart LR
-    A["现状<br/>文档上传了，却切不出好 Chunk"] --> B["解析与切片<br/>选型 · Parser · Chunker · 治理"]
-    B --> C["方法选型<br/>11 种内建方法<br/>素材形态优先"]
-    B --> D["Parser 配置<br/>按格式定策略<br/>视觉模型的收益与成本"]
-    B --> E["Chunker 配置<br/>General 参数<br/>Title 两模式"]
-    B --> F["列角色与治理<br/>Indexing / Metadata / Both<br/>chunk 管理页"]
-    B --> G["贯穿案例<br/>政策手册 · FAQ · 公告<br/>三份文档三套方案"]
-    C --> H["收益<br/>Chunk 切得准<br/>检索才有得查"]
-    D --> H
-    E --> H
-    F --> H
+    A["数据集配置页选解析类型（4.2）<br/>拿不准先走 Built-in，Pipeline 见第 10 章<br/>先传样本跑检索测试再全量"] --> B{"选定切片方法（4.2）<br/>素材形态优先，选错安静切坏"}
+    B -->|"章节结构 · 条款类"| C["售后政策手册：Manual（4.4 · 4.7.1）<br/>Title 选 Hierarchy · 标题正则配全<br/>表上下文窗口 · 无边框表上视觉模型"]
+    B -->|"XLSX 问答表"| D["商品 FAQ：Table（4.5 · 4.7.2）<br/>通常每行一片 · 列角色走 Manual<br/>问题 Both · 答案 Indexing · 类目/时间 Metadata"]
+    B -->|"短文档公告"| E["物流时效公告：General / Email（4.3 · 4.7.3）<br/>HTML 去目录去页眉页脚<br/>默认 512 起步 · 多载体只留一份主源"]
+    C --> F["解析完成后进 chunk 管理页（4.6.1）<br/>逐片抽查 · 修正 · 过时片停用<br/>改配置不追溯，须重新解析（4.6.3）"]
+    D --> F
+    E --> F
+    F --> G["检索测试验证切片质量（第 7 章）<br/>管线后两段 Extractor · Indexer 见第 5 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 
@@ -431,4 +429,4 @@ Title Chunker 从标题层级识别文档结构并组织切片，提供 **Hierar
 - [ ] 「切片方法 ↔ Chunker 配置组的对应关系」(如 Manual/Book/Laws 是否对应 Title Chunker)官方文档未明说，以界面实测确认
 - [ ] Table 方法「每行一片」遇超长行(>512 tokens)的切分行为，以界面实测确认
 - [ ] 贯穿案例三份文档实际制作并上传解析，验证标题正则与列角色方案
-- [ ] 章首导览图与 4.1 管线图在 GitHub 网页端原生渲染检查
+- [ ] 章首操作流程图与 4.1 管线图在 GitHub 网页端原生渲染检查
