@@ -176,6 +176,12 @@ api "$SERVICE_URL/api/v1/agent-sessions/$SESSION_ID/snapshot"
 
 Service 在后台派发 Leader 和成员任务，并将它们的进度整理到这个 Turn。应用用 Session 快照恢复页面，再订阅事件；根 Turn 的状态用于判断团队是否完成，而不是任意一个成员的完成通知。需要进一步诊断时，可以从控制台进入关联的 Issue、Run 和执行图。人工分派与验收仍可使用任务管理（见第 33 章），但应用调用无需自行创建这些内部记录。
 
+这组命令真实跑起来是什么样子？2026-10-31，我们在本地 agentscope-service 栈（aistio 0.2.0，模型走 glm-5.3-flash 的 merchant-gateway 自有通道）按本节流程实测了一支结构相同的最小团队——跨境电商场景下的客服团队，Leader 是客服专员，成员是物流专员：
+
+![实测终端中的 Team 编排：创建客服团队、物流专员入队、派发升级工单，Lead Agent 启动协作 attempt](../assets/images/demo/term-04-team.png)
+
+截图中，升级工单派发为 backlog 状态的 Issue 和 queued 状态的 Task，Lead Agent 随后启动协作 attempt 并注入协作 MCP 工具；task 显示 running、issue 显示 in_progress 只说明执行已启动——正如截图里那行提示，团队业务是否完成，仍要看根 Turn 的终态与验收。
+
 ### 调整成员与协作方式
 
 读取 `GET /api/v1/teams/{teamId}` 获得完整配置。新增成员调用 `POST /api/v1/teams/{teamId}/members`，请求体包含 `agentId`、`role` 和可选 `instructions`；服务返回的 `member.id` 用于后续成员更新与移除。
@@ -224,7 +230,7 @@ Runtime Host 在任务执行中注入范围凭据和上下文。支持 Shell 的
 
 恢复依赖持久工作和执行状态；Runtime fresh fallback 重建上下文，不迁移旧进程。排障时沿 Issue → Run → Node → Task → Attempt 检查：未派发看就绪度与策略，执行卡住看后端与确认请求，交付未结束看成员义务和协调节点状态。
 
-> **延伸阅读**：Team 的管理 API 全表、字段与策略参数、业务协作 API、Runtime Host 协作命令与执行回报协议，见本章末"参考速查"；页面操作与诊断见第 33 章"配置 Team 与 Workflow"与"分派、跟进与验收工作"。
+> **延伸阅读**：Team 的管理 API 全表、字段与策略参数、业务协作 API、Runtime Host 协作命令与执行回报协议，见本章末“参考速查”；页面操作与诊断见第 33 章“配置 Team 与 Workflow”与“分派、跟进与验收工作”。
 
 ## 编排 Workflow
 
@@ -276,6 +282,12 @@ TURN_ID=$(jq -er '.id' <<<"$turn")
 
 保存 Session ID 和 Turn ID，后续查询、审批和取消都围绕这两个资源进行。Service 会自动建立流程执行与工作记录。重试同一任务时沿用相同幂等键；新任务使用新的 key。
 
+这套步骤在实测中跑通的是一条“research 研究、signal 等待放行”的两节点流水线，节点与正文示例的“draft、review”不同，骨架完全一致：
+
+![实测终端中的 Workflow 编排：校验并发布不可变 revision，启动 Run，research 节点成功后由 release 信号放行至成功终态](../assets/images/demo/term-05-workflow.png)
+
+从定义、draftSpec 校验、发布不可变 revision，到启动 Run、research 节点成功、等待外部信号、放行后进入成功终态，一条链完整可见；正文强调“修改草稿不会改变已经开始的执行”，固化的正是截图里这个 revision。
+
 ### 跟进节点、输出与审批
 
 ```bash
@@ -286,6 +298,12 @@ api "$SERVICE_URL/api/v1/agent-sessions/$SESSION_ID/snapshot"
 Turn 详情返回当前任务状态、结果和失败原因；Session 快照用于恢复应用界面。需要实时展示时，按照第 31 章"SSE 与事件续传"从快照游标订阅增量事件。只有诊断流程内部节点时，才需要从控制台查看关联 Run 的执行图。
 
 review 节点会出现在 Turn 的 required_actions 中。指定审批人使用自己的平台 token，向该 Turn 的 `/actions` 提交实际的 `request_id`、`expected_version` 和 `decision`。审批通过后流程继续，应用密钥不能替代指定人员的身份。
+
+审批与版本控制在实测里的表现如下：一条挂在工作工单上的审批创建后初始 version 为 1，由指定审批人 admin 批准；紧接着再提交一次相同的决批请求：
+
+![实测终端中的人工审批：admin 批准后，重复决批被 HTTP 409 乐观锁拒绝，审批结论同步回商家工单](../assets/images/demo/term-07-approval.png)
+
+第二次决批被 HTTP 409 拒绝，原因正是正文强调的 expected_version 乐观锁——已决事项不允许被携带过期版本的请求改写；批准结论随后同步回商家工单，等待方据此继续推进。
 
 ### 逐步增加流程能力
 

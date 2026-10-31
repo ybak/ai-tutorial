@@ -1026,3 +1026,9 @@ HarnessAgent.builder()
 ## 配套动手实验
 
 跨境电商 Demo 的 [Step 11：Workspace 文件与版本绑定](../demo/cross-border-commerce/steps/step-11-workspace.md) 提供当前本地 Service 源码对应的教程与脚本。配置层与运行层分开验收，实际验证范围见该节末尾。
+
+Step 11 的操作会落到控制台的 Workspaces 资源页。这张截图出自 2026-10-31 的本地实测——agentscope-service 全栈（aistio 0.2.0）跑在本机，模型走 glm-5.3-flash 的自有通道：
+
+![控制台 Workspaces 资源页：海岸优品空间下的 xbd-seashore-workspace-lab（v3，含 AGENTS.md），即 Step 11 创建的实验工作区](../assets/images/demo/console-13-workspaces.png)
+
+列表里的 `xbd-seashore-workspace-lab` 就是 Step 11 创建的实验工作区——已发布到 v3，携带 AGENTS.md。页面把工作区说成「写好技能、工具、子代理与 AGENTS.md，再链接给 Agent」的可复用容器，与本章把静态资产收进工作区目录的思路一致。

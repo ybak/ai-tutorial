@@ -109,6 +109,12 @@ Compose 会自动拉取镜像并启动数据库和全部 Service 组件。命令
 
 首次部署使用用户名 **`admin`**，密码是 `.env` 中 **`CONTROL_PLANE_BOOTSTRAP_PASSWORD`** 的值。登录后在 **Profile** 中修改密码——这是平台第一个、也应该是短命的系统账号，下一节讲权限时你会明白为什么日常要用独立账号。
 
+这一步在真实部署里是这样的：2026-10-31 实测于本地 agentscope-service 栈（aistio 0.2.0），模型走 glm-5.3-flash 自有通道（见第 21 章）——下图就是那次初始化的终端实录。
+
+![终端实录：平台初始化输出控制面版本 v1alpha1 与 0.2.0，admin 完成首次登录，日常账号 alice、bob 相继登录并确认作用域](../assets/images/demo/term-01-platform-init.png)
+
+画面里 `admin` 只出现在初始化阶段，之后的日常操作交给 `alice`、`bob` 两个账号，作用域确认保证每个请求都落在正确的空间里。
+
 ### 第 4 步：创建第一个 Agent 并对话
 
 打开 **Design → Agents → New agent**，填写名称（例如 `notes-assistant`）和 **Instructions**，将 **Runtime** 选择为 **AgentScope Managed**，然后点击 **Create & open agent**。**Model** 留空即可使用刚才配置的默认模型。
@@ -116,6 +122,12 @@ Compose 会自动拉取镜像并启动数据库和全部 Service 组件。命令
 在 Agent 详情页进入 **Connections → Session API**，填写 **Task message**（例如"把这段会议记录整理成待办：小李周五完成安装说明，下周一评审"），点击 **Create Session and submit**。首次体验可将 **Application API key** 留空，使用当前登录身份。等待一会儿，你会看到 Agent 的回复出现——模型调用成功，平台可用了。
 
 > **✅ 验收点**：你能在浏览器里看到 `notes-assistant` 对那条会议记录的整理结果。完整的 Console 页面导览见第 33 章"可视化 Console"。
+
+同一次实测里，登录后的控制台工作台如下——当前空间为海岸优品，页面汇总了空间内的 Agent、会话等工作台入口。
+
+![控制台工作台总览页：海岸优品 namespace 的概览，汇总空间内 Agent、会话等资源入口](../assets/images/demo/console-02-overview.png)
+
+实测环境把业务空间命名为"海岸优品"（跨境电商 demo 的演示数据）；你自己的安装里对应的就是选定的那个空间——布局相同，数据各异。
 
 ## 刚才发生了什么：一次调用背后的组件与概念
 

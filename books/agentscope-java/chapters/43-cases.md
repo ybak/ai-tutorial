@@ -41,6 +41,12 @@ flowchart TD
 
 *图 43-1：以商家资源归属为基础，把单个 Agent 扩展为可协作、可发布、可治理的平台。*
 
+这套资源规划落到控制台上，就是商家 namespace 的工作台。2026-10-31 从 Step 01 顺跑至 Step 13 后，切到海岸优品 namespace，Overview 页如下——
+
+![控制台 Overview 工作台：海岸优品 namespace 下 Open issues 2、Teams 1，Recent issues 列出客服团队与物流专员各自名下的订单 OD-2049 工单，均为 In Progress](../assets/images/demo/console-02-overview.png)
+
+两张进行中工单正是上方参与方表的分工痕迹：“售后升级：订单 OD-2049 客户投诉物流延迟”挂在 `xbd-seashore-cs-team` 名下，“核实订单 OD-2049 物流实际状态（客户第三次催单）”由海岸优品·物流专员认领——客服与物流两个角色的协作，在运营视图里留下的是同一 namespace 下的两张工单。
+
 完成本章学习后，你应能解释四种边界：**谁能访问资源、Agent 使用什么材料、工具在哪里执行、模型请求发往哪里**。它们分别由身份与 namespace、Workspace、Environment 和模型通道承担，不能靠一个“商家 ID”或一段提示词全部解决。
 
 ## 43.2 先搭实验环境，再选择学习路线

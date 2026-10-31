@@ -68,6 +68,12 @@ OpenAIChatModel model = OpenAIChatModel.builder()
 
 OpenAI 兼容端点（DeepSeek、GLM、Kimi、MiniMax 等）也使用这个模块，各自使用独立 provider 前缀、默认 endpoint 与专属 formatter——你自己的兼容网关同样可以走这条路（formatter 与 transport 的定制点见第 6 章）。
 
+“自己的网关”走通之后是什么形态？跨境电商 Demo 的 Step 13 给了一个实测样本：把一个 Chat Completions 兼容的自有网关注册为 Dataplane 内的平台别名，再把别名写进 Agent definition 的 model 字段。配置回读如下——
+
+![终端实录：Step 13 配置回读，工作区实验 Agent 的 definition 中 model 字段为别名 merchant-gateway，并绑定 workspaceId 与 defaultEnvironmentId](../assets/images/demo/term-08-model-channel.png)
+
+`model` 的值不再是 `provider:<model>` 形式的模型 id，而是 Dataplane 里注册的别名 `merchant-gateway`——对 Agent 侧而言，换模型通道只是换这个字符串，workspace 与 environment 的绑定一并构成运行配置。2026-10-31 实测于本地 agentscope-service 栈，该别名指向 glm-5.3-flash 的自有通道，文本与工具调用均真实走通。
+
 完整 builder 选项、formatter、credential 和 registry context 细节、模型创建方式与高级 registry 行为见第 6 章；各提供商的逐步配置见在线文档 `docs/integration/model/` 对应小节（每家固定四段：依赖 / 获取凭据 / 配置示例 / 专属说明）。
 
 ## 本章小结

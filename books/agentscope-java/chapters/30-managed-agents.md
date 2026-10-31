@@ -29,6 +29,10 @@ flowchart LR
 
 上一章你已经用 Console 完成过一次"创建 Agent—提交任务—收到回答"。本节用 curl 重做一遍，并多走一步：让 Agent 把整理结果写入文件、再读回来核对——工具是否真正执行，要以文件内容为准。用 curl 创建的是一个基于 HarnessAgent 的托管 Agent，让它整理会议记录、写入文件并读取核对。Service 负责运行 Agent，你只需配置它并通过 Session API 提交任务。
 
+先看目标长什么样：实测环境的海岸优品空间下已经运行着四个托管 Agent——客服、物流、选品与工作区实验，都集中在 Design → Agents 页面里。本节用 curl 创建的"资料助手"与它们是同一类运行形态，差别只在指令、模型与工具配置——这正是接下来几步要配置的内容。
+
+![控制台 Agent 列表页：海岸优品 namespace 下列出客服专员、物流跟踪、选品助手、工作区实验四个托管 Agent](../assets/images/demo/console-03-agents-hub.png)
+
 从创建配置到提交任务的整体流程如图 30-1 所示。
 
 ```mermaid
@@ -83,6 +87,10 @@ curl -sS --fail-with-body "$BASE_URL/api/v1/me/namespaces" \
 ```
 
 从结果中选择一个空间，将它的 `tenant` 和 `name` 分别填入前面的 `TENANT` 和 `NAMESPACE`。平台 token 用于管理资源；应用调用凭据见第 31 章"通过 Session API 接入应用"。
+
+空间选错会发生什么？实测脚本做过一轮隔离断言：跨 namespace 与跨租户访问对方资源，九项请求全部返回 404——边界不是提示，而是硬隔离。所以填入 `TENANT` 与 `NAMESPACE` 时要用资源所在的空间，本章后面的每一个请求都携带这对值。
+
+![终端实录：Step 05 隔离断言输出，跨 namespace 与跨租户的九项资源访问请求全部返回 404](../assets/images/demo/term-03-isolation.png)
 
 ### 1. 创建执行环境
 
@@ -266,6 +274,12 @@ curl --fail-with-body -sS -X PATCH "$BASE_URL/api/v1/agents/$AGENT_ID/definition
 ```
 
 有 Workspace 绑定时，指令和工具覆盖还需遵循 `workspaceBinding.overrides` 与 `instructions` 的规则。Agent key 是目录中的稳定身份，不通过改显示名称来迁移。
+
+这套定义在 Console 里对应 Agent 详情页：实测环境中的客服专员详情页，左侧是定义信息，右侧是行为配置——指令、工具与权限一目了然。
+
+![Agent 详情页：客服专员托管 Agent 的定义与行为配置，含系统指令、工具开关与运行配置](../assets/images/demo/console-04-agent-detail.png)
+
+页面表单与 API 字段一一对应；无论从页面还是 PATCH 提交，保存的都是同一份定义版本。
 
 ### 默认模型与显式模型
 

@@ -350,3 +350,9 @@ Sandbox 内对文件的修改不会反向同步回宿主——你想取沙箱里
 ## 配套动手实验
 
 跨境电商 Demo 的 [Step 12：Environment 与阿里云沙箱](../demo/cross-border-commerce/steps/step-12-sandbox.md) 提供当前本地 Service 源码对应的教程与脚本：通过控制面把 `type=sandbox` 环境直配为阿里云沙箱（E2B 兼容 API，`config.apiKey` 下发，Dataplane 零配置），并以两个真实会话验收文件执行与 SESSION 隔离。配置层与运行层分开验收，实测范围见该节末尾。
+
+Step 12 要配的 Environment，在控制台里就是 Environments 资源页——下图来自 2026-10-31 那轮本地全栈实测（aistio 0.2.0），当天模型走的是 glm-5.3-flash 自有通道：
+
+![控制台 Environments 页：说明环境决定托管 Agent 在哪里读文件与执行命令，可配置本地执行、远端文件系统、沙箱模板或 self_hosted Worker；下方为 local 类型的 default-local 环境与 worker 状态](../assets/images/demo/console-14-environments.png)
+
+页面上现成的 `default-local` 属于 local 类型，文件与命令直接落在部署 Dataplane 的主机上，正是第 12 章模式 3 那种宿主直读直写；要隔离执行，就按 Step 12 在这里登记 sandbox 类型环境，把文件与命令搬进隔离容器。

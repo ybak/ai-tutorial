@@ -297,6 +297,12 @@ curl -sS --fail-with-body -N -G "$SESSION_URL/events/stream" \
 
 单轮快照中的 `items`、`tools`、`required_actions`、`steps`、`artifacts` 和 `usage` 按标识组织，便于应用更新界面。Managed Session 快照同时保留完整的会话消息、子 Agent 和原生交互记录。Session 与 Turn 的全部路径见本章末"参考速查"；断线续传在下一节展开。
 
+这条路线在实测里完整跑通过一次：创建会话、提交任务、收到 48 个 SSE 事件，Turn 结束时 token 用量为输入 7202、输出 512，Agent 给出了真实可用的中文回复。
+
+![终端实录：创建会话并提交任务后，事件流累计 48 个 SSE 事件，token 用量输入 7202、输出 512，Agent 输出中文回复](../assets/images/demo/term-02-session-api.png)
+
+2026-10-31 的这轮实测同样跑在本地 agentscope-service 栈上（aistio 0.2.0），模型经 glm-5.3-flash 的自有通道接入（配置见第 21 章）。事件数与用量每次运行都会变化，你看到的数字不必与本图一致。
+
 ### 在执行中参与交互
 
 Agent 需要用户确认、补充资料或提供外部工具结果时，应用从快照中的 `required_actions` 读取待办，再向对应 Turn 的 `/actions` 提交答复。请求应包含待办的 `request_id`，需要版本校验的待办还应包含 `expected_version`。Managed Agent 的确认答复放在 `payload` 中，例如 `{"allow":true}`。涉及指定审批人的请求，应改用该用户的登录身份提交，应用 key 本身不能替他作出决定。
@@ -1149,6 +1155,12 @@ curl -sS --fail-with-body "$SESSION_URL/turns/$TURN_ID" \
 ### 3. 接到自己的页面
 
 控制台 Session 的 **Execution** 页签已经把这些交互连接起来，对应的组件是 `agentscope-service/frontend/src/components/SessionExecution.tsx`。可以先在这里提交任务、查看工具调用和回答待办，了解一次完整交互如何进行，再把相同能力接到自己的业务页面。
+
+实测中，控制台 Chat 页的一个真实会话就是这样的效果：xbd-step04-客服演示会话累计 27 条对话、48 个事件，客服专员的中文回复、工具调用与用量记录都完整可查。
+
+![控制台 Chat 页：xbd-step04-客服演示会话，27 条对话与 48 个事件，含客服专员的真实中文回复](../assets/images/demo/console-05-chat-list.png)
+
+刷新页面再进入，对话内容原样恢复——这正是本节 `mountConversation` 要实现的行为。
 
 下面的连接代码可以放在控制台的 `src/` 下，复用 `api/agentSessions.ts` 读取快照和事件，再通过 `api/agentSessionView.ts` 把事件应用到页面状态。这两个文件是控制台的客户端实现。迁移到其他应用时，还需要一并适配 `api/http.ts` 的认证依赖和会话类型，并使用自己的 Gateway 地址与登录方式。
 

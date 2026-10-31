@@ -143,6 +143,12 @@ Gateway 正常不代表模型或工具执行正常。Managed 会话故障查看 
 
 这是预期行为。`CONTROL_PLANE_BOOTSTRAP_PASSWORD` 只用于空账号表。已有账号通过 Profile 或管理员账号管理修改密码，不通过重新生成 `.env` 重置。
 
+这里的管理员账号管理，对应控制台的 Namespaces & Access → Users 页：
+
+![控制台 Users 页：admin 持有 Platform admin 角色，alice 与 bob 为普通用户](../assets/images/demo/console-16-admin-users.png)
+
+实测部署中的账号与平台角色在这一个页面集中维护；已有账号的密码在这里或账号自身的 Profile 里修改，重新生成 `.env` 只影响空账号表的初始化，不会改写图中已有的账号。
+
 ### Vault 解密失败
 
 检查恢复时是否保留了原 `BUILDER_VAULT_MASTER_KEY`，以及各组件是否一致。不要通过随意替换密钥来修复；先恢复匹配的配置与数据。
@@ -567,9 +573,15 @@ Team 和 Workflow 同样可以通过 Session API 区域创建会话并观察结�
 
 ### 定时工作、事件与消息渠道
 
-需要定期运行 Agent 或 Team 时，进入 **Work → Automations → New automation**，保存要执行的 Runbook、负责人和交付要求，并检查计划、时区与 Next runs。先保存为关闭状态，通过 **Test run** 检查实际结果，再启用规则。需要由外部事件发起工作时，可以添加 Webhook trigger，配置接收的事件类型，并按页面提供的 URL 和 secret 接入发送方。后续可以从 Webhook deliveries 和 Runs 分别检查事件接收与执行，具体规则见本章"计划与事件触发"。
+需要定期运行 Agent 或 Team 时，进入 **Work → Automations → New automation**，保存要执行的 Runbook、负责人和交付要求，并检查计划、时区与 Next runs。先保存为关闭状态，通过 **Test run** 检查实际结果，再启用规则。需要由外部事件发起工作时，可以添加 Webhook trigger，配置接收的事件类型，并按页面提供的 URL 和 secret 接入发送方。后续可以从 Webhook deliveries 和 Runs 分别检查事件接收与执行，具体规则见本章“计划与事件触发”。
 
-如果希望用户从已有消息平台提出需求，进入 **Design → Channels** 配置平台连接、凭据和路由，并完成外部平台要求的回调或事件订阅。连接显示运行中之后，还应从测试账号发起一项工作，检查消息是否被接收、是否交给正确目标，以及结果是否成功回传。当前飞书支持将消息关联为 Issue 并交给 Agent 或 Team；其他适配器的能力应分别确认，详情见第 31 章"接入消息渠道"。
+这张 Automations 页截图摄于 2026-10-31 的本地实测（agentscope-service 栈，aistio 0.2.0，模型经 glm-5.3-flash 的 merchant-gateway 自有通道调用）：
+
+![控制台 Automations 页：列出 Step 10 创建的 xbd-seashore-price-watch 规则（Paused，Last ran 22m ago），可发起 Test run](../assets/images/demo/console-12-automations.png)
+
+列表里就是 Step 10 创建的 `xbd-seashore-price-watch` 定时复核规则——处于 Paused 状态，带 1 个触发器与最近执行时间，可直接发起 Test run。页面把创建收敛为三件事——写 Runbook、选负责人、设计划或 Webhook，与 API 中 execution 和 triggers 两组字段一一对应。
+
+如果希望用户从已有消息平台提出需求，进入 **Design → Channels** 配置平台连接、凭据和路由，并完成外部平台要求的回调或事件订阅。连接显示运行中之后，还应从测试账号发起一项工作，检查消息是否被接收、是否交给正确目标，以及结果是否成功回传。当前飞书支持将消息关联为 Issue 并交给 Agent 或 Team；其他适配器的能力应分别确认，详情见第 31 章“接入消息渠道”。
 
 Console 中的规则和渠道也可以通过 API 管理，使用哪种方式取决于这次操作由人完成还是由业务系统自动完成。当前 Automation 和渠道工作路由都不能直接以 Workflow 为执行目标；已有工作也不会因为规则暂停或浏览器关闭而自动取消，需要进入相应执行记录处理。
 
