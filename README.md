@@ -9,7 +9,7 @@
 | AgentScope Java 2.0:从入门到进阶 | ✅ 已发布 | 7 篇 44 章,从第一个 Agent 到生产级 Agent 平台 | [books/agentscope-java/](books/agentscope-java/README.md) |
 | MCP:跨框架工具接入协议 | ✅ 已发布 | 4 篇 12 章,从核心协议到中台规模化 | [books/mcp/](books/mcp/README.md) |
 | RAGFlow:从入门到进阶 | ✅ 已发布 | 4 篇 13 章,从搭建知识库到生产级检索调优 | [books/ragflow/](books/ragflow/README.md) |
-| CopilotKit:从前端接入 AI Agent | 🔜 规划中 | 在前端应用中植入 copilot 体验,从组件到自治 Agent | [books/copilotkit/](books/copilotkit/README.md) |
+| CopilotKit:从前端接入 AI Agent | ✅ 已发布 | 4 篇 8 章,在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | [books/copilotkit/](books/copilotkit/README.md) |
 | Langfuse:LLM 可观测与评估 | 🔜 规划中 | LLM 应用的追踪、评估与 Prompt 管理 | [books/langfuse/](books/langfuse/README.md) |
 
 在线阅读：[ybak.github.io/ai-tutorial](https://ybak.github.io/ai-tutorial/)（书架首页，各书在 `/agentscope-java/` 等子路径下）。
@@ -20,7 +20,7 @@
 
 | 角色 | 推荐书与章节 | 对应技术域 |
 | --- | --- | --- |
-| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；前端 AI 集成 → **copilotkit** 书（规划中）；跨框架工具接入 → **mcp** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议 |
+| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；前端 AI 集成 → **copilotkit** 书；跨框架工具接入 → **mcp** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议 |
 | 测试 | **agentscope-java** 第 39 章（轨迹评估）起步；数据集与评分、Prompt 回归、幻觉检测 → **langfuse** 书（规划中） | Agent 评估、LLM 质量工程（性能压测为轻量专题，按需） |
 | 运维 | **langfuse** 书（规划中）：trace/成本监控、Prompt 版本管理与 A/B；传统运维（Prometheus/Grafana、K8s、CI/CD）团队已有基础，按需补 | LLM 可观测、评估运营 |
 | 产品 | AI 产品设计（交互模式、意图设计、badcase 管理）→ 并入 **ai-platform** 或薄册（候选池） | AI 产品设计 |
