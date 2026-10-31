@@ -1,5 +1,11 @@
 # ai-tutorial — 团队教程书架
 
+[![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=social)](https://github.com/ybak/ai-tutorial)
+
+AgentScope Java、MCP、RAGFlow、CopilotKit：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
+
+如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)。
+
 面向「跨境电商智能体多租户平台」建设的团队教程书架：多本"从入门到进阶"的完整教程书并排，每本书自包含（书稿、图片、动手 Demo 与书内文档都在自己的目录下），合在一起覆盖平台建设所需的全部技术域。
 
 ## 📚 书列表
@@ -51,7 +57,7 @@
   <img src="books/agentscope-java/assets/images/chatgroup/rednote-asj.jpg" alt="小红书「AgentScopeJava 学习群」二维码" width="360" />
 </p>
 
-如果这些书对你有帮助，欢迎点一个 ⭐ Star，或分享给身边正在做 Agent 开发的同学——这是我持续整理更新的最大动力。
+如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)，或分享给身边正在做 Agent 开发的同学——这是我持续整理更新的最大动力。
 
 ## 📄 声明
 
