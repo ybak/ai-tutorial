@@ -58,15 +58,18 @@ flowchart LR
 | **服务端中间件** | AG-UI 中间件（`agent.use`）在服务端可信环境执行，客户端篡改不了 | 日志、护栏、请求改写都挂在可信一侧 |
 | **线程与持久化** | 线程（thread）的存储由 AgentRunner 决定（5.4.3） | 「刷新页面历史还在吗」由你选的 runner 回答 |
 
-一条请求在本章之后的完整链路是：
+一条请求在本章之后的完整链路，按四种接入形态分岔（AG-UI 事件流都原路流回，图中省略）：
 
-```text
-浏览器（CopilotKitProvider）
-  → ① 浏览器 → Runtime 这一跳：POST {runtimeUrl}/agent/:agentId/run
-  → ② Runtime → Agent 这一跳：Runtime 按注册表找到 Agent 实例，把 AG-UI 输入交给它
-  → Agent（框架服务 / 进程内工厂 / 你自己的服务）
-  → AG-UI 事件流原路流回，前端组件渲染
+```mermaid
+flowchart LR
+    FE["浏览器<br/>CopilotKitProvider"] -->|"① POST /agent/:agentId/run"| RT["CopilotKit Runtime<br/>注册表按 agentId 分发"]
+    RT -->|"② 进程内调用"| BI["内置 Agent<br/>BuiltInAgent 直接调模型"]
+    RT -->|"② 进程内调用"| FA["工厂模式<br/>factory 接管 LLM 调用"]
+    RT -->|"② HTTP：Agent 自己的 URL"| FW["框架集成<br/>LangGraph AG-UI 端点"]
+    FE -->|"绕过 Runtime 直连"| SM["自管 Agent<br/>自有服务，认证自理"]
 ```
+
+*图 5-1：四种接入形态的请求路径——①②两跳地址不同，②的走向由形态决定。*
 
 **①和②是两个不同的地址**——这句话是官方文档专门用警告框强调的，也是本章最高频的错误来源（5.2.2 展开）。
 
@@ -83,7 +86,7 @@ flowchart LR
 
 一个容易混的对照在这里说清：**内置 Agent 是「替换」你的 Agent，框架集成是「连接」你的 Agent**。第 2 章 2.6.2 引用过官方的这句警告，本章就是那句警告的正面解答。`BuiltInAgent` 自己支持工具、生成式 UI、共享状态等全部 CopilotKit 能力——如果你的场景就是「聊天 + 工具」，不需要对 Agent 循环的精细控制，它依然是官方认可的合理终点，不必为了「看起来更高级」而引入框架。
 
-**业务上的推荐次序**：先问自己要不要框架能力（多步编排、检查点、人工介入的图内表达）——要，走框架集成；不要但要自定义模型调用，走工厂模式；Agent 服务已经独立存在且安全自洽，才考虑自管直连。托管 Runtime 的三条形态（内置、框架集成、工厂）共享全部 Runtime 能力，直连是例外而非默认。
+**业务上的推荐次序**照图 5-1 的分岔走：要框架能力（多步编排、检查点、人工介入的图内表达），走框架集成；不要框架但要自定义模型调用，走工厂模式；Agent 服务已独立存在且安全自洽，才考虑自管直连。托管 Runtime 的三条形态共享全部 Runtime 能力，直连是例外而非默认。
 
 ### 5.1.2 本章与前后章的分工
 
@@ -109,11 +112,25 @@ const runtime = new CopilotRuntime({
 });
 ```
 
-三条寻址规则，全部来自官方文档：
+三条寻址规则，一张时序图看全——`/info` 是注册表的对外窗口，`agentId` 同时是 HTTP 路由的一段，注册在 `"default"` 名下的 Agent 享受预置组件免写 `agentId` 的特权：
 
-1. **`default` 有自动接线的特权**。注册在 `"default"` 名下的 Agent，预置组件不加任何配置就会使用它——这是官方给「只有一个主 Agent、不想到处写 `agentId`」的场景留的便利。注册多个 Agent 时，`default` 是聊天组件的默认对话对象，其余 Agent 靠传 `agentId` 寻址。
-2. **`agentId` 同时是 HTTP 路由的一段**。运行时每次对话走的是 `POST /agent/:agentId/run`（多路由模式），路径里的 `:agentId` 就来自注册表键名——第 2 章故障排查表里那个 `Agent not found` 404，根源就是路由段在注册表里查不到。
-3. **`/info` 是注册表的对外窗口**。前端启动时调用 `GET /info` 发现已注册的 Agent 与其元数据；你调试时用它（第 2 章的习惯在本章依然成立）：`curl http://localhost:8200/api/copilotkit/info` 的返回里必须能看到你注册的键名，前端才指得到它。
+```mermaid
+sequenceDiagram
+    participant FE as 浏览器
+    participant RT as Runtime
+    participant AG as Agent 服务
+    FE->>RT: 启动时 GET /info 发现已注册 Agent
+    RT-->>FE: agentId 列表与元数据
+    FE->>RT: 对话时 POST /agent/seller_agent/run
+    RT->>RT: 按注册表键名查 Agent 实例
+    RT->>AG: 把 AG-UI 输入发往 Agent 自己的 URL
+    AG-->>RT: AG-UI 事件流
+    RT-->>FE: SSE 流，前端组件渲染
+```
+
+*图 5-2：agentId 两跳寻址——路由段在注册表里查不到，就是第 2 章那个 `Agent not found` 404。*
+
+调试时 `/info` 的习惯在第 2 章已养成，本章依然成立：`curl http://localhost:8200/api/copilotkit/info` 的返回里必须能看到你注册的键名，前端才指得到它。
 
 ### 5.2.2 两个官方点名的注册错误
 
@@ -294,11 +311,7 @@ export const graph = new StateGraph(MessagesAnnotation)
   .compile();
 ```
 
-注意与路线 A 的第一处相反：**不要给 `compile()` 传 checkpointer**。LangGraph API server 在运行时自己注入持久化；你自己编译进去一个，`langgraph dev` 会拒绝加载这个图（报错明说 `persistence is handled automatically by the platform`），已部署的图则直接忽略它。**两条路线、两条相反的规则**，是 LangGraph 集成里最容易踩的坑，汇总成表：
-
-| | 路线 A（FastAPI） | 路线 B（API server） |
-|---|---|---|
-| `compile()` 的 checkpointer | **必须挂**（缺了抛 `ValueError: No checkpointer set`） | **不许挂**（`langgraph dev` 拒绝加载；部署图忽略之） |
+注意与路线 A 的第一处相反：**不要给 `compile()` 传 checkpointer**。LangGraph API server 在运行时自己注入持久化；你自己编译进去一个，`langgraph dev` 会拒绝加载这个图（报错明说 `persistence is handled automatically by the platform`），已部署的图则直接忽略它。**两条路线、两条相反的规则**——A 必须挂（缺了抛 `ValueError: No checkpointer set`）、B 不许挂（`langgraph dev` 拒绝加载，部署图忽略之）——是 LangGraph 集成里最容易踩的坑，现象与修法见 5.3.5 排查表。
 
 TS 路线还需要一个 `langgraph.json` 声明图与入口：
 
@@ -404,6 +417,24 @@ createServer(
 
 键名不是 `default` 了，`agentId` 从「可省」变成「必写」（规则见 5.2.1）。样式、聊天组件、共享状态 Hook 一概不动。
 
+三段代码（Agent 服务、Runtime 注册、前端接线）接通后的完整数据流如下，每条消息对应一跳：
+
+```mermaid
+sequenceDiagram
+    participant FE as 浏览器 5173
+    participant RT as Runtime 8200
+    participant API as FastAPI 8123
+    participant G as LangGraph graph
+    FE->>RT: POST /api/copilotkit/agent/sample_agent/run
+    RT->>API: HttpAgent 按 url 转发 AG-UI 输入
+    API->>G: 调用编译后的图
+    G-->>API: 节点返回经 reducer 追加进状态
+    API-->>RT: AG-UI 事件流
+    RT-->>FE: SSE 流，组件渲染
+```
+
+*图 5-3：路线 A 的三进程数据流——三个端口各守一跳，事件流原路返回。*
+
 还有一个值得知道的默认行为：官方快速开始里 Runtime 配了 `intelligence` 与 `identifyUser`（CopilotKit 的商用持久化与用户识别，参数是项目 API key）。**去掉这两项，Runtime 会退回 SSE 模式加内存 runner**——聊天照常工作，只是线程持久化与调试检查器不可用。本书主线走自托管路线，这正是第 2 章以来的形态；线程与生产化的完整讨论在第 8 章。
 
 **验证点**：三个进程按序起——`uv run main.py`（8123）→ `npx tsx --env-file=.env server.ts`（8200）→ `npm run dev`（5173）；`curl http://localhost:8200/api/copilotkit/info` 的返回里出现 `sample_agent`，再开浏览器发一句 `Can you tell me a joke?`。
@@ -496,7 +527,7 @@ createServer(
 
 ### 5.4.2 一个内置 Agent 实例一次只跑一轮
 
-注册在模块作用域的 `BuiltInAgent` 实例，**拒绝在自身上并发第二个运行**，报错原文是 `Agent is already running. Call abortRun() first or create a new instance.`。本地开发、单人使用没感觉；一旦服务多于一个人，第二个并发请求就是失败的那个。官方给的修法顺着架构来：**每线程状态存在 runner 里而不是 Agent 里**，所以给每个并发运行自己的实例即可——在请求内构造 Agent，而不是在模块作用域构造一个共享实例；或者按用户串行化。工厂模式下这自然是请求内构造，不构成问题。
+注册在模块作用域的 `BuiltInAgent` 实例，**拒绝在自身上并发第二个运行**，报错原文是 `Agent is already running. Call abortRun() first or create a new instance.`——本地开发没感觉，服务一旦多于一个人，第二个并发请求就是失败的那个。官方给的修法顺着架构来：**每线程状态存在 runner 里而不是 Agent 里**，所以给每个并发运行自己的实例即可——在请求内构造 Agent，而不是在模块作用域构造一个共享实例；或者按用户串行化。工厂模式下这自然是请求内构造，不构成问题。
 
 ### 5.4.3 AgentRunner：线程存在哪、丢不丢
 
@@ -527,6 +558,20 @@ abstract class AgentRunner {
 | `IntelligenceAgentRunner` | `@copilotkit/runtime/v2` | CopilotKit Intelligence 商用后端：跨实例持久化。Intelligence 运行时自动使用，**不允许再传 `runner`**（传了是类型错误，绕过类型也会在构造时被拒绝） |
 
 内存 runner 的两个硬事实，决定了「什么时候必须换」：**重启即丢**（历史只在进程内存），以及**实例间不共享**（横向扩展直接失效）。它默认有界，不会无限吃堆内存——上限三个参数：`maxThreads`（默认 1000，超限整体逐出最久未用线程）、`maxRunsPerThread`（默认 100，逐出最旧运行）、`maxBytes`（默认 512 MiB，跨线程总量上限）；哪个先到哪个生效，活跃运行所在的线程永不逐出。另一个实用选项是并发语义：默认同线程第二个 `run()` 抛 `Thread already running`，传 `onConcurrentRun: "supersede"` 则改为中止在途运行、让新运行顶替（被顶替运行的部分输出丢弃）。星帆工作台本地开发用默认内存 runner 足够；上生产的选型（SQLite 与共享存储之间）是第 8 章的话题，这里只需要知道分界线在哪。
+
+5.4.2 的并发限制与 runner 选型合起来看：
+
+```mermaid
+flowchart LR
+    REQ["并发请求"] --> AG["Agent 实例<br/>一次只跑一轮"]
+    AG -->|"已在运行"| REJ["报错<br/>Agent is already running"]
+    AG -->|"空闲"| RUN["AgentRunner<br/>按线程管状态"]
+    RUN --> MEM["InMemory：默认<br/>重启即丢，实例间不共享"]
+    RUN --> SQL["SQLite：单实例持久<br/>重启后历史还在"]
+    RUN --> INT["Intelligence：商用<br/>跨实例，禁传 runner"]
+```
+
+*图 5-4：Agent 并发模型与线程存储选型——并发卡在实例上，持久化卡在 runner 上。*
 
 **验证点**：说出「一个线程的对话历史此刻存在哪个进程的哪块存储里」——用默认 runner 的答案是「Runtime 进程的内存里，重启就没」；这句话能脱口而出，5.4.3 就算过关。
 
@@ -571,12 +616,19 @@ const supportAgent = new HttpAgent({
 
 一个贯穿本章的默认行为现在值得单独一节：**CopilotKit 每次运行都转发整段对话**。前端持有全部聊天记录，每次 run 都把它作为 `input.messages` 带给你的 Agent。无状态的 Agent 需要这样——转发的记录是它对这段对话的唯一记忆。
 
-但本章接的 seller_agent 恰恰不是无状态的：FastAPI 路线的 graph 在 `compile()` 时挂了 checkpointer（5.3.2），Agent 自己就存着对话历史。官方文档点名的四类「自存历史」后端：LangGraph checkpointer、Mastra memory、AWS Strands `SessionManager`、Microsoft Agent Framework 的 chat-history provider。这时对话就有了**两份副本**，两个症状会找上门：
+但本章接的 seller_agent 恰恰不是无状态的：FastAPI 路线的 graph 在 `compile()` 时挂了 checkpointer（5.3.2），Agent 自己就存着对话历史。官方文档点名的四类「自存历史」后端：LangGraph checkpointer、Mastra memory、AWS Strands `SessionManager`、Microsoft Agent Framework 的 chat-history provider。这时对话就有了**两份副本**，要不要裁、在哪裁，一张图定分岔：
 
-- **历史重复**：Agent 把 CopilotKit 转来的消息与自己存的消息合并，模型每轮都收到两份对话，token 成本翻倍。合并还可能把工具调用与工具结果拆散——自存历史以一个悬空的工具调用结尾时，转来的副本被接在它后面，调用就不再紧跟结果，Anthropic 会直接拒绝这次运行。
-- **请求膨胀**：请求体随对话增长，长线程抬高每轮延迟，代理可能用 HTTP 413 拒绝请求。
+```mermaid
+flowchart LR
+    Q{"Agent 自己存历史？"} -->|"否：无状态"| KEEP["不裁剪<br/>input.messages 是唯一记忆<br/>裁了等于让它失忆"]
+    Q -->|"是：checkpointer 等"| DUP["两份副本<br/>token 翻倍，请求膨胀"]
+    DUP -->|"大多数应用"| MF["messageFilter<br/>浏览器侧，自动修复工具对"]
+    DUP -->|"规则须服务端定<br/>或自建实例"| MW["AG-UI 中间件<br/>工具调用对自保成对"]
+```
 
-**不裁剪的情形同样明确**：无状态 Agent 只从 `input.messages` 读对话，裁掉的负载就是它对这段线程的记忆——裁了等于让它失忆。
+*图 5-5：消息历史裁剪决策——无状态千万别裁，自存历史的按侧别选通道。*
+
+两个症状补一句细节：历史重复还可能把工具调用与工具结果拆散——自存历史以一个悬空的工具调用结尾时，转来的副本被接在它后面，调用就不再紧跟结果，Anthropic 会直接拒绝这次运行；请求膨胀则表现为请求体随对话增长，长线程抬高每轮延迟，代理可能用 HTTP 413 拒绝请求。
 
 ### 5.6.1 浏览器侧：`messageFilter` 是大多数应用的答案
 

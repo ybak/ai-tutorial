@@ -86,11 +86,23 @@ flowchart LR
 
 ### 8.2.2 委托工具：三件事一件不能少
 
-supervisor 靠调工具来委托。官方文档规定每个委托工具是一个薄包装，必须做三件事：
+supervisor 靠调工具来委托。官方文档规定每个委托工具是一个薄包装，必须做三件事——**运行、记录、返回**，一次委托的完整链路如下：
 
-1. **运行**——拿 `task` 字符串跑一遍子代理；
-2. **记录**——把这次委托写进共享 agent state 的 `delegations` 槽，让界面能渲染实时日志；
-3. **返回**——把子代理的最终消息作为工具结果交回去，supervisor 下一轮看到它。
+```mermaid
+sequenceDiagram
+    participant U as 前端界面
+    participant S as supervisor
+    participant T as 委托工具
+    participant P as pricing_agent
+    U->>S: 提问「值不值」
+    S->>T: 调用 consult_pricing
+    T->>P: ①运行·只传 task 字符串
+    P-->>T: 定价建议
+    T-->>U: ②记录·delegations 槽实时上屏
+    T-->>S: ③返回·作为工具结果
+```
+
+*图 8-1：一次定价委托的链路——运行、记录、返回各占一跳，上下文隔离在「只传 task」处*
 
 官方文档给出的是模式与职责，具体实现随框架而变。下面是星帆工作台按这个模式写的版本（本书立场示例，依据官方模式与第 5 章的 `seller_agent` 工程编写，未实测；发布前按复核清单核对）：
 
@@ -244,7 +256,16 @@ export function DelegationLog() {
 
 官方文档另列了一组「Agent ↔ 生成式 UI」的声明式规格：A2UI（Google）、MCP Apps（MCP 生态）、Open-JSON-UI（OpenAI）——第 6 章已在光谱图里露过面，本章不展开。
 
-关键的一条官方结论是：**这些协议可以混搭，而且 AG-UI 本身内含与 MCP、A2A 的握手。** 宿主 Agent 若经 MCP 或 A2A 连接子代理，它们的 UI 属性可以一路传播到面向用户的应用，同时保住完整的安全、策略与可观测控制。这就是全书第 1 章「协议先行」的兑现：星帆工作台从第 2 章起说的每一句「AG-UI」，都是在为今天同时接三种协议铺路。
+关键的一条官方结论是：**这些协议可以混搭，而且 AG-UI 本身内含与 MCP、A2A 的握手**——三种连接同时存在时，子代理的 UI 属性沿 AG-UI 一路传播到用户界面，安全、策略与可观测控制不丢。这也是全书第 1 章「协议先行」的兑现，三种连接并存时的拓扑如下：
+
+```mermaid
+flowchart LR
+    UI["用户界面"] <-->|"AG-UI<br/>事件流"| H["宿主 Agent<br/>seller_agent"]
+    H <-->|"MCP<br/>工具与数据"| T["MCP 服务器<br/>商品库 · 物流"]
+    H <-->|"A2A<br/>Agent 协作"| A["外部 A2A Agent<br/>平台方"]
+```
+
+*图 8-2：三协议各管一段连接、可同时并存——AG-UI 对用户，MCP 对工具，A2A 对 Agent*
 
 ### 8.3.2 MCP：给 seller_agent 接外部工具
 
@@ -376,12 +397,23 @@ export class LoggingMiddleware extends Middleware {
 
 ### 8.4.1 一段对话的一生：四幕
 
-每次 CopilotKit 会话都限定在一段**线程（thread）**里，由 `threadId` 标识。官方把客户端侧的完整生命周期讲成四幕：
+每次 CopilotKit 会话都限定在一段**线程（thread）**里，由 `threadId` 标识。官方把客户端侧的完整生命周期讲成四幕——铸造、运行、回灌、切换/新建，在状态机上看是一条横向的环；**没有任何持久化层的运行时，服务端什么都不留**，运行幕能否留下历史取决于 8.4.3 的选型：
 
-1. **铸造（mint）**——聊天挂载且没有显式 `threadId` 时，客户端自己生成一个（UUID v4）；
-2. **运行（run）**——消息与工具调用在这个 `threadId` 下流动；若配置了服务端存储（CopilotKit Intelligence，或一个会持久化的 AgentRunner），它们随发生随持久化，事后可回放；**没有任何持久化层的运行时，服务端什么都不留**；
-3. **回灌（hydrate）**——聊天挂载时带着已知的 `threadId`，客户端连接并把该线程的持久化历史回放进界面；
-4. **切换 / 新建**——你换到另一段线程（恢复其历史），或开一段新的（清空视图）。
+```mermaid
+stateDiagram-v2
+    direction LR
+    state "铸造 mint<br/>无 threadId 时<br/>现铸 UUID" as mint
+    state "运行 run<br/>消息与工具调用<br/>随持久化层落地" as run
+    state "切换或新建<br/>换线程 · 清视图" as switch
+    state "回灌 hydrate<br/>已知 id 回放历史" as hydrate
+    [*] --> mint
+    mint --> run
+    run --> switch
+    switch --> hydrate
+    hydrate --> run
+```
+
+*图 8-3：一段线程的一生——铸造进运行，切换后经回灌恢复历史*
 
 第 3 章的 `<CopilotThreadsDrawer>` 与 `startNewThread()` 就是第 4 幕的预置实现；本节把幕后的规则补全。
 
@@ -480,7 +512,7 @@ import { CopilotKitProvider } from "@copilotkit/react-core/v2";
 
 ### 8.5.2 服务端验证：onRequest 与 FastAPI 依赖
 
-Runtime 侧的验证钩子是 `onRequest`——它在**任何 Agent 代码之前**运行、拿到原始 `Request`，是读 `Authorization`、跑验证器、把未认证请求用 401 短路的正确位置：
+Runtime 侧的验证钩子是 `onRequest`——它在**任何 Agent 代码之前**运行，是 401 短路的正确位置（图 8-4 的第 2 跳）：
 
 ```ts
 import {
@@ -568,7 +600,23 @@ def delete_record(record_id: str, *, user: User):
     # 执行删除
 ```
 
-它与第 7 章的人工介入是**串联关系，不是二选一**：先按身份门控，再弹确认卡，最后执行。`update_price` 在星帆的完整防线因此是三层——登录用户是卖家本人（本节）、卖家在审批卡上点头（第 7 章）、执行侧校验载荷（第 7 章 7.6.2）。
+它与第 7 章的人工介入是**串联关系，不是二选一**——先按身份门控，再弹确认卡，最后执行。把 8.5.1 到 8.5.3 的三跳连起来，一条凭证从浏览器到工具执行的主线如下；`update_price` 在星帆的完整防线因此是三层——登录用户是卖家本人（本节）、卖家在审批卡上点头（第 7 章）、执行侧校验载荷（第 7 章 7.6.2）：
+
+```mermaid
+sequenceDiagram
+    participant B as 浏览器
+    participant R as Runtime
+    participant A as Agent 服务
+    participant T as 工具执行
+    B->>R: headers 携带 Bearer token
+    R->>R: onRequest 验签·无效即 401
+    R->>A: 转发·Authorization 随行
+    A->>A: FastAPI 依赖验头·身份入 config
+    A->>T: 节点执行·按 user 门控
+    T-->>B: 结果回流
+```
+
+*图 8-4：用户凭证的流转——token 走 headers，401 由 onRequest 发，身份只在可信侧解析*
 
 ### 8.5.4 线程归属：threadId 不是秘密
 
@@ -754,6 +802,18 @@ export const handler = awslambda.streamifyResponse(
 **验证点**：生产配置生效后，从白名单之外的域打开前端发一条消息——浏览器控制台应出现 CORS 拦截（收紧生效的物证）；Lambda 部署用 `curl -N` 看到事件逐片到达而不是一次到齐；`curl -s {runtimeUrl}/info` 通、匿名 run 被 401 拦下，才算端点关严。
 
 ## 8.7 排查工具箱：出问题时先拿哪件工具
+
+排查先分诊再动手——按现象选对工具，四件工具各有擅长的一段：
+
+```mermaid
+flowchart LR
+    A{"现象是哪类？"} -->|"连不上 · 全 404"| B["curl /info<br/>+ 网络面板<br/>8.7.4"]
+    A -->|"行为不对 · 没执行"| C["debug: true<br/>Pino 日志<br/>8.7.1"]
+    A -->|"报错要归因"| D["onError 错误码表<br/>8.7.2"]
+    A -->|"要逐事件看流"| E["Event Inspector<br/>8.7.3"]
+```
+
+*图 8-5：排查分诊——现象定类，类定工具，小节号即入口*
 
 ### 8.7.1 Debug 模式：看事件管道
 

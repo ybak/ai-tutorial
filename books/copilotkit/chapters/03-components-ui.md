@@ -87,11 +87,21 @@ import "@copilotkit/react-core/v2/styles.css";
 
 ## 3.2 三种布局组件：把聊天窗放对地方
 
-第 2 章用 `CopilotPopup` 把聊天窗挂进了星帆工作台：卖家点右下角气泡，弹出一个小窗。问题随后就来了——卖家核对订单列表时，弹窗正好盖住金额列；小窗的样式也与工作台的设计规范对不上。本章先解决「放哪」。
+第 2 章用 `CopilotPopup` 把聊天窗挂进了星帆工作台：卖家点右下角气泡，弹出一个小窗。问题随后就来了——卖家核对订单列表时，弹窗正好盖住金额列；小窗的样式也与工作台的设计规范对不上。本章先解决「放哪」。三种外壳怎么选？只看聊天与业务界面的关系，见图 3-1。
+
+```mermaid
+flowchart LR
+    A{"聊天要常驻可见?"} -->|"否"| B["CopilotPopup<br/>浮动气泡覆盖内容<br/>足迹最小"]
+    A -->|"是"| C{"要嵌进自家布局?"}
+    C -->|"是"| D["CopilotChat<br/>内嵌面板<br/>尺寸随容器"]
+    C -->|"否"| E["CopilotSidebar<br/>停靠侧栏<br/>滑出不回流"]
+```
+
+*图 3-1：三种布局组件的选择决策——星帆从 Popup 迁到 Sidebar 即沿此判断*
 
 ### CopilotChat：内嵌面板
 
-`CopilotChat` 是基础的预置聊天界面，渲染在你想放的任何容器里，尺寸随容器。官方文档列出的适用场景：撑满容器的整幅聊天、作为大页面中的一个内嵌面板、独立的 `/chat` 路由，以及「要最大布局自由、不要停靠外壳和启动按钮」的场合。
+`CopilotChat` 是基础的预置聊天界面，渲染在你想放的任何容器里，尺寸随容器。典型用法：撑满容器的整幅聊天、独立的 `/chat` 路由——要最大布局自由、不要停靠外壳和启动按钮的场合。
 
 ```tsx
 // frontend/src/chat/AssistantPane.tsx —— 星帆工作台:订单详情页旁的内嵌助手面板
@@ -256,7 +266,18 @@ export function Chat() {
 
 ## 3.4 会话控制：开关、反馈与程序化发送
 
-界面落位、样式归队之后，下一个需求来自交互：星帆想在工作台自己的导航栏放一个「问助理」按钮，而不是只靠侧栏自带的开关；想在工具栏放「新对话」；想收集卖家对回复的点赞/点踩；还想让订单页的一枚按钮直接触发一次分析——不经过聊天输入框。这一节把这些控制手段一次讲完。
+界面落位、样式归队之后，需求转向交互控制。星帆要的几件事——开关聊天、开新会话、播种开场建议、收集点赞点踩、不经输入框触发分析——分组见图 3-2，本节逐一落地。
+
+```mermaid
+flowchart LR
+    A["会话控制"] --> B["开关聊天<br/>受控 open / onOpenChange<br/>或 setModalOpen"]
+    A --> C["开新会话<br/>startNewThread<br/>工具栏「新对话」"]
+    A --> D["开场建议项<br/>useConfigureSuggestions"]
+    A --> E["消息反馈<br/>onThumbsUp / onThumbsDown<br/>埋到 message.id"]
+    A --> F["程序化发送<br/>addMessage + runAgent<br/>stopAgent"]
+```
+
+*图 3-2：会话控制的五类手段——开关与会话走配置上下文，反馈走消息槽，发送走运行时句柄*
 
 ### 受控开关：open 与 onOpenChange
 
@@ -447,7 +468,17 @@ export default function Page() {
 }
 ```
 
-整个接入就是这些。原理：抽屉与聊天共享同一个 `<CopilotChatConfigurationProvider>`——选中一行即把聊天连到那个线程并回放历史；「New Conversation」行即调 `startNewThread()` 重置聊天。手写侧栏则要自己维护 `threadId` 状态、在列表与聊天之间穿回调；这里共享配置替你做了。`<CopilotSidebar>` 与 `<CopilotPopup>` 内部渲染的就是 `CopilotChat`，因此以同样方式承载抽屉。
+整个接入就是这些。原理见图 3-3：抽屉与聊天共享同一个 `<CopilotChatConfigurationProvider>`，选中与新建都由共享配置承接，零接线——手写侧栏则要自己维护 `threadId` 状态、在列表与聊天之间穿回调。`<CopilotSidebar>` 与 `<CopilotPopup>` 内部渲染的就是 `CopilotChat`，以同样方式承载抽屉。
+
+```mermaid
+flowchart LR
+    A["CopilotThreadsDrawer"] --> B["共享<br/>CopilotChatConfigurationProvider"]
+    C["CopilotChat"] --> B
+    B -->|"选中一行"| D["连到该线程<br/>回放历史"]
+    B -->|"New Conversation"| E["startNewThread<br/>回到欢迎屏"]
+```
+
+*图 3-3：线程抽屉的数据来源——与聊天共享配置上下文，无需接「当前线程」状态*
 
 使用前必须知道的四件事：
 
@@ -732,15 +763,22 @@ export function MiniChat({ agentId }: { agentId: string }) {
 
 ### 完整管线与 useRenderedMessages
 
-简版的代价，官方文档说得直白：**你只得到文本与工具调用**。推理消息、activity 消息（A2UI 与 MCP Apps）、自定义前后插槽，不自己接线就不会出现。官方完整示例的中心，是一个手写的 `useRenderedMessages(messages, isRunning)` 组合 hook——返回同一条消息列表，但每条消息多出一个 `renderedContent: ReactNode` 字段；它是对 `<CopilotChatMessageView>` 内部渲染管线的手工复刻，由三个更底层的 hook 喂养：
+简版的代价，官方文档说得直白：**你只得到文本与工具调用**。推理消息、activity 消息（A2UI 与 MCP Apps）、自定义前后插槽，不自己接线就不会出现。官方完整示例的中心，是一个手写的 `useRenderedMessages(messages, isRunning)` 组合 hook——返回同一条消息列表，但每条消息多出一个 `renderedContent: ReactNode` 字段；它是对 `<CopilotChatMessageView>` 内部渲染管线的手工复刻，由三个更底层的 hook 喂养（图 3-4）：
 
-| 底层 hook | 喂进来什么 |
-|-----------|-----------|
-| `useRenderToolCall()` | 任何已注册工具调用的渲染器（按名注册的 `useRenderTool` / `useComponent`，加上兜底的 `useDefaultRenderTool`） |
-| `useRenderActivityMessage()` | 当前 agent 作用域内的 A2UI 与 MCP Apps activity 消息渲染 |
-| `useRenderCustomMessages()` | 调用向活跃 `CopilotChatConfigurationProvider` 注册的 `renderCustomMessage` hook，在每条消息前后产出 `"before"` / `"after"` 插槽 |
+```mermaid
+flowchart LR
+    A["agent.messages<br/>isRunning"] --> B["useRenderedMessages<br/>按角色分发消息"]
+    B --> C["useRenderToolCall<br/>工具调用内联 UI"]
+    B --> D["useRenderActivityMessage<br/>A2UI 与 MCP Apps"]
+    B --> E["useRenderCustomMessages<br/>before / after 插槽"]
+    C --> F["renderedContent<br/>套纯外壳气泡"]
+    D --> F
+    E --> F
+```
 
-按角色分发后再配一层「纯外壳」气泡组件（收 `renderedContent`、套样式，不 import 任何聊天原语），就得到一个与预置组件管线逐行对齐、但外观完全自主的聊天界面。这一层的完整代码在官方 headless 示例中；第 6 章讲工具渲染器注册（`useRenderTool` / `useComponent`）后，这条管线才真正威力全开。
+*图 3-4：useRenderedMessages 渲染管线——三个底层 hook 喂养，外壳样式全由你写*
+
+三个底层 hook 各管一路：工具调用渲染器按名注册（`useRenderTool` / `useComponent`，另有兜底的 `useDefaultRenderTool`）；activity 渲染覆盖当前 agent 作用域内的 A2UI 与 MCP Apps；自定义消息则读取向活跃 `CopilotChatConfigurationProvider` 注册的 `renderCustomMessage` hook，在每条消息前后产出插槽。「纯外壳」气泡组件只收 `renderedContent`、套样式，不 import 任何聊天原语——就得到与预置组件管线逐行对齐、外观完全自主的界面。这一层的完整代码在官方 headless 示例中；第 6 章讲工具渲染器注册（`useRenderTool` / `useComponent`）后，这条管线才真正威力全开。
 
 ### 什么时候真的需要下到这一层
 
@@ -757,11 +795,20 @@ export function MiniChat({ agentId }: { agentId: string }) {
 | L3 插槽重组 | 替换个别子组件（欢迎屏、消息卡、输入区……） | 中 | 消息管线、状态管理、流式不动 | 品牌化局部、加业务标记 |
 | L4 无头界面 | 底层 hook 自建全部 UI | 大 | 通信、消息管理、工具调用分发；渲染责任全在你 | 非聊天表面、完全不同的布局 |
 
-两条决策辅助：
+两条决策辅助收进一张图：把设计稿与默认界面逐块对比、数一数要换的零件，按「改什么」落档；L1 以下的每一级都是增量——CSS 变量、自定义欢迎屏插槽、无头工具调用渲染器可以在同一个应用里自由混用，今天停在 L2、明天局部升 L3，不需要回滚任何已有工作。
 
-**递增混合，不推倒重来。** 官方文档明确：L1 以下的每一级都是增量——CSS 变量、自定义欢迎屏插槽、无头工具调用渲染器可以在同一个应用里自由混用。今天停在 L2，明天局部升 L3，不需要回滚任何已有工作。
+```mermaid
+flowchart LR
+    A["设计稿与默认界面<br/>逐块对比"] --> B{"要换的零件有几个?"}
+    B -->|"零个"| C["L1 预置原样<br/>直接渲染组件"]
+    B -->|"只改观感"| D["L2 CSS 换肤<br/>tokens、icons、labels"]
+    B -->|"一两个"| E["L3 插槽重组<br/>欢迎屏、消息卡"]
+    B -->|"几乎每块都不同"| F["L4 无头界面<br/>底层 hook 自建"]
+    D -.->|"增量升级不回滚"| E
+    E -.-> F
+```
 
-**用「改什么」定位档位。** 只改观感 → L2；改某个零件 → L3；改整体形态或表面本身 → L4。判断「插槽够不够」的最快办法：把你的设计稿与默认界面逐块对比，数一数要换的零件——零个停在 L2，一两个停 L3，「几乎每块都不同」才值得 L4。
+*图 3-5：四档选型决策——用「改什么」定位档位，沿阶梯递增升级*
 
 星帆的落位决策：订单/商品页用 **L2 + 局部 L3**——侧栏落位，design tokens 对齐设计规范，欢迎屏换成业务引导卡，thumbs 反馈接埋点；物流看板用一条 L4 迷你聊天条试水。L4 全量接管暂缓：第 6 章生成式 UI 上线后，订单卡片要在回复里直接渲染，那时工具调用渲染才是定制的主战场——先让预置管线把脏活干着。
 

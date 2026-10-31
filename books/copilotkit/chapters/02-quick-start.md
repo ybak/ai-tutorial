@@ -136,12 +136,18 @@ createServer(
 });
 ```
 
-逐行拆开看，这份二十来行的文件里有四个关键决定：
+逐行拆开看，这份二十来行的文件里有四个关键决定，从导入到监听串成一条线——先看图，再回读代码：
 
-1. **`CopilotRuntime` 从 `@copilotkit/runtime/v2` 导入**——注意结尾的 `/v2`。从包根 `@copilotkit/runtime` 导入拿到的是 v1 遗留表面，那里构造的 `CopilotRuntime` 服务不了本章这些路由，而且错误形态是路由 404 而不是导入报错，极难排查。
-2. **Agent 注册在 `agents` 映射里，键名是 `default`**——预置组件（第 3 章展开）默认连接名为 `default` 的 Agent，起这个名，前端连 `agentId` 都可以省。`BuiltInAgent` 的 `model` 用 `"provider:model"` 字符串格式，`prompt` 是它的系统提示词。
-3. **`createCopilotNodeListener` 是 Node 适配器**——把 Runtime 挂到 `node:http` 的 `createServer` 上，`basePath` 决定所有 Runtime 路由挂在哪个路径下，与前端 `runtimeUrl` 的路径部分必须一字不差。
-4. **`cors: true` 必须写**——这是整章最重要的一行，下一小节单独说它。
+```mermaid
+flowchart LR
+    A["导入务必带 /v2<br/>@copilotkit/runtime/v2<br/>漏了不报错 只会路由 404"] --> B["注册内置 Agent<br/>agents 映射键名 default<br/>前端可省 agentId"]
+    B --> C["挂到 node:http<br/>createCopilotNodeListener<br/>basePath 对齐 runtimeUrl"]
+    C --> D["显式 cors: true<br/>Node 适配器默认关闭<br/>跨源请求死在预检"]
+```
+
+*图 2-1：server.ts 的四个关键决定——导入、注册、挂载、放行跨源*
+
+其中最后一环 `cors: true` 是整章最重要的一行，下一小节单独说它；`BuiltInAgent` 的 `model` 用 `"provider:model"` 字符串格式，`prompt` 即它的系统提示词。
 
 ### 2.3.2 `cors: true` 为什么不能省
 
@@ -241,7 +247,16 @@ export default function App() {
 }
 ```
 
-到这里架构已经完整：`Provider` 包住整棵组件树，右栏的 `CopilotChat` 发消息 → 请求到 `http://localhost:8200/api/copilotkit` → Runtime 转给 `default` Agent → 模型回复以事件流的形式流回聊天框。
+到这里架构已经完整——一条消息从聊天框出发，走完一圈回到聊天框：
+
+```mermaid
+flowchart LR
+    A["CopilotChat<br/>用户发消息"] --> B["CopilotKitProvider<br/>POST 到绝对路径<br/>localhost:8200"]
+    B --> C["Copilot Runtime<br/>转给 default Agent"]
+    C --> D["模型流式回复<br/>以事件流原路返回<br/>渲染进聊天框"]
+```
+
+*图 2-2：一条消息的完整链路——前端两个组件、Runtime、模型*
 
 **布局提示**：`CopilotChat` 是全高聊天面板。把它换成 `CopilotSidebar`（可折叠侧栏）或 `CopilotPopup`（悬浮窗），props 完全相同——星帆工作台第 3 章会把聊天从面板迁进侧边栏，届时只需换一个组件名。
 
@@ -322,7 +337,18 @@ VITE_COPILOT_RUNTIME_URL=http://localhost:8200/api/copilotkit
 >
 ```
 
-对比一下两个变量就明白边界在哪：`VITE_COPILOT_RUNTIME_URL` 暴露了无妨——它只是个地址，浏览器本来就知道；`OPENAI_API_KEY` 暴露了就是事故——拿到它的人可以用你的账户调模型。密钥在服务端、地址在服务端之外，这条边界全书不再重复，生产化部署（第 8 章）在此之上再叠认证与收紧 CORS。
+两条路径的边界画成一张图就一目了然——密钥在服务端、地址在服务端之外，这条边界全书不再重复，生产化部署（第 8 章）在此之上再叠认证与收紧 CORS：
+
+```mermaid
+flowchart LR
+    A["环境变量"] --> B{"带 VITE_ 前缀？"}
+    B -->|"是"| C["Vite 注入前端代码<br/>随产物暴露给浏览器<br/>只放地址类变量"]
+    C --> D["暴露无妨<br/>地址浏览器本来就知道"]
+    B -->|"否"| E["只被 Runtime 进程读到<br/>靠 --env-file 注入<br/>模型密钥住这里"]
+    E --> F["暴露即事故<br/>可拿你的账户调模型"]
+```
+
+*图 2-3：密钥与地址的两条路径——VITE_ 进前端，密钥只留服务端*
 
 **验证点**：重启 Runtime 后 `curl /info` 依旧成功；故意把 `.env` 里的密钥改错再重启，启动或首次对话时会出现模型认证错误——确认密钥确实是这个进程在读。
 

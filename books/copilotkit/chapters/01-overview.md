@@ -100,10 +100,12 @@ import "@copilotkit/react-core/v2/styles.css";
 
 ```mermaid
 flowchart LR
-    UI["前端层(浏览器)<br/>星帆工作台 React 界面<br/>预置组件 + hooks"] -->|"对话请求发往<br/>runtimeUrl 端点"| RT["运行时层(你的应用服务器)<br/>Copilot Runtime 请求处理器<br/>中介鉴权 · 工具调用 · 事件流"]
-    RT -->|"AG-UI 协议<br/>16 种标准事件,双向流动"| AG["Agent 层<br/>内置 BuiltInAgent(进程内)<br/>或 LangGraph / Mastra / CrewAI 等"]
+    UI["前端层（浏览器）<br/>星帆工作台 React 界面<br/>预置组件 + hooks"] -->|"对话请求发往<br/>runtimeUrl 端点"| RT["运行时层（你的应用服务器）<br/>Copilot Runtime 请求处理器<br/>中介鉴权 · 工具调用 · 事件流"]
+    RT -->|"AG-UI 协议<br/>16 种标准事件,双向流动"| AG["Agent 层<br/>内置 BuiltInAgent（进程内）<br/>或 LangGraph / Mastra / CrewAI 等"]
     AG -.->|"整层可替换,前端不动"| RT
 ```
+
+*图 1-2：三件套架构——三层各司其职，AG-UI 协议连接，Agent 层整体可替换*
 
 三层的总览表：
 
@@ -220,24 +222,26 @@ Agent 层是真正「思考与动手」的部分。官方对它的职责描述�
 ```mermaid
 sequenceDiagram
     actor U as 卖家
-    participant F as 前端(React 应用)
-    participant R as Copilot Runtime(应用服务器内)
-    participant A as Agent(内置或后端框架)
+    participant F as 前端（React 应用）
+    participant R as Copilot Runtime（应用服务器内）
+    participant A as Agent（内置或后端框架）
 
     U->>F: 在聊天框输入「查一下今天的订单」
     F->>R: 前端 agent API 发请求到 runtime 端点
     R->>A: 打开 AG-UI 会话,转发请求
-    A-->>R: 流式吐出 AG-UI 事件(文本/工具调用/状态)
+    A-->>R: 流式吐出 AG-UI 事件（文本/工具调用/状态）
     R-->>F: 事件流原样转发回前端
     F-->>U: 实时渲染回答
 
-    opt Agent 调用前端工具(第 6 章主题)
+    opt Agent 调用前端工具（第 6 章主题）
         A->>R: 前端工具调用请求
         R->>F: 中继给浏览器
         F-->>F: 浏览器里的工具处理器执行
         F-->>A: 结果沿原路回流给 Agent
     end
 ```
+
+*图 1-3：一条消息的旅程——去程是请求与事件流，前端工具调用是唯一的回程*
 
 按官方文档的七步流程逐格核对：
 
@@ -316,24 +320,32 @@ useAgentContext({
 
 ### 1.4.3 16 种事件里，你最先遇到的四类
 
-| 事件类别 | 流动内容 | 前端发生什么 |
-|---------|---------|-------------|
-| 文本增量 | 逐段的回答文本 | 聊天窗打字机式流式渲染 |
-| 工具调用 | 工具名、参数、结果 | 展示调用卡片；前端工具被触发执行 |
-| 状态快照与增量 | Agent 侧状态的完整快照或增量更新 | 界面随状态实时刷新（第 4 章的主角） |
-| 运行生命周期 | 一轮运行的开始、结束等标记 | 驱动「思考中/已完成」等界面状态 |
+16 种事件里最先遇到的是四类，一条事件流里它们交替出现，每类各管一件事：
 
-完整的 16 种事件清单在官方 AG-UI 文档里；第 8 章会回到协议层面把事件全景过一遍。现在只需要带走一个直觉：**前端渲染聊天窗所需的全部信息，都在这四类事件里**——文本管「说什么」，工具调用管「做什么」，状态管「界面变成什么样」，生命周期管「进行到哪了」。
+```mermaid
+flowchart LR
+    E["AG-UI 事件流<br/>16 种标准事件"] --> T["文本增量<br/>管「说什么」<br/>打字机式流式渲染"]
+    E --> C["工具调用<br/>管「做什么」<br/>触发调用卡片与前端工具"]
+    E --> S["状态快照与增量<br/>管「界面变成什么样」<br/>第 4 章的主角"]
+    E --> L["运行生命周期<br/>管「进行到哪了」<br/>驱动「思考中/已完成」等界面态"]
+```
+
+*图 1-4:AG-UI 事件流的四类主角——合起来撑起聊天窗渲染所需的全部信息*
+
+完整的 16 种事件清单在官方 AG-UI 文档里；第 8 章会回到协议层面把事件全景过一遍。现在只需要带走一个直觉：**前端渲染聊天窗所需的全部信息，都在这四类事件里**。
 
 ### 1.4.4 协议地图：AG-UI 不是孤岛
 
-再放大一层视野：官方把 Agent 世界的协议分成几块，CopilotKit 全部兼容：
+再放大一层视野：官方把 Agent 世界的协议分成几块，CopilotKit 全部兼容——Agent 居中，三类连接各归一种协议（AG-UI 即 Agent User Interaction 协议，MCP 即 Model Context Protocol，A2A 即 Agent to Agent）：
 
-| 连接对象 | 协议 | 用途 |
-|---------|------|------|
-| Agent ↔ 用户交互 | AG-UI（Agent User Interaction 协议） | 连接 Agent 与面向用户的应用，承载实时、多模态、可交互的体验 |
-| Agent ↔ 工具与数据 | MCP（Model Context Protocol） | 让 Agent 安全连接外部系统：工具、工作流、数据源 |
-| Agent ↔ Agent | A2A（Agent to Agent） | 定义 Agent 之间在分布式系统里如何协作与分工 |
+```mermaid
+flowchart LR
+    APP["面向用户的应用<br/>星帆工作台"] <-->|"AG-UI<br/>实时 · 多模态 · 可交互"| AG["Agent"]
+    AG <-->|"MCP<br/>工具 · 工作流 · 数据源"| EXT["外部系统"]
+    AG <-->|"A2A<br/>分布式协作与分工"| SA["其他 Agent"]
+```
+
+*图 1-5:Agent 世界的协议地图——AG-UI 管人机交互，MCP 管工具与数据，A2A 管 Agent 间协作*
 
 此外还有一批生成式 UI 规范——A2UI（Google）、MCP Apps（MCP 生态）、Open-JSON-UI（OpenAI），CopilotKit 全部支持（第 6 章展开）。这些协议可以**直接用，也可以组合用**:AG-UI 与 MCP、A2A 之间有「握手」——你的宿主 Agent 若通过 MCP 或 A2A 连接子代理，子代理的 UI 属性可以一路透传到面向用户的应用，同时保留完整的安全、策略与可观测控制。这是第 8 章多 Agent 场景的协议基础。
 
@@ -358,19 +370,15 @@ CopilotKit 的开源部分与云服务（Intelligence）边界清晰。官方的
 
 ### 1.5.2 哪些能力需要 Intelligence
 
-官方的能力对照表：
+官方的能力边界一图分两侧——实线一侧开源即可，虚线另一侧才需要 Intelligence：
 
-| 能力 | 仅开源即可 | 需要 CopilotKit Intelligence |
-|------|-----------|------------------------------|
-| Agent 聊天、前端工具、Agent 状态、生成式 UI | ✓ | |
-| 任意 AG-UI 集成（LangGraph、Mastra、内置、自定义） | ✓ | |
-| 框架原生或应用自有的持久化 | ✓（自己运营与集成） | |
-| 本地 Inspector：调试实时事件、工具、状态与连接 | ✓ | |
-| AG-UI Streams（保存会话与 UI、可恢复运行、实时同步） | | ✓ |
-| User Memories 与 Automatic Learning | | ✓ |
-| Product Analytics 与云托管的 Channels 连接 | | ✓ |
-| Inspector 的 Rich Threads 与 Automatic Learning 面板 | | ✓ |
-| Intelligence 项目管理与 API key | | ✓ |
+```mermaid
+flowchart LR
+    APP["你的应用<br/>星帆工作台"] --> OSS["开源三件套 MIT 授权<br/>聊天 · 前端工具 · 状态 · 生成式 UI<br/>任意 AG-UI 集成 · 自管持久化 · 本地 Inspector"]
+    OSS -.->|"按需升级<br/>应用代码一行不改"| INT["CopilotKit Intelligence<br/>AG-UI Streams · User Memories<br/>Automatic Learning · Analytics · Channels"]
+```
+
+*图 1-6：开源与云的边界——三件套 MIT 授权零依赖即够用，右侧五类平台能力按需再加*
 
 五类 Intelligence 能力，各用一句话说清：
 
@@ -438,12 +446,14 @@ Intelligence 有两种部署：**云托管**——注册拿 API key，把运行�
 
 把上面的判断标准画成一棵决策树，选型会上可以直接投影：
 ```mermaid
-flowchart TD
+flowchart LR
     A{"copilot 需要看见或<br/>操作业务界面吗?"} -->|"否,纯问答"| B["直连 LLM API 即可<br/>引入三件套是过度设计"]
     A -->|"是"| C{"已有成熟自研对话中间件<br/>且明确不做 Agent 操作界面?"}
     C -->|"是"| D["保留自研<br/>新需求出现时再评估"]
     C -->|"否"| E["CopilotKit 三件套<br/>界面 · 工具 · 状态 · 审批,按章解锁"]
 ```
+
+*图 1-7：接入路线决策树——先问要不要操作界面，再问有没有自研存量*
 
 ### 1.6.4 公允性与结论
 

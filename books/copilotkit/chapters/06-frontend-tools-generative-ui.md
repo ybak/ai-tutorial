@@ -163,13 +163,26 @@ import { FrontendTools } from "./copilot/tools";
 </CopilotKitProvider>
 ```
 
-`useFrontendTool` 接收三样东西：**名字**（`get_orders`，Agent 看到的工具名）、**zod 参数 schema**（告诉模型该填什么参数）、**handler**（浏览器里真正执行的函数）。注册之后，Agent 像调用任何其他工具一样调用它，你的前端在浏览器里执行。
+`useFrontendTool` 接收三样东西：**名字**（`get_orders`，Agent 看到的工具名）、**zod 参数 schema**（告诉模型该填什么参数）、**handler**（浏览器里真正执行的函数）。注册之后，一次调用的完整生命周期——schema 声明给模型、模型发起调用、handler 在浏览器执行、结果原路回传：
 
-三个写法要点，都来自第 4 章 mcp 书同源的手艺（工具描述与 schema 设计是通用功）：
+```mermaid
+sequenceDiagram
+    autonumber
+    participant M as 模型 seller_agent
+    participant R as CopilotKit 运行时
+    participant H as 浏览器 handler
+    M->>R: 工具调用 get_orders status=待发货
+    R->>H: 按工具名路由 前端执行
+    H-->>R: 返回 JSON 字符串结果
+    R-->>M: 工具结果回传 模型继续推理
+```
+
+*图 6-1：前端工具一次调用的生命周期——handler 在浏览器执行，返回值回传给 Agent 作为工具结果*
+
+两个写法要点，都来自第 4 章 mcp 书同源的手艺（工具描述与 schema 设计是通用功）：
 
 1. **description 用任务语义写**——说「做什么、什么时候该用我」，不说「调用哪个函数」。`get_orders` 的描述里那句「回答任何订单相关问题前先调用本工具」，是在给模型立规矩。
 2. **每个参数都配 `.describe()`**——schema 是模型填参的唯一依据，`status` 的枚举值直接决定了模型会填「待发货」而不是「pending」。
-3. **handler 返回值会回传给 Agent 作为工具结果**——模型据此推理接下来说什么。返回 JSON 字符串是官方示例的通行做法（`JSON.stringify(orders)`）。
 
 **验证点**：在工作台侧栏问「现在有多少待发货订单？」。观察 CopilotKit Inspector（或浏览器 Network 面板）能看到 `get_orders` 被调用、参数为空对象或 `{"status": "待发货"}`，Agent 的回答基于 handler 返回的真实订单数据（应有 `ORD-20431` 一单，金额 $86.40）。
 
@@ -262,7 +275,18 @@ function ReportTools({ reports }: { reports: Report[] }) {
 
 ## 6.3 工具调用的渲染：让过程可见、结果体面
 
-工具注册好之后，先别急着加功能，在聊天里问一句「ORD-20431 的买家是谁」。大概率你会失望：**预置组件默认不画工具调用——运行时没有通配渲染器（`*`）时，工具调用是不可见的，用户只能看到 Agent 最后的文本总结**。调了什么、参数是什么、结果长什么样，全部黑箱。这一节把黑箱打开。
+工具注册好之后，先别急着加功能，在聊天里问一句「ORD-20431 的买家是谁」。这条调用最后画成什么，由渲染器的注册情况决定——没有任何渲染器时，调用直接坠入不可见的黑箱：
+
+```mermaid
+flowchart LR
+    A["一次工具调用<br/>get_orders"] --> B{"按名注册了<br/>useRenderTool?"}
+    B -->|"有"| C["品牌订单卡<br/>inProgress → complete 两阶段"]
+    B -->|"没有"| D{"有通配兜底<br/>useDefaultRenderTool?"}
+    D -->|"有"| E["内置状态卡<br/>可折叠参数与结果"]
+    D -->|"没有"| F["调用不可见<br/>只剩 Agent 文本总结"]
+```
+
+*图 6-2：一条工具调用的三种结局——专属卡、兜底卡、不可见。预置组件默认不画工具调用，渲染要自己装*
 
 ### 6.3.1 零配置兜底：useDefaultRenderTool
 
@@ -568,12 +592,19 @@ useInterrupt({
 
 ### 6.7.2 决策流程
 
-官方选型页的口诀是「从动词出发」（start with the verb），放进星帆工作台的语境：
+官方选型页的口诀是「从动词出发」（start with the verb）——先问 Agent 该干什么，再落到 hook，数据位置决定前端工具还是后端工具：
 
-1. **「Agent 应该在我的应用里跑点什么」**→ `useFrontendTool`。先问数据在谁手里：在浏览器（组件状态、localStorage）→ 前端工具；在服务器 → 后端工具（第 5 章），前端只管渲染。
-2. **「Agent 的工具调用应该长什么样」**→ 渲染 hook。重点工具 `useRenderTool` 按名配卡，其余 `useDefaultRenderTool` 兜底；自建聊天界面再补 `useRenderToolCall`。
-3. **「Agent 应该停下来问我」**→ `useHumanInTheLoop`（工具级审批）或 `useInterrupt`（Agent 主动打断），第 7 章。
-4. **「我在自建聊天界面」**→ `useRenderToolCall` 拿渲染函数，自己决定画在哪。
+```mermaid
+flowchart LR
+    A{"新需求<br/>动词是什么?"} -->|"跑点什么"| B{"数据在谁手里?"}
+    B -->|"浏览器"| C["useFrontendTool<br/>纯执行或带内联渲染"]
+    B -->|"服务器"| D["后端工具 第 5 章<br/>前端只配渲染器"]
+    A -->|"长什么样"| E["useRenderTool 按名配卡<br/>useDefaultRenderTool 兜底"]
+    A -->|"停下来问"| F["useHumanInTheLoop /<br/>useInterrupt 第 7 章展开"]
+    A -->|"自建聊天界面"| G["useRenderToolCall<br/>自己决定画在哪"]
+```
+
+*图 6-3:「从动词出发」的选型决策——四个动词各对应一条路线*
 
 对应到工作台的三个工具，落位是：`get_orders` 纯执行 + `useRenderTool` 订单卡；`update_price` 纯执行 + 改价卡，第 7 章加 `useHumanInTheLoop`；`toggle_listing` 纯执行 + 兜底卡；展示组件 `render_order_card` 走 `useComponent`。
 

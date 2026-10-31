@@ -73,16 +73,34 @@ CopilotKit 提供两条互补的暂停路径。它们从外面看几乎一样—
 
 无论走哪条路径，一次人工介入都由同样的四幕构成：
 
-1. **提案**——模型想调一个敏感工具，或后端节点走到 `interrupt()`；
-2. **暂停**——运行在原地冻结，控制权交给前端注册的渲染逻辑；
-3. **决策**——用户在自定义组件里批准、拒绝或补充输入；
-4. **恢复**——用户的答复沿原路返回：工具级审批里它是工具结果，打断里它是 `interrupt()` 调用的返回值——Agent 从暂停点继续，就像那次询问只是普通函数调用。
+```mermaid
+flowchart LR
+    A["提案<br/>模型要调敏感工具<br/>或节点走到 interrupt"] --> B["暂停<br/>运行原地冻结<br/>控制权交前端渲染"]
+    B --> C["决策<br/>用户在自定义组件里<br/>批准、拒绝或补充输入"]
+    C --> D["恢复<br/>答复是工具结果<br/>或 interrupt 返回值"]
+```
+
+*图 7-1：两类介入机制共享的四幕生命周期——Agent 从暂停点继续，就像那次询问只是普通函数调用。*
 
 第 4 章 4.7.1 的排除清单里有一条「Agent 应该停下来问人 → 第 7 章」，现在就是兑现它的时候。v1 遗留的对照只说一句：v1 时代这类需求靠 `useCopilotAction` 配合 `renderAndWait` 挂起等待，v2 把它拆成了本章的三个专用 Hook（`useHumanInTheLoop`、`useInterrupt` 与无头形态）——老项目迁移时按这个映射改写即可，本章不再展开 v1。
 
 ## 7.2 useHumanInTheLoop：给 update_price 装审批
 
-工具级审批的思路：**把「申请做危险动作」本身做成一个人工介入工具**。模型调用它时，CopilotKit 把这次调用路由进你的 `render` 函数，渲染出审批卡；用户作答后调用 `respond`，答案作为工具结果回给模型，Agent 据此继续。星帆工作台的审批对象，就是第 6 章定义的 `update_price`——Agent 提出把 SKU-1001 改价到 $24.99，这一步必须卖家点头才算数。
+工具级审批的思路：**把「申请做危险动作」本身做成一个人工介入工具**。星帆工作台的审批对象，就是第 6 章定义的 `update_price`——Agent 提出把 SKU-1001 改价到 $24.99，这一步必须卖家点头才算数。整条闭环是：模型发起调用，CopilotKit 把它路由进你的 `render` 函数弹卡，卖家作答后 `respond`，答案作为工具结果回给模型：
+
+```mermaid
+sequenceDiagram
+    participant M as 模型
+    participant K as CopilotKit
+    participant S as 卖家
+    M->>K: 调用人工介入工具 update_price
+    K->>S: 路由进 render 弹出审批卡
+    S->>K: 作答并 respond
+    K->>M: 答案作为工具结果返回
+    M->>M: 据此继续推理
+```
+
+*图 7-2：工具级审批闭环——调用、审批卡、respond、工具结果。*
 
 ### 7.2.1 注册审批工具
 
@@ -317,7 +335,21 @@ export function RefundInterrupt() {
 
 ## 7.4 LangGraph interrupt：后端冻结与前端恢复的完整闭环
 
-7.3 讲的是前端怎么接；这一节把后端补齐，走通官方 LangGraph 集成文档的 interrupt 配合流程。核心机制一句话：**LangGraph 的节点在执行中途调用 `interrupt(...)`，整个运行在服务端冻结；客户端解决这个打断后，`interrupt()` 的返回值就是你提交的载荷，节点从这一行继续往下跑。**
+7.3 讲的是前端怎么接；这一节把后端补齐，走通官方 LangGraph 集成文档的 interrupt 配合流程。双端时序如下——核心在于客户端解决打断后，`interrupt()` 的返回值就是你提交的载荷，节点从这一行继续往下跑：
+
+```mermaid
+sequenceDiagram
+    participant LG as LangGraph 节点
+    participant RT as Runtime
+    participant FE as 前端卡片
+    LG->>RT: interrupt 载荷·运行服务端冻结
+    RT->>FE: 打断事件·渲染表单卡片
+    FE->>RT: resolve 卖家输入
+    RT->>LG: 恢复运行
+    LG->>LG: interrupt 返回载荷·节点续跑
+```
+
+*图 7-3：LangGraph 双端打断时序——后端冻结、前端 resolve、原点续跑。*
 
 ### 7.4.1 后端：在节点里调用 interrupt
 
@@ -572,11 +604,15 @@ type GovernedAction = {
 
 前端对三种裁定（verdict）的行为官方有明确规定，应确定性处理：
 
-| Verdict | UI 行为 |
-|---------|---------|
-| `allow` | 直接执行，不再询问；可附审计备注 |
-| `deny` | 不执行；展示原因或规则引用，请 Agent 选一条更安全的路 |
-| `require_approval` | 渲染审批卡；仅当用户批准才执行 |
+```mermaid
+flowchart LR
+    A["收到动作信封"] --> B{"verdict?"}
+    B -->|"allow"| C["直接执行<br/>不再询问<br/>可附审计备注"]
+    B -->|"deny"| D["不执行<br/>展示原因或规则引用<br/>请 Agent 换安全路径"]
+    B -->|"require_approval"| E["渲染审批卡<br/>仅当用户批准才执行"]
+```
+
+*图 7-4：verdict 三分支的确定性 UI 行为——放行、阻断、请人批准。*
 
 这个信封让审批卡可以脱离「改价」成为通用组件——任何写操作只要装进信封，同一张卡就能审。官方文档把它列为该模式的适用面：发邮件、改记录、建工单、发折扣、调任何写 API。星帆工作台的 `update_price`、`toggle_listing` 都可以走这一张卡。
 
