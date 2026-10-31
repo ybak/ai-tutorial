@@ -10,18 +10,18 @@ source: https://modelcontextprotocol.io/docs/2026-07-28/tools/debugging 与 tool
 
 ```mermaid
 flowchart LR
-    A["症状<br/>连不上 / 不选工具 / 行为诡异"] --> B["调试与 Inspector<br/>三层工具 · 按症状选层"]
-    B --> C["第一站:Inspector<br/>web / TUI / CLI 三形态"]
-    B --> D["日志层<br/>stderr 与 OTel 双轨"]
-    B --> E["环境层<br/>工作目录 / 环境变量 / 绝对路径"]
-    B --> F["协议时代<br/>protocol-eras 检查新旧互操作"]
-    C --> G["收益<br/>按决策图排障<br/>不再盲改配置"]
-    D --> G
+    A["npx 启动 Inspector 连本地 Server（9.2）"] --> B["Tools 页手动调用工具<br/>切 Protocol 页看消息往返（9.2）"]
+    B --> C{"这一步通了吗？"}
+    C -->|"通 · Agent 里仍异常"| D["无嫌疑 · 查集成层（9.1 · 9.4）<br/>Host 日志面板与 server status<br/>浏览器型 Host 看 Chrome DevTools"]
+    C -->|"连不上 · 终端能跑"| E["环境层四坑（9.4）<br/>公理：Host 环境 ≠ 终端环境<br/>绝对路径 · 显式 env · 手工复现"]
+    C -->|"报 -32022 · 新旧混跑"| F["protocol-eras 判时代（9.2）<br/>Modern / Legacy / Dual-era<br/>按 supported 清单换版本（第 3 章）"]
+    D --> G["按官方循环回归（9.5）<br/>改代码 → Inspector 验证 → 单测<br/>→ 真实 Host 冒烟 → 日志留痕（9.3）"]
     E --> G
     F --> G
+    G --> H["CLI 冒烟进 CI（9.2）<br/>tools/list + 关键 tools/call<br/>每次发版自动拦截回归"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,18 +10,19 @@ source: https://modelcontextprotocol.io/docs/2026-07-28/develop/build-with-agent
 
 ```mermaid
 flowchart LR
-    A["核心协议之外<br/>长任务 / UI / 企业授权 / Skills"] --> B["扩展生态<br/>协商接入 · 官方四系"]
-    B --> C["tasks<br/>异步长任务<br/>轮询+中途输入"]
-    B --> D["apps<br/>聊天内交互 UI<br/>图表/表单/面板"]
-    B --> E["auth<br/>机器对机器<br/>企业集中管控"]
-    B --> F["skills<br/>经 MCP 发现与<br/>读取 Agent Skills"]
-    C --> G["收益<br/>核心保持精简<br/>能力按需协商"]
-    D --> G
-    E --> G
-    F --> G
+    A{"按能力缺口选扩展线（11.2）"}
+    A -->|"长任务收不了尾"| B["tasks：tasks/get 轮询（11.2）<br/>tasks/update 中途补输入<br/>自建轮询工具对亦可（第 7 章）"]
+    A -->|"平面表单不够用"| C["apps：聊天内交互 UI（11.2）<br/>选择器 · 图表 · 实时仪表盘<br/>CopilotKit 支持度回填第 8 章矩阵"]
+    A -->|"机器对机器无用户"| D["auth：Client Credentials（11.2）<br/>中台定时任务与服务间调用<br/>企业管控走 Enterprise-Managed"]
+    B --> E["capabilities.extensions 声明协商（11.1）<br/>官方前缀 io.modelcontextprotocol/<br/>不支持方必须回退核心行为"]
+    C --> E
+    D --> E
+    E --> F["装 mcp-server-dev 技能包（11.3）<br/>发现阶段五问定脚手架形状<br/>连接 · 给谁用 · 动作面 · 交互 · 鉴权"]
+    F --> G["按五问选部署路径（11.3）<br/>Remote Streamable HTTP（云 API 默认）<br/>MCP Apps · MCPB 打包 · 本地 stdio"]
+    G --> H["脚手架后仍是人的活（11.3）<br/>描述精修 · 错误处理 · Inspector 验证（第 9 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

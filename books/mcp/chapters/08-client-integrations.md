@@ -10,18 +10,17 @@ source: https://modelcontextprotocol.io/specification/2026-07-28/client + 各书
 
 ```mermaid
 flowchart LR
-    A["承诺<br/>一次封装，处处调用"] --> B["跨框架客户端接入<br/>矩阵 · 双端实测 · Agent 循环"]
-    B --> C["支持矩阵<br/>消费端 × 2026-07-28 支持"]
-    B --> D["TS Client 实测<br/>transport → connect → 调用"]
-    B --> E["Agent 循环<br/>最小实现四要点"]
-    B --> F["能力现状<br/>elicitation 活跃/Sampling 弃用"]
-    C --> G["收益<br/>贯穿案例多框架收尾<br/>跨框架通用成立"]
-    D --> G
-    E --> G
-    F --> G
+    A["接入前查矩阵两格（8.1）<br/>协议版本支持 · 传输交集"] --> B{"按交集选 transport（8.2）"}
+    B -->|"本地子进程"| C["StdioClientTransport 拉起<br/>售后域 Server 子进程（8.2）"]
+    B -->|"HTTP 远程"| D["换 StreamableHTTPClientTransport<br/>三步不变（8.2）"]
+    C --> E["connect → listTools → callTool（8.2）<br/>读 content/isError（第 6 章）"]
+    D --> E
+    E --> F["自建 Agent 循环（8.3）<br/>list_tools 注入 → tool_use 执行<br/>tool_result 回填再调"]
+    F --> G["评估并接入 agentscope-java<br/>elicitation/MRTR 优先（8.5）<br/>角色挂工具 · 发版冒烟（8.4）"]
+    G --> H["终局验证：同一售后域 Server（8.6）<br/>TS 与 Java 双端目录 · 协议 · 语义一致<br/>生产化见第 10 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,18 +10,16 @@ source: https://modelcontextprotocol.io/docs/2026-07-28/sdk 与 TypeScript SDK v
 
 ```mermaid
 flowchart LR
-    A["你的处境<br/>每个项目重复封装同一批接口"] --> B["快速上手<br/>SDK 选型 · 最小 Server · 双端实测"]
-    B --> C["选型<br/>认准 2026-07-28 支持的大版本"]
-    B --> D["Server 侧<br/>声明工具 → 描述 → 挂传输"]
-    B --> E["协议行为实证<br/>无握手 · discover · legacy 兼容"]
-    B --> F["Client 侧<br/>三步连接并调用"]
-    C --> G["收益<br/>贯穿案例售后域 Server 就位<br/>全书后续章节的生长基座"]
-    D --> G
-    E --> G
-    F --> G
+    A["选定 SDK 大版本（4.1）<br/>TS v2.x · Java mcp-core 2.0.x<br/>v1 不会获得 2026-07-28 支持"] --> B["初始化并装两个包（4.2）<br/>@modelcontextprotocol/server<br/>与 zod"]
+    B --> C["写十行 server.mjs（4.2）<br/>registerTool 声明 echo 工具<br/>serveStdio 挂 stdio 传输"]
+    C --> D["裸 JSON-RPC 无握手实测（4.3）<br/>tools/list 直发即返回目录<br/>tools/call 拿结构化结果"]
+    D --> E["server/discover 一次拿全（4.3）<br/>版本 · 能力 · 身份 · 缓存提示"]
+    E --> F["legacy 握手实证（4.3）<br/>发 2025-06-18 initialize<br/>照常应答——Dual-era 分流"]
+    F --> G["搭售后域 Server 骨架（4.5）<br/>tools/*.json 定义外置<br/>OpenAPI 原样入库"]
+    G --> H["售后域骨架就位 · echo 链路通<br/>第 5 章补工程底座<br/>第 6 章充实工具"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

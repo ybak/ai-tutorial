@@ -10,20 +10,18 @@ source: https://modelcontextprotocol.io/specification/2026-07-28/server/tools
 
 ```mermaid
 flowchart LR
-    A["现状<br/>工具能调通，但模型不爱用"] --> B["工具接入实战<br/>schema · 描述 · 错误 · 状态"]
-    B --> C["schema 设计<br/>约束进结构，别靠劝说"]
-    B --> D["描述质量<br/>任务语义 · 边界声明 · 格式示例"]
-    B --> E["两类错误<br/>isError 自纠 vs 协议报错"]
-    B --> F["MRTR 缺输入<br/>input_required 优雅询问"]
-    B --> G["显式句柄<br/>跨调用状态的正确姿势"]
-    C --> H["收益<br/>模型选得准 · 填得对<br/>失败能自纠 · 生产可靠"]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
+    A["设计工具 schema（6.2 · 6.5）<br/>约束进结构：正则、枚举<br/>出参声明 outputSchema"] --> B["写任务视角 description（6.3）<br/>任务语义、边界声明、格式示例"]
+    B --> C{"失败属于哪类？（6.4）"}
+    C -->|"执行错误：isError + 消息三要素"| D{"执行中缺用户输入？（6.6）"}
+    C -->|"协议错误：JSON-RPC error"| D
+    D -->|"是"| E["返回 input_required<br/>requestState 原样带回续接<br/>重试须换新 JSON-RPC id"]
+    D -->|"否"| F["跨调用状态走显式句柄（6.7）<br/>创建返回句柄，后续按参数传"]
+    E --> F
+    F --> G["需网关按参数路由时（6.8）<br/>给参数标 x-mcp-header<br/>敏感参数禁用"]
+    G --> H["售后域前三件套过评审上线（6.10）<br/>差版描述 → 观察误选 → 好版对照<br/>放大到数千接口见第 7 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,18 +10,16 @@ source: https://modelcontextprotocol.io/specification/2026-07-28 (basic/transpor
 
 ```mermaid
 flowchart LR
-    A["目标<br/>域 Server 敢上生产"] --> B["部署与安全<br/>传输 · 授权 · 租户 · 攻击面"]
-    B --> C["传输<br/>生产即 Streamable HTTP<br/>三件标准头"]
-    B --> D["授权<br/>OAuth 2.1 三角色<br/>CIMD + iss 校验"]
-    B --> E["多租户<br/>可见性即权限<br/>scope 过滤 tools/list"]
-    B --> F["攻击面<br/>九项攻击缓解<br/>+ 工具层防线"]
-    C --> G["收益<br/>一页部署清单过评审<br/>生产可靠"]
-    D --> G
-    E --> G
-    F --> G
+    A["为域 Server 选传输（10.1）<br/>本地 stdio · 生产 Streamable HTTP<br/>三件标准头与三个状态码"] --> B{"走通授权拓扑（10.2）<br/>AS—RS—client 三角色<br/>消费端接入走 CIMD 还是 DCR"}
+    B -->|"AS 支持 CIMD · 默认"| C["托管 CIMD 元数据文档（10.2）<br/>client_id 即文档 URL<br/>新消费端免注册审批"]
+    B -->|"旧 AS 不支持 · 过渡"| D["DCR 动态注册（10.2）<br/>已弃用 · 仅为兼容保留"]
+    C --> E["过攻击缓解清单（10.3）<br/>九项攻击逐项给缓解<br/>本地 stdio 过十条检查"]
+    D --> E
+    E --> F["配多租户与运维（10.4 · 10.5）<br/>tools/list 按 token scope 过滤<br/>租户 × Mcp-Name 两维限流"]
+    F --> G["拿部署清单过上线评审（10.6）<br/>工具层防线一并过（第 6 章）<br/>→ 第 12 章 组织与路线"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

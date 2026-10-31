@@ -10,18 +10,16 @@ source: https://modelcontextprotocol.io/specification/2026-07-28/changelog 与�
 
 ```mermaid
 flowchart LR
-    A["困惑<br/>教程互相矛盾/新旧混跑"] --> B["版本演进与兼容<br/>五版本 · 九大变更 · 七格矩阵"]
-    B --> C["时间线<br/>2024-11 → 2026-07 五版主题"]
-    B --> D["2026-07-28 九大变更<br/>无状态/MRTR/缓存/授权/弃用"]
-    B --> E["七格兼容矩阵<br/>Modern/Legacy/Dual-era"]
-    B --> F["迁移八步<br/>会话→meta→MRTR→授权"]
-    C --> G["收益<br/>选型有据 · 迁移有路<br/>旧教程免疫"]
-    D --> G
-    E --> G
+    A["探针摸底存量 Server<br/>跑 server/discover 或发带版本请求<br/>（3.4 · 3.5）"] --> B{"探针返回什么？"}
+    B -->|"DiscoverResult 或 -32022"| C["Modern 形态<br/>从 supported 选版本重试<br/>保持无状态调用（3.4）"]
+    B -->|"失败/超时"| D["Legacy 形态<br/>回退 initialize 按旧版语义<br/>（3.5）"]
+    D --> E["按八步清单改造存量（3.6）<br/>删握手 · 每请求 _meta · MRTR · 长任务<br/>listen 订阅 · 缓存 · 授权"]
+    E --> F["Dual-era 灰度过渡<br/>legacy 入口开灰度，新旧并行后收紧<br/>（3.6）"]
+    C --> G["全量落在 2026-07-28 无状态语义<br/>纯 tools 型 Server 迁移最轻（3.7）<br/>（第 4 章动手验证）"]
     F --> G
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

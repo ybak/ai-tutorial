@@ -10,18 +10,16 @@ source: https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server（�
 
 ```mermaid
 flowchart LR
-    A["目标<br/>从 echo 到完整 Server"] --> B["构建完整 Server<br/>真实 API · 错误处理 · 日志 · 测试"]
-    B --> C["工具执行<br/>外部 API 调用与降级文案"]
-    B --> D["日志纪律<br/>STDIO 禁写 stdout"]
-    B --> E["Host 测试<br/>桌面端 Agent 端到端"]
-    B --> F["注册风格<br/>装饰器 vs 显式注册"]
-    C --> G["收益<br/>可复用的 Server 工程约定<br/>支撑第 7 章规模化"]
-    D --> G
-    E --> G
-    F --> G
+    A["建项目装依赖（5.2）<br/>uv init weather<br/>uv add mcp[cli]"] --> B["立日志红线（5.2）<br/>logging 走 stderr<br/>stdout 只留给协议"]
+    B --> C["写工具执行三层（5.3）<br/>Helper 吞异常返回 None<br/>降级文案区分失败与空集"]
+    C --> D{"注册风格二选一（5.3）"}
+    D -->|"装饰器 + docstring"| E["启动 Server（5.3）<br/>uv run weather.py<br/>挂在 stdio 等待 Host"]
+    D -->|"定义外置 tools/*.json"| E
+    E --> F["接进桌面端 Host（5.4）<br/>mcpServers 登记启动命令<br/>绝对路径 · 重启生效"]
+    F --> G["自然语言端到端验证（5.4）<br/>选工具 · 填参 · 转述全过<br/>第 8 章双端实测 · 第 9 章调试"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 
