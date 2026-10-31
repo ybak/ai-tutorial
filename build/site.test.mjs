@@ -75,6 +75,22 @@ test("renderPager:首项无上一篇、次项双向", () => {
   assert.ok(mid.includes('href="../chapters/preface.html"'));
 });
 
+test("renderShell:顶栏下有仓库 Star 引导,书内导航仍在", () => {
+  const html = renderShell({ title: "t", content: "<p>x</p>", rootPrefix: "" });
+  assert.ok(html.includes('class="site-starbar"'));
+  assert.ok(html.includes('href="https://github.com/ybak/ai-tutorial"'));
+  assert.ok(html.includes("源码仓库 · 有用请 Star"));
+  assert.ok(html.includes('target="_blank"'));
+  const shelf = renderShelfPage([
+    { bookId: "a", status: "published", title: "A", tagline: "ta" },
+  ]);
+  assert.ok(shelf.includes("源码仓库 · 有用请 Star"));
+  assert.ok(shelf.includes('href="a/index.html"')); // 进书链接保留
+  const home = renderIndexPage(book, flattenPages(twoParts));
+  assert.ok(home.includes("源码仓库 · 有用请 Star"));
+  assert.ok(home.includes('href="chapters/01-a.html"')); // 篇内章节导航保留
+});
+
 test("renderShell:章节页带侧边栏与 mermaid 脚本,根页面不带 ../ 前缀", () => {
   const chapter = renderShell({ title: "章一", content: "<p>x</p>", rootPrefix: "../",
     sidebar: "<nav></nav>", needMermaid: true });
@@ -166,6 +182,7 @@ test("redirect stub:meta-refresh + pagefind ignore + 无站点 CSS", () => {
   assert.ok(html.includes('<meta http-equiv="refresh" content="0; url=agentscope-java/chapters/01-overview.html">'));
   assert.ok(html.includes('data-pagefind-ignore'));
   assert.ok(!html.includes('site-header')); // 不引站点外壳
+  assert.ok(!html.includes('site-starbar')); // 重定向 stub 不带 Star 引导
 });
 
 test("runSite 产出旧路径 stub 且清场重建无残留", async () => {
@@ -239,6 +256,8 @@ test("buildSite 假书全链路:header/title/封面零 agentscope 字样", async
   assert.ok(region(home, /<section class="cover">[\s\S]*?<\/section>/).includes("测试书来源说明"));
   assert.ok(chapter.includes('action="../../search.html"'));
   assert.ok(chapter.includes('<body data-pagefind-filter="书: 测试书">'));
+  assert.ok(chapter.includes("源码仓库 · 有用请 Star"));
+  assert.ok(home.includes('href="https://github.com/ybak/ai-tutorial"'));
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 

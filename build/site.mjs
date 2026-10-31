@@ -14,6 +14,14 @@ import { escapeHtml, md, renderMermaidScripts, splitFrontMatter, syncVendorAsset
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BUILD_DIR = __dirname;
 
+/** 在线阅读 → 仓库 Star 的固定出口。文案保持一句，避免盖过书内导航。 */
+const REPO_URL = 'https://github.com/ybak/ai-tutorial';
+const REPO_CTA = '源码仓库 · 有用请 Star';
+
+function renderRepoCta() {
+  return `<a class="site-starbar" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">${escapeHtml(REPO_CTA)}</a>`;
+}
+
 /**
  * 站点链接重写:相对 .md 链接 → .html(保留锚点);
  * ../demo/…md → GitHub blob 地址(githubBase 为「demo/ 目录上级」的 blob 前缀);
@@ -45,6 +53,7 @@ const readBuildAsset = (...seg) => fs.readFileSync(path.join(BUILD_DIR, ...seg),
  * 需按自身层级回指,缺省回退旧语义 `${rootPrefix}search.html`);
  * pagefindFilter:非空时 <body> 输出 data-pagefind-filter 属性,整页归入该 filter
  * 值(供全局搜索按书过滤;书架页/搜索页不传)。
+ * 顶栏下方固定一条仓库 Star 引导(书架、书首页、章节页、搜索页共用)。
  */
 export function renderShell({ title, bookTitle = null, content, rootPrefix, sidebar = null, needMermaid = false, searchUi = false, searchHref = null, pagefindFilter = null }) {
   const style = readBuildAsset('assets', 'style.css');
@@ -93,6 +102,7 @@ ${siteStyle}
 <a class="site-title" href="${rootPrefix}index.html">${escapeHtml(siteName)}</a>
 <form class="site-search" action="${searchHref ?? `${rootPrefix}search.html`}"><input type="search" name="q" placeholder="搜索全书…"></form>
 </header>
+${renderRepoCta()}
 <div class="site-body">
 ${sidebar ? `<aside class="site-aside">${sidebar}</aside>` : ''}
 <main class="site-main">
