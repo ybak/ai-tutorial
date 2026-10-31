@@ -13,18 +13,13 @@
 import { book as agentscopeJava } from './agentscope-java.mjs';
 import { book as mcp } from './mcp.mjs';
 import { book as ragflow } from './ragflow.mjs';
+import { book as copilotkit } from './copilotkit.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
-  {
-    bookId: 'copilotkit',
-    status: 'planned',
-    title: 'CopilotKit:从前端接入 AI Agent',
-    tagline: '在前端应用中植入 copilot 体验,从组件到自治 Agent',
-  },
   {
     bookId: 'langfuse',
     status: 'planned',
