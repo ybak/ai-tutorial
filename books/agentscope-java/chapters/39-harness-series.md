@@ -10,18 +10,18 @@ source: blogs/how-to-build-agent-harness/01-patterns.md, blogs/how-to-build-agen
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>让模型能力经过工程化 Harness<br/>稳定转化为任务结果"] --> B["如何构建 Agent Harness<br/>系列四篇完整收录"]
-    B --> C["第一篇 责任边界<br/>Model Harness Runtime Sandbox<br/>四种运行形态"]
-    B --> D["第二篇 执行与编排<br/>Agent Loop · Planning<br/>Subagent 委派 · 异步续行"]
-    B --> E["第三篇 信息工程<br/>Context 管线与压缩<br/>状态边界 · Memory · Skill"]
-    B --> F["第四篇 行动与反馈<br/>统一行动契约 · 权限与 HITL<br/>Trace 到评估闭环"]
-    C --> G["收益<br/>按 1 到 4 顺序读是推荐路径<br/>也可按主题按节跳读"]
-    D --> G
-    E --> G
-    F --> G
+    A["先固定任务契约（1.1）<br/>为谁工作、允许影响什么<br/>什么证据算完成"] --> B{"按运行责任选形态（1.1.3）<br/>调用从哪发起 · 状态存哪里"}
+    B -->|"单人 · 原型验证"| C["本地工作区最小起步（1.2 · 1.5）<br/>builder 定 name/model/workspace<br/>按任务成功标准叠加能力"]
+    B -->|"接入已有 Java 服务"| D["嵌入企业应用（1.3）<br/>taskId 映射 RuntimeContext<br/>streamEvents 外置事件"]
+    B -->|"异步 · 跨请求长任务"| E["承载为长任务服务（1.4）<br/>Definition·Task·Event 外置<br/>规模化后纳入平台（1.6）"]
+    C --> F["编排执行与长程推进（第二篇）<br/>Loop 状态机 · Planning 阶段门禁<br/>Subagent 委派 · 异步续行"]
+    D --> F
+    E --> F
+    F --> G["上下文、状态与能力资产（第三篇）<br/>Context 管线与 Manifest · 压缩卸载<br/>Memory·Knowledge·Skill 资产化"]
+    G --> H["受控行动与验证反馈（第四篇）<br/>Action Plane · Sandbox · HITL 审批<br/>证据提交 Outcome · Trace 回流闭环"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 第一篇 架构范式与责任边界
 

@@ -10,18 +10,19 @@ source: docs/building-blocks/agent.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>把示例换成真实业务<br/>要做三个决定"] --> B["Agent 与 ReAct 循环<br/>统一接口与三种调用方式"]
-    B --> C["选类与调用方式<br/>ReActAgent 还是 HarnessAgent"]
-    B --> D["实例生命周期<br/>共享 Builder · 每请求新建"]
-    B --> E["RuntimeContext<br/>每次调用的身份与瞬态数据"]
-    B --> F["人机交互<br/>暂停与恢复"]
-    C --> G["收益<br/>选对调用入口<br/>独立配置运行和管理智能体"]
-    D --> G
-    E --> G
-    F --> G
+    A["跑通小帆最小版本（先跑通）<br/>人格提示 + dashscope:qwen-plus<br/>一次 call 问退货政策"] --> B{"按场景选类（你什么时候需要它）<br/>ReActAgent 还是 HarnessAgent"}
+    B -->|"一次性回复 · 抽取"| C
+    B -->|"长期运行 · 记住用户"| C
+    C["配置共享 Builder（配置智能体）<br/>model 字符串 id · toolkit 挂工具与 MCP<br/>长期运行改用 HarnessAgent（第 11 章）"] --> D{"按场景选调用入口（运行智能体）<br/>用户要不要看过程？"}
+    D -->|"要最终回复：call"| E
+    D -->|"要流式进度：streamEvents"| E
+    D -->|"只注入上下文：observe"| E
+    E["每请求 build() 新实例（实例生命周期 · RuntimeContext）<br/>try-with-resources / Mono.using 用完关闭<br/>userId + sessionId 定状态槽位"] --> F["遇工具确认或外部执行即暂停（人机交互）<br/>回 ConfirmResult 或 ToolResultBlock<br/>喂给下一次 call 从中断处继续"]
+    F --> G["builder 挂 stateStore（配置状态持久化）<br/>JsonFile / Redis / Jdbc 按部署选<br/>同一 (userId, sessionId) 自动恢复"]
+    G --> H["拿到强类型退款意图（结构化输出）<br/>call(msgs, RefundIntent.class)<br/>第 6 章换模型 · 第 7 章装工具"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

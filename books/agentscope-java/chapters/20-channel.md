@@ -10,18 +10,18 @@ source: docs/harness/channel.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>同一个 agent 接到网页<br/>命令行与即时通讯工具"] --> B["渠道 Channel<br/>应用与 agent 之间的 Gateway 接线"]
-    B --> C["Gateway 路由<br/>会话管理 · 并发控制 · 多 agent 路由"]
-    B --> D["平台适配<br/>解析消息来源 · 投递回复"]
-    B --> E["流式事件与 SSE<br/>回复流实时推给前端"]
-    B --> F["多 agent 与自定义<br/>GatewayBootstrap 接线 · 自定义 Channel"]
-    C --> G["收益<br/>同一个 agent 稳定接到<br/>HTTP · SSE · 任意消息平台"]
-    D --> G
-    E --> G
-    F --> G
+    A["构建 HarnessAgent 并绑定 Channel（快速开始）<br/>agent.channel(ChatUiChannel.create()) 懒加载建 gateway<br/>每个 userId 自动独立 session"] --> B{"回复同步拿整段<br/>还是流式边生成边显示？"}
+    B -->|"同步"| C["send(…).block() 拿完整回复（快速开始）<br/>SendOptions.of(userId, session) 同用户开多对话<br/>图片等多模态传预构建 Msg"]
+    B -->|"流式"| D["sendStream() 细粒度事件流（流式事件 + SSE）<br/>Spring Boot SSE Controller 映射 ServerSentEvent<br/>TextBlockDeltaEvent 增量推给前端"]
+    C --> E["捕获 SubagentExposedEvent 拿 subagentId（与暴露的子 Agent 对话）<br/>sendToSubagent · sendToSubagentStream 直连子 Agent<br/>完全绕过父 agent"]
+    D --> E
+    E --> F{"HarnessAgent 不止一个？"}
+    F -->|"多 agent"| G["GatewayBootstrap 接线（多 HarnessAgent 路由）<br/>mainAgent 指定默认 · withAgentId 显式路由<br/>expose_to_user 需接 gatewayBridge()"]
+    F -->|"仅一个"| H
+    G --> H["新平台实现 Channel 接口 · gw.start() 启动（自定义 Channel）<br/>钉钉 / 飞书 / GitHub 等开箱即用（内置 Channel 适配器）<br/>同一 agent 稳定接到 HTTP · SSE · 任意消息平台（第 25 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 它们做什么
 

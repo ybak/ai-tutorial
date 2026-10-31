@@ -10,18 +10,17 @@ source: docs/harness/context.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>长任务把上下文撑爆<br/>需要打理每轮模型输入"] --> B["上下文管理<br/>准备足以继续工作的输入"]
-    B --> C["每轮推理准备输入<br/>指令 · 历史 · 任务状态 · 材料"]
-    B --> D["接入会变化的业务信息<br/>contextSource"]
-    B --> E["请求变长时<br/>卸载 · 预算 · 压缩"]
-    B --> F["检查模型实际拿到了什么<br/>ContextManifest 清单"]
-    C --> G["收益<br/>模型输入够用且不越界<br/>能排查模型为何没看到信息"]
-    D --> G
-    E --> G
-    F --> G
+    A["启动时配置共享 Builder（从一次推理开始理解上下文）<br/>model 与 workspace 先配好<br/>每次请求 build() 出新实例，用完关闭"] --> B["开始调用前写入稳定规则（开始调用：准备规则与已有材料）<br/>instruction 与 AGENTS.md 进 System<br/>MEMORY.md 等只作参考资料"]
+    B --> C{"注册 contextSource 接入业务信息（接入会变化的业务信息）<br/>来源读不到，任务还能继续吗？"}
+    C -->|"必要依据"| D["保持默认失败行为：停止构建请求<br/>超时 5 秒"]
+    C -->|"可有可无"| E["SourceFailurePolicy.OMIT 跳过<br/>省略本次来源，不沿用旧值"]
+    D --> F["长任务开任务列表跟进（工具执行之后：持续跟进长程任务）<br/>enableTaskList：todo_write 更新进度<br/>严格验收再开 taskContext 展示要求与验证"]
+    E --> F
+    F --> G["成本或窗口吃紧再调参（请求变长时：先减少负担，再压缩历史）<br/>默认已启用卸载与压缩<br/>toolResultEviction · contextPolicy · compaction"]
+    G --> H["用 ContextManifest 核对每轮输入（检查模型实际拿到了什么）<br/>validation() → sourceId() / transforms() 定位省略原因<br/>模型输入够用且不越界；记忆沉淀（第 14 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

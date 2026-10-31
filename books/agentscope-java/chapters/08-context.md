@@ -10,18 +10,17 @@ source: docs/building-blocks/context.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>断点续聊 · 多用户不串数据<br/>工具拿到本次调用身份"] --> B["会话状态机制<br/>无状态引擎按身份存取"]
-    B --> C["AgentState<br/>可恢复的完整快照"]
-    B --> D["持久化与恢复<br/>按 userId 与 sessionId 寻址"]
-    B --> E["多用户隔离 · 跨进程接续"]
-    B --> F["RuntimeContext<br/>per-call 元数据"]
-    C --> G["收益<br/>会话在实例、进程与机器之间<br/>稳定延续"]
-    D --> G
-    E --> G
-    F --> G
+    A["启动时配置共享 Builder（无状态 Agent 引擎）<br/>每次请求构建独立 Agent，用完关闭"] --> B{"按部署形态选状态存储（内置与扩展实现）<br/>单机还是多副本？"}
+    B -->|"单机 · 文件落盘"| C["JsonFileAgentStateStore<br/>LEGACY 模式默认 · 单机不跨节点"]
+    B -->|"多副本 · 生产"| D["RedisAgentStateStore · 生产首选<br/>审计报表可选 JdbcAgentStateStore<br/>构造期 .stateStore(...) 一次绑定"]
+    C --> E["每次 call 传 RuntimeContext（多用户隔离）<br/>userId 与 sessionId 定位状态槽位<br/>框架按身份加载并注入本次状态"]
+    D --> E
+    E --> F["工具经 ctx.getAgentState() 取本次状态（per-call 元数据）<br/>put 租户等瞬态属性，用完即弃<br/>runId 串起日志、AgentRun 与事件流"]
+    F --> G["call 结束自动保存 agent_state（自动持久化与恢复链路）<br/>未保存进度与工具外部副作用需业务核对"]
+    G --> H["另一节点用相同 (userId, sessionId) 接续（跨进程、跨机器接续）<br/>会话在实例、进程与机器之间稳定延续<br/>横切逻辑挂进执行流程（第 9 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -10,18 +10,17 @@ source: docs/harness/plan-mode.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>长任务最怕边想边改<br/>动手前缺一个想清楚写下来的环节"] --> B["Plan Mode 计划模式<br/>动手前先想清楚写下来的只读阶段"]
-    B --> C["三件套工具<br/>plan_enter · plan_write · plan_exit"]
-    B --> D["只读白名单<br/>九个白名单工具 · 其余调用即时拒绝"]
-    B --> E["HITL 确认退出<br/>计划经人工批准才执行"]
-    B --> F["运行细节<br/>四种终态 · shell 取舍 · 状态持久化"]
-    C --> G["收益<br/>设计 · 写计划 · 人确认 · 执行<br/>固化进长任务流程"]
-    D --> G
-    E --> G
-    F --> G
+    A["Builder 开启 Plan Mode<br/>enablePlanMode() 装三件套<br/>planFileDirectory 默认 plans（开启）"] --> B{"在 plan 阶段放开 shell？（可选）"}
+    B -->|"默认拒绝 · 保住只读"| C["plan_enter 进入只读阶段（三个工具）<br/>白名单外即时拒绝 · 模型见 DENY_MESSAGE<br/>spawn 的子 agent 同样只读"]
+    B -->|"allowShellInPlanMode()"| D["execute 加入放行名单做调查<br/>write_file / edit_file 仍被拒<br/>只读保证变弱，建议配沙箱（第 18 章）"]
+    C --> E["plan_write 写出 plans/PLAN.md<br/>plan_exit 触发 HITL 确认<br/>批准后进入执行，所有工具解禁（工作流）"]
+    D --> E
+    E --> F["判断四种终态（如何判断运行结果）<br/>isPlanModeActive() + 有无 PLAN.md<br/>再查 plan_enter / plan_write 调用记录"]
+    F --> G["按需 setPermissionMode 切换（运行期切换权限模式）<br/>BYPASS 慎用 · 无人值守选 DONT_ASK<br/>plan 状态随 AgentState 跨重启恢复"]
+    G --> H["执行阶段用 todo_write 拆 PLAN（与 todo_write 的协作）<br/>拆成 5–8 条 todo，逐条推进<br/>admin 接口查 tasks 验收（查看任务列表）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 作用
 

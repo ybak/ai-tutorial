@@ -10,18 +10,18 @@ source: service/operations.md, service/automation.md, service/issues.md, service
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>平台部署接入之后<br/>让它持续可靠地运行"] --> B["运维与运营<br/>平台日常事务手册"]
-    B --> C["运维恢复与排障<br/>备份升级 · 按现象排错"]
-    B --> D["计划与事件触发<br/>定时或事件发起工作"]
-    B --> E["工作分派审批与验收<br/>Issue 与 Inbox"]
-    B --> F["Console 与配置参考<br/>页面导览 · 部署配置"]
-    C --> G["收益<br/>运营多团队共用的平台<br/>处理升级故障与验收事务"]
-    D --> G
-    E --> G
-    F --> G
+    A["做一次可恢复的备份（运维、恢复与排障）<br/>停四个组件 pg_dump · 快照数据卷<br/>保存 .env 与 Vault master key"] --> B{"升级版本还是回退数据<br/>（运维、恢复与排障）"}
+    B -->|"计划内升级"| C["改 SERVICE_VERSION 拉镜像重建<br/>用固定案例做升级回归（升级）"]
+    B -->|"数据故障回退"| D["pg_restore 到独立空库（恢复）<br/>登录、历史、凭据解密逐项验收"]
+    C --> E["创建日报规则（计划与事件触发）<br/>enabled:false 试运行验证后启用<br/>规则与 trigger 启用后才自动派发"]
+    D --> E
+    E --> F["创建 Issue 分派 Agent 或 Team<br/>评论补充信息 · Inbox 处理审批<br/>（工作分派、审批与验收）"]
+    F --> G{"结果达到验收标准？<br/>（状态、结果与验收）"}
+    G -->|"通过 /accept"| H["平台日常事务可运营：升级 · 故障 · 验收<br/>同一操作可由 Console 页面完成（可视化 Console）<br/>六个场景案例见第 34 章"]
+    G -->|"退回 /reject"| F
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 运维、恢复与排障
 

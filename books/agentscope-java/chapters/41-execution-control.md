@@ -10,16 +10,20 @@ source: blogs/session-execution-control.md, blogs/jev-structured-decision-for-ag
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>任务怎么排队引导中断续做<br/>高频小判断交给谁"] --> B["两篇互补的运行时实践"]
-    B --> C["会话执行控制<br/>submit · steer · inject<br/>interrupt · resume · respond"]
-    B --> D["session turn run 三层结构<br/>断线续传 · 对照 Service 入口"]
-    B --> E["Jev 结构化决策<br/>三类问题返回类型化答案<br/>三个中间件覆盖判断点"]
-    C --> F["收益<br/>后台执行的任务可控可恢复<br/>分清判断与主模型的边界"]
-    D --> F
-    E --> F
+    A["取得会话并提交任务<br/>agent.session 后 submit<br/>回执 turnId · await 只观察"] --> B{"A 正在执行<br/>下一条消息应该怎么办"}
+    B -->|"独立新需求 · 再 submit 排队"| A
+    B -->|"补充当前任务 · steer"| D["下一推理步骤读取<br/>不主动增加一次推理"]
+    B -->|"纯参考材料 · inject"| D
+    D --> E["interrupt 停止 · resume 续做<br/>turnId 不变，runId 新建<br/>挂起待办用 respond 答复"]
+    E --> F["断线续传与应用重启<br/>快照 + 水位后事件补界面<br/>session.start() 续调度"]
+    F --> G["引入 agentscope-extensions-jev<br/>或 starter，注入 JevClient<br/>快速上手见第 36 章"]
+    G --> H{"Agent 循环里<br/>哪个判断点交给 Jev"}
+    H -->|"选模型 · Agent 入口"| I["SHADOW 只记录建议<br/>验证后切 ENFORCE 接管判断点<br/>深度推理与文本输出仍归主模型"]
+    H -->|"选工具 · 推理前"| I
+    H -->|"判安全性 · 行动前"| I
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 会话操作：提交、引导、中断与恢复
 

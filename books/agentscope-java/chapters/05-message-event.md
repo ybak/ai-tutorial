@@ -10,18 +10,16 @@ source: docs/building-blocks/message-and-event.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>界面要实时反馈过程<br/>而不只一个最终结果"] --> B["消息与事件<br/>两种基础数据结构"]
-    B --> C["消息 Msg<br/>完整对话轮次 · 内容块"]
-    B --> D["事件 AgentEvent<br/>start → delta → end"]
-    B --> E["事件类型<br/>生命周期 · 流式 · 人工介入"]
-    B --> F["从事件流重建消息<br/>凭关联键聚合"]
-    C --> G["收益<br/>正确解析与聚合输出<br/>构建流式界面"]
-    D --> G
-    E --> G
-    F --> G
+    A["构造用户消息（消息 · 创建消息）<br/>字符串自动包为 TextBlock<br/>多模态用 DataBlock"] --> B["streamEvents 订阅事件流（事件生命周期）<br/>replyId 关联一次回复<br/>start → delta → end"]
+    B --> C{"事件是哪类？（事件类型）"}
+    C -->|"进度：文本 / 工具"| D["TextBlockDeltaEvent 逐字上屏<br/>ToolCallStartEvent 报工具名<br/>ToolResultEndEvent 查 state"]
+    C -->|"暂停：人工介入"| E["回传结果恢复执行（人工介入事件）<br/>确认：UserConfirmResultEvent<br/>外部执行：ExternalExecutionResultEvent"]
+    D --> F["凭关联键聚合（从事件流重建消息）<br/>replyId / blockId / toolCallId<br/>还原完整 AssistantMessage"]
+    E --> F
+    F --> G["小帆回复逐字上屏、完整可还原<br/>单次调用的事件汇聚成恰好一条 assistant 消息<br/>断线补历史读 Session Log（第 19 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

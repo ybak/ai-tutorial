@@ -10,18 +10,19 @@ source: docs/building-blocks/model.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>把 Agent 接到公司在用的模型<br/>以后还能切换供应商"] --> B["模型接入<br/>两层结构与提供商扩展模块"]
-    B --> C["两层结构<br/>鉴权凭证与模型实现分离"]
-    B --> D["两种创建方式<br/>字符串 model id · 显式 builder"]
-    B --> E["ModelRegistry<br/>解析与缓存策略"]
-    B --> F["自定义模型提供商"]
-    C --> G["收益<br/>把主流 LLM 接入 Agent<br/>并按需深度定制"]
-    D --> G
-    E --> G
-    F --> G
+    A["引入扩展模块（模型扩展模块）<br/>加 agentscope-extensions-model-dashscope 依赖<br/>import 与 formatter 包随之迁移"] --> B{"模型怎么创建？（选择模型创建方式）<br/>按应用形态与控制粒度"}
+    B -->|"简单跑通 · 非 Spring"| C["字符串 model id（ModelRegistry 解析）<br/>dashscope:qwen-plus<br/>配 DASHSCOPE_API_KEY 即用"]
+    B -->|"要自定义 key · baseUrl · formatter"| D["显式 Model builder<br/>DashScopeChatModel.builder()<br/>设 baseUrl · formatter · 生成参数"]
+    B -->|"Spring Boot 应用"| E["提供商 starter + application.yml<br/>创建 Spring 管理的 Model bean<br/>customizer 设默认生成参数"]
+    B -->|"要接的提供商没有现成模块"| H["自定义提供商（自定义模型提供商）<br/>实现 CredentialBase 与 ChatModelBase 子类<br/>（可选）registerFactory 换字符串 id"]
+    C --> F["调用模型拿响应（Chat Model）<br/>stream(messages, tools, options)<br/>日常多由 ReActAgent 调度"]
+    D --> F
+    E --> F
+    H --> F
+    F --> G["拿到结构化输出（生成结构化输出）<br/>agent.call(..., WeatherInfo.class, ...)<br/>小帆模型接通，下一步接工具（第 7 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

@@ -12,18 +12,18 @@ source: docs/harness/sandbox.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>放开了跑脚本装依赖<br/>别弄坏宿主机别重复安装"] --> B["沙箱执行<br/>文件操作与命令收进隔离环境"]
-    B --> C["IsolationScope 分桶<br/>谁和谁共享同一沙箱"]
-    B --> D["快照恢复<br/>装过的依赖跨调用接着用"]
-    B --> E["分布式部署<br/>并发锁 · 多副本接续同一沙箱"]
-    B --> F["后端与镜像<br/>五种后端选择 · 运行时镜像契约"]
-    C --> G["收益<br/>不可信代码关进隔离容器<br/>依赖跨调用跨副本地保留"]
-    D --> G
-    E --> G
-    F --> G
+    A["跑通一个最小例子：DockerFilesystemSpec<br/>image 用 ubuntu:24.04<br/>call 带 userId 按用户隔离"] --> B["isolationScope 定共享边界<br/>USER 默认 · 缺 userId 降级 SESSION<br/>（IsolationScope）"]
+    B --> C["配 snapshotSpec 留住工作区<br/>Oss / Redis / Jdbc / Local<br/>（跨调用恢复 = 快照，Noop 不持久化）"]
+    C --> D{"要多副本部署吗？<br/>（分布式部署）"}
+    D -->|"要"| E["分布式 AgentStateStore + 远端快照<br/>distributedStore(...) 一并注入执行锁<br/>（并发控制）"]
+    D -->|"单机即可"| F{"沙箱后端选哪家？<br/>（沙箱后端怎么选）"}
+    E --> F
+    F -->|"Kubernetes"| G["PVC 挂载到 /workspace<br/>运行时镜像满足文件 API 契约<br/>（PVC 是第一层）"]
+    F -->|"Docker / Daytona / E2B / AgentRun"| H["镜像自检达标（运行时镜像约束）<br/>不可信代码关进容器<br/>依赖跨调用跨副本保留（衔接第 19 章）"]
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 沙箱解决什么
 

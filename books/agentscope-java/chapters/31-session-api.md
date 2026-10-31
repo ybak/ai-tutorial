@@ -12,18 +12,18 @@ source: service/service-api.md, service/api-reference.md, service/agent-api-chat
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>把业务应用接进托管 Agent<br/>刷新断线也能接回结果"] --> B["Session API<br/>应用调用 Service 的统一入口"]
-    B --> C["接入最小路径<br/>凭据 · Session · Turn<br/>快照事件 · 待办答复 · 交付"]
-    B --> D["刷新与调整<br/>SSE 与事件续传 · 会话任务与预算"]
-    B --> E["运行资源<br/>Memory · Vault · 工具与 MCP"]
-    B --> F["交付与触达<br/>文件与产物 · 消息渠道"]
-    C --> G["收益<br/>业务应用完整接入 Service<br/>管理 Agent 运行所需资源"]
-    D --> G
-    E --> G
-    F --> G
+    A["身份与凭据：创建 Application 签发应用 key<br/>scope 授 invoke · read · interact · cancel<br/>key 交业务后端保管，不进浏览器"] --> B["创建 Session 到交付：一轮任务的完整路线<br/>提交 Turn 后读快照、订阅事件流<br/>幂等键相同，重试才返回原 Turn"]
+    B --> C{"快照里出现待办，属于哪种类型？<br/>（在执行中参与交互）"}
+    C -->|"工具确认 · payload.allow"| D["跟踪回执到 completed，再检查交付结果<br/>Agent 要写文件，文件去哪了（文件与产物）<br/>材料以 file_id 引用 · 结果登记为 Artifact"]
+    C -->|"外部工具结果 · output 与 is_error"| D
+    C -->|"业务审批 · expected_version 与 decision"| D
+    D --> E["用户刷新页面怎么办（SSE 与事件续传）<br/>快照先重放，Last-Event-ID 断点续传<br/>410 重读快照 · 离线由后端收 Webhook"]
+    E --> F["执行中要调整怎么办（会话、任务与预算）<br/>steer 改后续步骤 · inject 只存背景<br/>cancel 等明确终态 · resume 先处理待办"]
+    F --> G["Memory Store 绑定并验证真读取（Memory）<br/>Vault 存凭据挂给 MCP 连接（Vault）<br/>工具集写进 Agent 定义（工具、MCP 与权限）"]
+    G --> H["接入消息渠道：飞书建连接、配路由<br/>pairing 绑定身份，从聊天平台发起工作<br/>跟完接收、执行、回传（多 Agent 见第 32 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 身份与凭据：应用后端怎么调用
 

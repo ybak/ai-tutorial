@@ -10,18 +10,18 @@ source: integration/protocol/index.md, integration/protocol/overview.md, integra
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>同一个 Agent 要同时<br/>开放给三种外部调用方"] --> B["Agent 协议<br/>三种标准协议适配器"]
-    B --> C["A2A<br/>Agent 与外部 Agent 系统互调"]
-    B --> D["Agent Protocol<br/>用标准 HTTP 接口提交任务"]
-    B --> E["AG-UI<br/>事件流转成前端可实时渲染的事件"]
-    B --> F["怎么选<br/>外部互操作 · 内部调度 · 前端 UI"]
-    C --> G["收益<br/>同时开放给其他 Agent 系统<br/>任务调度方与浏览器前端"]
-    D --> G
-    E --> G
-    F --> G
+    A{"谁在调用这个 Agent？<br/>按信任边界选协议（怎么选）"} -->|"前端 UI 实时消费事件流"| B["AG-UI：引入 agui starter<br/>共享 agentBuilder（第 2 章）<br/>AguiAgentAdapter 流式输出事件"]
+    A -->|"内部系统 REST 提交任务"| C["Agent Protocol：引入依赖<br/>注入 HarnessAgent Bean<br/>yml 置 enabled=true"]
+    A -->|"外部 Agent 系统互操作"| D["A2A：client 包装远端 Agent<br/>或 server 暴露 ReActAgent"]
+    B --> E["（AG-UI）前端实时渲染运行过程<br/>工具审批 interrupt 与 resume 往返"]
+    C --> F["（Agent Protocol）定义 AgentFactory<br/>按 agent_id 路由 · /tasks 提交<br/>SSE 订阅 · /resume 恢复确认"]
+    D --> G["（A2A）远端 Agent 可直接 call<br/>Web 框架委托 transportWrapper<br/>监听后再调 postEndpointReady"]
+    E --> H["同一个 Agent 同时开放给三类调用方<br/>OpenAI 兼容接口见第 28 章"]
+    F --> H
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 AgentScope 在 Java 侧提供了多种"让 Agent 与外部交互"的协议适配器。它们各自解决一个不同的问题：
 

@@ -10,16 +10,16 @@ source: docs/others/going-to-production.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>单机跑通的 Agent<br/>搬到多副本生产环境"] --> B["单机到分布式的差异<br/>哪些组件必须换"]
-    B --> C["DistributedStore 一键配置<br/>状态 · 工作区 KV<br/>沙箱快照 · 执行锁"]
-    B --> D["按组件展开<br/>状态与租户隔离 · 文件系统模式<br/>Skill 仓库 · 沙箱与快照"]
-    B --> E["生产落地<br/>多副本 checklist<br/>builder 模板 · 常见坑位"]
-    C --> F["收益<br/>多副本共享会话 · 隔离用户<br/>重启后接着上次跑"]
-    D --> F
+    A["一键配置 DistributedStore（快速上手）<br/>Redis · JDBC · OSS 选一，混合也行<br/>状态 · KV · 快照 · 执行锁一行接好"] --> B["状态放对地方（第 1 节）<br/>JsonFileAgentStateStore 只够单机<br/>每次 call 传 userId 与 sessionId"]
+    B --> C{"Filesystem 选模式（第 2 节）<br/>要跑 shell · 不可信代码？"}
+    C -->|"要 shell · 硬隔离"| D["Sandbox 模式（第 5 节）<br/>Docker · K8s · AgentRun 等五种 Spec<br/>快照必配：大对象走 OSS"]
+    C -->|"只要共享记忆"| E["Remote 模式（第 2 · 3 节）<br/>IsolationScope 分桶，上线前定死<br/>KV 选 Redis · JDBC，别把 OSS 当 KV"]
+    D --> F["Skill 换集中仓库（第 4 节）<br/>Git · MySQL 只读 · Nacos<br/>agent 端禁 autoPromote"]
     E --> F
+    F --> G["落成共享 Builder（第 7 节）<br/>按请求 build() · 对照第 6 节 checklist<br/>多副本共享会话 · 重启接着跑"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 快速上手：DistributedStore 一键配置
 

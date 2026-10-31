@@ -10,18 +10,18 @@ source: docs/harness/workspace.md, docs/harness/filesystem.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>Agent 要读到项目规范与共享约定<br/>多用户数据互不越界"] --> B["工作区 Workspace<br/>Agent 定义与材料的唯一可信来源"]
-    B --> C["目录布局<br/>AGENTS.md · 知识 · Skill"]
-    B --> D["内容加载<br/>材料分层进入请求"]
-    B --> E["进化通道<br/>运行所学落在哪里"]
-    B --> F["文件系统后端<br/>本机 shell · 共享存储 · 沙箱"]
-    C --> G["收益<br/>同一套代码从单机到多副本<br/>不改代码切换"]
-    D --> G
+    A["写 AGENTS.md 骨架（工作区目录布局）<br/>唯一必写：人格 + 行为约定<br/>knowledge/ · skills/ 按需放"] --> B["Builder 装配（Builder 配置 · 智能体如何进化）<br/>.workspace(...) 优先；容器用 AGENTSCOPE_WORKSPACE<br/>.compaction(...) · .enablePlanMode() 按需开通道"]
+    B --> C{"这份目录落在哪里？（文件系统后端：三种部署模式）<br/>filesystem(...) 三选一"}
+    C -->|"多副本 · 共享长期记忆"| D["RemoteFilesystemSpec 接 Redis / JDBC<br/>运行时产物进 KV，不提供 shell<br/>IsolationScope.USER 按用户分桶"]
+    C -->|"代码不可信 · 要隔离执行"| E["DockerFilesystemSpec 等沙箱系列<br/>文件与 shell 都在容器内<br/>LocalSnapshotSpec 快照跨调用恢复"]
+    C -->|"单机 · 信任环境"| F["LocalFilesystemSpec（默认，可不写）<br/>宿主 sh -c 直读直写<br/>只限信任环境，别跑不可信代码"]
+    D --> G["多用户与安全写盘（IsolationScope · 写入工作区的安全规则）<br/>RuntimeContext.userId 切租户<br/>写文件只用 getWorkspaceManager()"]
     E --> G
     F --> G
+    G --> H["验收自检通过（本章小结）<br/>同一套 agent 代码不改代码，单机 / 多副本 / 沙箱切换<br/>alice 与 bob 数据互不越界（沙箱运行时进第 18 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要工作区
 

@@ -10,18 +10,18 @@ source: docs/building-blocks/tool.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>Agent 要操作真实业务系统<br/>查订单 · 写工单 · 跑脚本"] --> B["工具体系<br/>Tool · Toolkit · Tool Group"]
-    B --> C["Java Tool<br/>注解式与 ToolBase 两种自定义方式"]
-    B --> D["接收 Context<br/>拿到本次调用信息"]
-    B --> E["MCP<br/>接入现成工具生态"]
-    B --> F["Skill 热加载<br/>meta tool 自我管理"]
-    C --> G["收益<br/>为 Agent 扩展<br/>安全可控的行动能力"]
-    D --> G
-    E --> G
-    F --> G
+    A["把「查订单」写成 @Tool 方法（Java Tool）<br/>registerTool 注册进 Toolkit，模型成功调用<br/>要自定义权限、复杂 schema 再继承 ToolBase"] --> B{"动作要人来执行或确认？（定义外部执行 Tool）"}
+    B -->|"要"| C["externalTool(true)，不必实现 callAsync<br/>Agent 发 RequireExternalExecutionEvent 并暂停<br/>回传匹配的 ToolResultBlock 后继续"]
+    B -->|"不要"| D["接住本次调用的身份与状态（接收 Context）<br/>@Tool 参数不标 @ToolParam 即自动注入<br/>ToolEmitter、AgentState、RuntimeContext、自定义 POJO"]
+    C --> D
+    D --> E{"更多能力自己写还是接现成？（MCP · Skill）"}
+    E -->|"接现成服务器"| F["McpClientBuilder 建客户端注册进 Toolkit（MCP）<br/>STDIO / SSE / Streamable HTTP 三选一<br/>readOnlyHint 的工具权限自动放行"]
+    E -->|"包装已有工具"| G["写 SKILL.md，skillRepository 挂载仓库（Skill）<br/>Agent 经 load_skill_through_path 读指令<br/>读到即激活 skill 绑定的 tool group"]
+    F --> H["工具挤上下文就建 Tool Group（自我管理 Tool）<br/>enableMetaTool(true)，reset_tools 整体覆盖切换<br/>小帆查订单、写工单调用成功（状态延续见第 8 章）"]
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

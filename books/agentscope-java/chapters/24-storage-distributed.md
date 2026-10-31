@@ -10,18 +10,20 @@ source: integration/session/index.md, integration/session/overview.md, integrati
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>第二个副本上线后<br/>两台机器别各记各的"] --> B["会话存储与分布式部署<br/>Agent 状态的存储底座"]
-    B --> C["AgentStateStore 接口<br/>状态存到哪 · 按用户与会话寻址"]
-    B --> D["DistributedStore 一键配置<br/>状态 · 工作区文件 · 快照 · 锁"]
-    B --> E["四个后端<br/>Redis · JDBC · MongoDB · OSS 混合搭配"]
-    B --> F["legacy 状态存储<br/>已被取代的存量维护参考"]
-    C --> G["收益<br/>多副本共享同一份状态与工作区<br/>按既有设施选后端组合"]
-    D --> G
-    E --> G
-    F --> G
+    A{"按现有基础设施选后端<br/>（后端详细文档）"} -->|"多副本生产，追求低延迟"| B["Redis：加依赖 → fromJedis 一键配置<br/>Cluster 场景必须显式选 V1 布局"]
+    A -->|"已有关系型数据库"| C["JDBC：加依赖 → create(dataSource)<br/>方言 SPI 自动检测 · 自动建表校验"]
+    A -->|"已有 MongoDB 集群"| D["MongoDB：加依赖 → create(mongoClient)<br/>文档型 · 集合级 30 天 TTL"]
+    A -->|"大快照 · 阿里云生态"| E["阿里云 OSS：加依赖 → create 一键配置<br/>大快照首选 · 不提供沙箱并发锁"]
+    B --> F{"快照过大，或需要沙箱并发锁？"}
+    C --> F
+    D --> F
+    E --> F
+    F -->|"是"| G["混合后端：DistributedStore.builder()<br/>状态与文件走主后端<br/>大快照换 OSS · 锁可换 Redis"]
+    F -->|"否"| H["验证：多副本共享同一份状态与工作区<br/>重启恢复 · 跨节点共享<br/>（快速上手主线见第 42 章）"]
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 从单机到多副本：存储要解决什么
 

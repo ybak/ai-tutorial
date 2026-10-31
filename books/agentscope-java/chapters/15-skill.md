@@ -10,18 +10,16 @@ source: docs/harness/skill.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>团队 SOP 写一次<br/>各业务 agent 自动取用"] --> B["技能体系<br/>SKILL.md 能力包"]
-    B --> C["SKILL.md 写法"]
-    B --> D["两类安装来源<br/>技能市场 · 工作区"]
-    B --> E["同名冲突优先级<br/>四层谁说了算"]
-    B --> F["自学习闭环<br/>起草 · 审核 · 后台整理"]
-    C --> G["收益<br/>能力包复用到多个 agent<br/>agent 运行中自己沉淀新技能"]
-    D --> G
-    E --> G
-    F --> G
+    A["写好能力包 SKILL.md<br/>name + description 写清触发场景<br/>再带 references/ 与 scripts/"] --> B{"这份能力放哪儿？<br/>按复用范围选来源"}
+    B -->|"通用能力 · 团队集中维护"| C["接技能市场<br/>skillRepository(...) 统一入口<br/>Git / Nacos / MySQL / classpath"]
+    B -->|"项目特有 · 随代码版本走"| D["把 skill 放到工作区<br/>共用放 workspace/skills/<br/>单用户覆盖放 userId/skills/"]
+    C --> E["同名冲突谁说了算<br/>用户隔离＞工作区共用＞市场＞项目全局<br/>下层独有仍保留"]
+    D --> E
+    E --> F["自学习闭环（可选）<br/>enableSkillManageTool 起草<br/>promotion gate 审核 · curator 整理"]
+    F --> G["起 agent 验证（Agent 是怎么读取和执行 skill 的）<br/>available_skills 列出可见 skill<br/>相关才 load_skill_through_path 拉详情"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

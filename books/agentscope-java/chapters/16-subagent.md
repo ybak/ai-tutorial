@@ -10,18 +10,16 @@ source: docs/harness/subagent.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>一块分析一次评审可独立完成<br/>别挤占主 agent 上下文"] --> B["子 Agent 协作<br/>把任务委派给独立运行的子实例"]
-    B --> C["三类声明方式<br/>内置 general-purpose · 工作区 spec · 编程式"]
-    B --> D["工作区模式<br/>ISOLATED 独享 · SHARED 与父共享"]
-    B --> E["同步与后台<br/>后台完成自动反向通知 · 可持久会话"]
-    B --> F["远程与行为细节<br/>远程子 Agent · 权限继承 · Plan Mode 传播"]
-    C --> G["收益<br/>一套声明文件让主 agent<br/>从重上下文任务中解放"]
-    D --> G
-    E --> G
-    F --> G
+    A["声明子 agent（几种声明方式）<br/>工作区 spec / 编程式 / 内置 general-purpose<br/>description 写清何时该委派"] --> B{"工作区怎么算<br/>（ISOLATED vs SHARED）"}
+    B -->|"ISOLATED · 默认<br/>独立工作区分桶"| C{"agent_spawn 委派<br/>（同步还是后台？）"}
+    B -->|"SHARED<br/>与父共享主工作区"| C
+    C -->|"timeout_seconds > 0 · 同步"| D["同步等结果（同步还是后台？）<br/>结果作工具结果返回 · 默认 30s<br/>超时 promote 成后台任务"]
+    C -->|"timeout_seconds = 0 · 后台"| E["后台跑，立即返回 task_id<br/>完成自动反向通知，无需轮询<br/>等齐一组：wait_async_results（后台任务工具）"]
+    D --> F["主 agent 从重上下文任务中解放<br/>进阶：expose_to_user 暴露给用户（第 20 章）<br/>url 声明远程子 agent（第 26 章）"]
+    E --> F
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 作用
 

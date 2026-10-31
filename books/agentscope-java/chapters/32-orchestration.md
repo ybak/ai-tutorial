@@ -12,18 +12,19 @@ source: service/orchestration.md, service/create-team.md, service/team-configura
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>一个 Agent 不够用<br/>要分工或要固定流程"] --> B["多 Agent 编排<br/>按局面选协作层次"]
-    B --> C["协作层次怎么选<br/>任务内 Subagent · Team 持续分工<br/>Workflow 固定流程"]
-    B --> D["创建与运行 Team<br/>Leader 成员与策略 · 就绪度"]
-    B --> E["编排 Workflow<br/>定义与 revision · approval 人工审批"]
-    B --> F["融入业务<br/>Session 调用与观察 · Issue 验收与触发"]
-    C --> G["收益<br/>扩展为可验收的团队协作<br/>或带人工审批的固定流程"]
-    D --> G
-    E --> G
-    F --> G
+    A{"这项工作该用哪层协作<br/>（选择协作层次）"}
+    A -->|"任务内一小块独立分析"| B["HarnessAgent 的 Subagent 委派<br/>不建平台 Team<br/>配置与观察见第 30、31 章"]
+    A -->|"成员围绕同一目标持续分工"| C["创建一个复核团队（创建与运行 Team）<br/>资料助手当 Leader、复核助手当成员<br/>Agent 与认证变量见第 30、31 章"]
+    C --> D{"就绪度达到 Ready 了吗<br/>（检查就绪度）"}
+    D -->|"Ready"| E["Session 以 team 为目标，提交 Turn<br/>（提交团队任务并读取结果）<br/>从快照与事件确认根 Turn 终态"]
+    D -->|"Degraded / Unavailable，先修复"| C
+    E -->|"还要固定顺序与审批时"| F["创建并校验流程（编排 Workflow）<br/>agent 节点接 approval 审批节点<br/>validate 检查引用与表达式"]
+    A -->|"步骤与审批顺序已定死"| F
+    F --> G["发布版本并开始执行<br/>revision 发布后不可变<br/>Session 固定 revision 提交 Turn"]
+    G --> H["完成 approval 人工审批<br/>（跟进节点、输出与审批）<br/>通过后流程走完，页面操作见第 33 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 多 Agent 编排概览
 

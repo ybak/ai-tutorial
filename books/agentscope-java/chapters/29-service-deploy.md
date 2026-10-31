@@ -12,18 +12,17 @@ source: service/index.md, service/quickstart.md, service/environments.md, servic
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>多个业务应用想共用<br/>同一套 Agent 能力"] --> B["AgentScope Service<br/>可自托管的 Agent 运行平台"]
-    B --> C["五分钟跑起来<br/>Docker Compose 部署与首次调用"]
-    B --> D["一次调用背后的组件<br/>Agent · Session · Turn"]
-    B --> E["成长中的三件事<br/>工具执行位置 · 账号权限 · 生产安装"]
-    B --> F["进阶选读<br/>Runtime Host 接入 Coding Agent"]
-    C --> G["收益<br/>拥有一个可用的 Service<br/>为后续章节备好模型工具与账号"]
-    D --> G
-    E --> G
+    A["下载 Compose 包，init-env.sh 配置 .env<br/>填 DashScope Key，up -d 启动五个组件<br/>admin 登录并修改初始密码（五分钟跑起来）"] --> B["Console 创建 notes-assistant<br/>提交 Task message，收到整理结果<br/>平台可用（五分钟跑起来）"]
+    B --> C["建 self_hosted Environment，启动 Worker<br/>出站连接免暴露端口，绑给 Agent 或 Session<br/>提交写文件任务，验证落在 Worker（Environment）"]
+    C --> D["建日常账号 kefu-alice，admin 只留初始化<br/>建空间加成员，restricted 限定 Agent 可用者<br/>（给第一个业务团队开通账号）"]
+    D --> E{"出现长期维护信号？（从本机到生产）"}
+    E -->|"是"| F["备好 Secret 与 production-values.yaml<br/>helm upgrade --install 固定版本安装<br/>验证公开域名用户路径（Kubernetes 安装）"]
+    E -->|"否，本机够用"| G["go install as 与 runtime-host 两个命令<br/>as connect 登录接入，绑定 Hosted Agent<br/>派发小任务验证（Runtime Host 选读）"]
     F --> G
+    G --> H["平台交付业务团队：地址 · 账号 · Namespace<br/>默认模型与工具环境可用<br/>模型与文件工具验证见第 30 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 为什么需要一个共享的 Agent 平台
 

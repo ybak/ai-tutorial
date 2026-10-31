@@ -10,18 +10,16 @@ source: docs/building-blocks/middleware.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>统一加日志 · 追踪 · 限速<br/>不改任何 agent 代码"] --> B["Middleware 中间件<br/>六类扩展点注入自定义逻辑"]
-    B --> C["三类 hook<br/>洋葱式 · 变换式 · 通知式"]
-    B --> D["内置 Middleware<br/>链路追踪等现成实现"]
-    B --> E["自定义 Middleware<br/>执行顺序与扩展点声明"]
-    B --> F["实用示例<br/>计时 · 限速 · 模型回退"]
-    C --> G["收益<br/>不改 agent 代码<br/>横切观察与改写执行流程"]
-    D --> G
-    E --> G
+    A["把一组 hook 装进 MiddlewareBase（装备 Middleware）<br/>实例交给 builder 的 middlewares(...) 即可<br/>未实现的位置自动跳过"] --> B{"内置够用吗？（内置 Middleware）<br/>追踪 · 任务提醒 · 答案过滤"}
+    B -->|"够用 · 直接装配"| C["复用现成实现（内置 Middleware）<br/>追踪：先注册 OpenTelemetry SDK<br/>提醒：enableTaskList(true) 一并启用"]
+    B -->|"不够用 · 自己写"| D["自己实现 MiddlewareBase（自定义 Middleware）<br/>只重写需要的 hook，其余不用管"]
+    C --> G["跑一次 reply 验证：span 树与计时日志都在<br/>横切增强生效，未改一行 agent 代码<br/>工具准不准执行归权限系统（第 10 章）"]
+    D --> E["activePoints() 声明参与（自定义 Middleware）<br/>覆写即接管 · 空集合可作运行开关<br/>order() 数值越大越外层"]
+    E --> F["照抄五个完整示例（实用示例）<br/>计时 · 限速 · 动态 system prompt<br/>模型回退 · 全部工具被拒即停"]
     F --> G
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

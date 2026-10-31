@@ -10,18 +10,17 @@ source: docs/building-blocks/permission-system.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>Agent 要做有真实后果的操作<br/>删文件 · 跑命令 · 发线上请求"] --> B["权限系统<br/>拦截每次工具调用做判定"]
-    B --> C["三层决策<br/>Rules · Mode · Built-in Checks"]
-    B --> D["五种 PermissionMode<br/>适用场景"]
-    B --> E["建议规则与危险路径保护"]
-    B --> F["结合 HITL<br/>确认恢复与部署配方"]
-    C --> G["收益<br/>为 Agent 划定<br/>安全可控的行动边界"]
-    D --> G
-    E --> G
-    F --> G
+    A["为小帆建 PermissionContextState<br/>mode 定全局默认（Permission Mode）<br/>DEFAULT · ACCEPT_EDITS · EXPLORE · BYPASS · DONT_ASK"] --> B["加 PermissionRule 管例外（Permission Rule）<br/>addAllowRule / addDenyRule / addAskRule<br/>ruleContent 为 null 匹配该 tool 全部调用"]
+    B --> C["重写 checkPermissions 定制工具检查（Built-in Checks）<br/>@Tool 追加 dangerousFiles 护危险路径<br/>检查不可绕过 · BYPASS 下仍生效"]
+    C --> D{"ASK 决策谁来把关？（结合 HITL）"}
+    D -->|"人在场 · 界面确认"| E["Agent 暂停返回 PERMISSION_ASKING（交互流程）<br/>筛 ASKING 状态的 ToolUseBlock 向用户展示"]
+    D -->|"无人值守 · CI 定时任务"| F["mode 设为 DONT_ASK（无人值守模式）<br/>ASK 静默降级为 DENY · 不阻塞等待"]
+    E --> G["构建 ConfirmResult 附 metadata 恢复（交互流程）<br/>流式则从 RequireUserConfirmEvent 获取"]
+    F --> H["按部署形态套现成配置（常见配方）<br/>只读探索 · 无人值守 · 阻止危险命令<br/>安全边界就绪 · 汇入 HarnessAgent（第 11 章）"]
+    G --> H
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 

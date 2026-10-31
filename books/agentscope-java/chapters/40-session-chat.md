@@ -10,16 +10,17 @@ source: blogs/best-practices/session-chat.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>页面离开后任务仍在执行<br/>回来还能接着看"] --> B["agentscope-chat 示例<br/>可运行的可恢复会话聊天"]
-    B --> C["启动与体验<br/>只需 JDK 17 以上和 Maven<br/>离线演示模型无需密钥"]
-    B --> D["四个关键场景<br/>刷新补齐 · 补充恢复同一 turn<br/>checkpoint 续跑 · 排队与引导"]
-    B --> E["代码阅读顺序<br/>页面后端与 AgentSession 的协作"]
-    C --> F["收益<br/>照示例搭出<br/>可恢复的聊天应用"]
-    D --> F
-    E --> F
+    A["构建并运行 agentscope-chat（启动）<br/>mvn 打包后运行 jar<br/>打开 127.0.0.1:8087"] --> B{"用离线演示还是真实模型<br/>（使用真实模型）"}
+    B -->|"默认 · 离线演示模型"| C
+    B -->|"设 DASHSCOPE_API_KEY 后重启"| C
+    C["聊天与历史恢复<br/>（按顺序体验 · 场景 1）<br/>刷新与重启后消息仍在"] --> D["多步执行中刷新与断线续传<br/>（按顺序体验 · 场景 2）<br/>快照加 Last-Event-ID 补齐"]
+    D --> E["补充信息恢复与 checkpoint 续跑<br/>（按顺序体验 · 场景 3、4）<br/>respond 提交答案 · resume 续跑"]
+    E --> F["新任务引导与材料注入<br/>（按顺序体验 · 场景 5）<br/>对应 submit · steer · inject"]
+    F --> G["时间线查看执行细节<br/>（按顺序体验 · 场景 6）<br/>点记录查原生 SessionEvent"]
+    G --> H["跑通示例测试（验证）<br/>ChatSessionsTest · ChatItemsTest<br/>何时用哪个见第 41 章"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 完整源代码位于仓库 [agentscope-chat](https://github.com/agentscope-ai/agentscope-java/tree/main/agentscope-examples/agents/agentscope-chat)。示例的浏览器页面包含聊天区、待答请求和已提交事件时间线。
 

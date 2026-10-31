@@ -12,18 +12,18 @@ source: service/create-managed-agent.md, service/managed-agent-configuration.md,
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>应用没法复现浏览器里的点击<br/>要用 API 跑通托管 Agent"] --> B["创建并运行托管 Agent<br/>用 curl 走完最小可运行路径"]
-    B --> C["第一个托管 Agent<br/>创建 · 会话 · 提交 · 核对"]
-    B --> D["配置纵深<br/>Agent 定义 · 模型 · Workspace 版本化"]
-    B --> E["Hosted Agent<br/>接入电脑上的 Coding Agent"]
-    B --> F["External Agent<br/>注册已在运行中的应用"]
-    C --> G["收益<br/>托管 Agent 真正跑起来<br/>已有应用与 Coding Agent 同平台接入"]
-    D --> G
+    A["创建 Environment 与托管 Agent<br/>definition 配 system 与 read/write 工具<br/>（运行第一个托管 Agent）"] --> B["创建 Session 提交 Turn<br/>快照与 SSE 核对 meeting-actions.md<br/>（运行第一个托管 Agent）"]
+    B --> C["更新定义：读取—合并—提交<br/>模型与默认资源一次调一层<br/>（配置 Agent 与模型）"]
+    C --> D{"binding.kind 选哪种运行形态<br/>（三种运行形态）"}
+    D -->|"默认 Managed"| G["草稿写入 AGENTS.md 与 Skill<br/>发布绑定后新 Session 验证生效<br/>（Workspace、Skills 与子 Agent）"]
+    D -->|"要动手改代码"| E["as connect 让主机上线<br/>创建 Hosted Agent 并分派任务<br/>（接入 Hosted Agent）"]
+    D -->|"已有在跑的应用"| F["登记应用并接运行协议<br/>runtime-inventory 确认接入<br/>（接入 External Agent）"]
     E --> G
     F --> G
+    G --> H["Managed、Hosted、External 同平台跑通<br/>业务接入统一走 Session API（第 31 章）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 运行第一个托管 Agent
 

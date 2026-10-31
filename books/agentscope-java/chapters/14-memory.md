@@ -10,18 +10,16 @@ source: docs/harness/memory.md
 
 ```mermaid
 flowchart LR
-    A["你的需求<br/>第二通对话还记得<br/>上轮聊定的偏好"] --> B["双层长期记忆<br/>日流水账与 MEMORY.md 的分工"]
-    B --> C["三处 LLM 调用<br/>各自 prompt 与触发时机"]
-    B --> D["调整上下文压缩<br/>早期对话整理成摘要"]
-    B --> E["MemoryConfig 定制<br/>节流 · 小模型 · 改 prompt"]
-    B --> F["大工具结果卸载<br/>落盘并留路径"]
-    C --> G["收益<br/>agent 记住跨会话的事实<br/>控制管线的 token 成本"]
-    D --> G
-    E --> G
-    F --> G
+    A["起 HarnessAgent 挂上 workspace<br/>记忆默认启用：日流水账只追加<br/>MEMORY.md 周期合并（两层记忆是怎么工作的）"] --> B{"per-call flush 每轮都跑一次 LLM<br/>成本策略怎么选？（Flush 的三个触发点）"}
+    B -->|"成本高 · 节流或关掉"| C["flushTrigger 设 THROTTLED(10 分钟)<br/>或 NEVER 只留压缩内 flush<br/>（定制 Memory pipeline：MemoryConfig）"]
+    B -->|"干脆全关 · 自己接管"| H["核选项 disableMemoryHooks()<br/>flush 与后台维护一起停<br/>（完全关掉）"]
+    B -->|"可接受 · 保持默认"| D["CompactionConfig 调触发与保留<br/>triggerMessages · keepMessages<br/>（调整上下文压缩）"]
+    C --> D
+    D --> E["toolResultEviction 卸载超大结果<br/>超 80K 字符落盘留首尾预览与路径<br/>（大工具结果卸载）"]
+    E --> G["第二通对话小帆仍记得上轮偏好<br/>agent 自己调 memory_search 找老内容<br/>（给 agent 自己用的记忆工具）"]
 ```
 
-*本章导览图*
+*本章操作流程图*
 
 ## 你什么时候需要它
 
