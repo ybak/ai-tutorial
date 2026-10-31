@@ -193,6 +193,16 @@ export function AppWithPopup() {
 
 一个实践提醒：三个组件是同一原语的封装，所以**先选落位、再谈定制**——后续的样式、插槽、控制手段对三者通用，迁移时业务代码不动。
 
+侧边栏与弹窗在星帆工作台里的实际落位（实测截图，同一业务界面，只换布局组件）：
+
+![星帆工作台的侧边栏布局：CopilotSidebar 停靠右侧，业务界面不受挤压](../assets/images/03-sidebar-layout.png)
+
+*图 3-6：`CopilotSidebar`——常驻可折叠，适合卖家边看订单边问的工作台*
+
+![星帆工作台的弹窗布局：CopilotPopup 悬浮于右下，业务界面保持全宽](../assets/images/03-popup-layout.png)
+
+*图 3-7：`CopilotPopup`——按需唤起，适合屏幕空间紧张或低频使用的入口*
+
 ## 3.3 样式定制：用 design tokens 对齐设计规范
 
 聊天窗放对了位置，接下来解决「长得不像自家人」。v2 组件基于 Tailwind v4 与 shadcn/ui 的 token 体系构建，读取一组作用域在 `[data-copilotkit]` 根元素上的 CSS 颜色变量（官方文档说明其取值用 `oklch` 色彩空间，以保持不同色相下感知亮度一致；`hsl()`、`rgb()`、十六进制等任何合法 CSS 颜色也都可以）。**换肤因此变成覆盖几个 CSS 变量的事，每个组件自动跟随**。

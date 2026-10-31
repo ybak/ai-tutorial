@@ -461,6 +461,12 @@ export function GenerativeUI() {
 
 **验证点**：问「把 ORD-20431 这单展示成卡片」。Agent 应调用 `render_order_card`，参数 `orderId: "ORD-20431"`、`buyer: "Maria"`、`amount: 86.4`、`status: "待发货"`，聊天里出现一张真正的订单卡片组件。
 
+星帆工作台的实测效果——聊天流里出现的是 6.4.1 的 `OrderCard` 组件，不是文本：
+
+![生成式 UI：聊天流中渲染出订单卡片组件，ORD-20431、Maria、86.40 美元](../assets/images/06-order-card.png)
+
+*图 6-4：`useComponent` 的实测效果——Agent 调用 `render_order_card`，聊天里渲染出真正的订单卡片，Agent 随后用文本补充要点*
+
 ### 6.4.2 与工具渲染的分界
 
 官方对两种形态的分界说得很清楚，整理成表：

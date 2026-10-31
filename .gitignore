@@ -23,3 +23,5 @@ books/agentscope-java/demo/cross-border-commerce/.env
 books/agentscope-java/demo/cross-border-commerce/.state.env
 demo/cross-border-commerce/.env
 demo/cross-border-commerce/.state.env
+books/copilotkit/demo/starfish-console/.env
+books/copilotkit/demo/starfish-console/node_modules/

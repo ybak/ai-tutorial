@@ -34,6 +34,12 @@
 
 > 初稿 8 章规划(2026-10-24)于 2026-10-31 启动编写时依官方 v2 文档细化:原「流式输出」并入共享状态(第 4 章),「工具透明度」明确为前端工具与生成式 UI(第 6 章),「自治 Agent 与生产化」拆解为多 Agent/协议/生产化(第 8 章);贯穿案例为跨境电商卖家运营台「星帆工作台」。
 
+## 可运行 demo 与实测基线
+
+- 贯穿案例工程:[demo/starfish-console/](demo/starfish-console/)(Vite + React,`?layout=` 切换三种布局)
+- **实测基线**:`@copilotkit/react-core` / `@copilotkit/runtime` 1.83.0(2026-10-31);第 2/3/4/6/7 章的实测截图基于该版本跑通——首次对话、侧边栏/弹窗布局、上下文问答、订单卡片生成式 UI、改价审批闭环
+- 第 5/8 章(LangGraph 后端、多 Agent 与部署)代码依据官方文档撰写,未实测,见各章复核清单
+
 ---
 
 元数据(bookId / title / tagline)以 `build/books/registry.mjs` 为准。

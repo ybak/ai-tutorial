@@ -1,0 +1,27 @@
+{
+  "name": "starfish-console",
+  "private": true,
+  "version": "1.0.0",
+  "description": "《CopilotKit:从前端接入 AI Agent》贯穿案例:跨境电商卖家运营台「星帆工作台」",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "server": "tsx --env-file=.env server.ts",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@copilotkit/react-core": "^1.83.0",
+    "@copilotkit/runtime": "^1.83.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}

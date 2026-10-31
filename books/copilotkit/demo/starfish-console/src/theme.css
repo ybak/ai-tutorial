@@ -1,0 +1,256 @@
+/* 星帆工作台主题:业务界面 + copilot 组件换肤(第 3 章设计 token 对齐) */
+
+:root {
+  --sf-bg: #f5f7fa;
+  --sf-panel: #ffffff;
+  --sf-border: #e2e8f0;
+  --sf-text: #1e293b;
+  --sf-muted: #64748b;
+  --sf-brand: #0e7490;
+  --sf-brand-weak: #ecfeff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui,
+    sans-serif;
+  background: var(--sf-bg);
+  color: var(--sf-text);
+}
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--sf-panel);
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--sf-brand);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--sf-muted);
+}
+
+.content {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.dashboard {
+  display: flex;
+  gap: 16px;
+}
+
+.metric {
+  flex: 1;
+  background: var(--sf-panel);
+  border: 1px solid var(--sf-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.metric-label {
+  font-size: 13px;
+  color: var(--sf-muted);
+}
+
+.metric-value {
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-value.warn {
+  color: #b91c1c;
+}
+
+.panel {
+  background: var(--sf-panel);
+  border: 1px solid var(--sf-border);
+  border-radius: 10px;
+  padding: 16px 18px;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+th {
+  color: var(--sf-muted);
+  font-weight: 500;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.status-待发货 {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-已发货 {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.status-已完成 {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-售后中 {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.listing.on {
+  color: #15803d;
+}
+
+.listing.off {
+  color: var(--sf-muted);
+}
+
+.chat-fullheight {
+  height: 100vh;
+}
+
+/* ---- copilot 组件换肤(覆盖 v2 design tokens)---- */
+
+.copilotKitSidebar,
+.copilotKitPopup {
+  --copilot-kit-primary-color: var(--sf-brand);
+  --copilot-kit-background-color: #ffffff;
+  --copilot-kit-secondary-color: var(--sf-brand-weak);
+  font-family: inherit;
+}
+
+/* ---- 聊天内的业务组件(第 6 章生成式 UI)---- */
+
+.order-card {
+  border: 1px solid var(--sf-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: var(--sf-panel);
+  font-size: 13px;
+  min-width: 240px;
+}
+
+.order-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.order-card-id {
+  font-weight: 700;
+  font-family: ui-monospace, Menlo, monospace;
+  color: var(--sf-brand);
+}
+
+.order-card-status {
+  font-size: 12px;
+}
+
+.order-card-row {
+  color: var(--sf-text);
+  padding: 1px 0;
+}
+
+/* ---- 第 7 章审批卡 ---- */
+
+.approval-card {
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  min-width: 260px;
+}
+
+.approval-title {
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+
+.approval-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.approval-reason {
+  color: var(--sf-muted);
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.approval-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-approve {
+  background: var(--sf-brand);
+  color: #fff;
+}
+
+.btn-deny {
+  background: #fee2e2;
+  color: #b91c1c;
+}

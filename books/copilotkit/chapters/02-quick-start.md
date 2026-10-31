@@ -277,6 +277,12 @@ flowchart LR
 
 **验证点**：`npm run dev` 打开 `http://localhost:5173`，左侧是订单列表，右侧出现带输入框的聊天面板；发一句 `Can you tell me a joke?`，回答流式吐回。此刻你可以顺便问它「我的订单 ORD-20431 到哪了？」——它会礼貌地告诉你它什么都不知道。这不是故障，是本章架构的边界：copilot 能说话，但看不见页面。把这条体验记下来，第 4 章共享状态会精确地补掉它。
 
+本书贯穿案例的完整工程在仓库 `books/copilotkit/demo/starfish-console/`，按 2.6 接好模型通道即可复跑。下面是跑通后的第一次对话（问「介绍一下你自己」）:
+
+![星帆工作台第一次对话：整幅聊天组件，推理折叠与流式回复](../assets/images/02-chat-first-run.png)
+
+*图 2-4：接上 copilot 后的第一次对话（实测截图，`@copilotkit/react-core` 1.83.0）——「Thought for a few seconds」是模型的推理折叠，回复流式吐回*
+
 ## 2.5 环境变量与密钥安全
 
 ### 2.5.1 `.env` 与 `--env-file`
