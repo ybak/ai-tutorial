@@ -15,6 +15,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit：多本「从入门到进阶」教
 | AgentScope Java 2.0:从入门到进阶 | ✅ 已发布 | 7 篇 44 章,从第一个 Agent 到生产级 Agent 平台 | [books/agentscope-java/](books/agentscope-java/README.md) |
 | MCP:跨框架工具接入协议 | ✅ 已发布 | 4 篇 12 章,从核心协议到中台规模化 | [books/mcp/](books/mcp/README.md) |
 | RAGFlow:从入门到进阶 | ✅ 已发布 | 4 篇 13 章,从搭建知识库到生产级检索调优 | [books/ragflow/](books/ragflow/README.md) |
+| FastGPT:从入门到进阶 | 🔜 规划中 | 4 篇 13 章,知识库与工作流,从搭建到生产运营 | [books/fastgpt/](books/fastgpt/README.md) |
 | CopilotKit:从前端接入 AI Agent | ✅ 已发布 | 4 篇 8 章,在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | [books/copilotkit/](books/copilotkit/README.md) |
 | Langfuse:LLM 可观测与评估 | 🔜 规划中 | LLM 应用的追踪、评估与 Prompt 管理 | [books/langfuse/](books/langfuse/README.md) |
 

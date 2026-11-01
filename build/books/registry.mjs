@@ -21,6 +21,12 @@ export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit];
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
   {
+    bookId: 'fastgpt',
+    status: 'planned',
+    title: 'FastGPT:从入门到进阶',
+    tagline: '知识库问答与工作流编排实战,从搭建到生产运营',
+  },
+  {
     bookId: 'langfuse',
     status: 'planned',
     title: 'Langfuse:LLM 可观测与评估',
