@@ -91,7 +91,7 @@
 
 1. **commit ①**:任务 A(规范 §4 图片条目 + `fetch-images.mjs` 通用化 + `build/README.md` 用法)
 2. **commit ②**:fastgpt 立项(`books/fastgpt/README.md` + `build/books/fastgpt.mjs`(status `planned`,不进 registry 导入) + registry PLANNED_BOOKS 条目 + 根 README 书目行 🔜)
-3. **commit ③**:13 章成稿(并行子代理撰写,**并发 ≤3**——本账户 12 并发曾致 5 代理 429 夭折;约 5 批跑完;主代理做全书一致性统检)→ `fastgpt.mjs` status 翻 `published` 并 import 进 registry BUILDABLE_BOOKS → 按 `build/README.md` 跑全链路预演(`--check`/HTML/PDF fallback/`--site`)→ 根 README 翻 ✅ → 站点产物入库
+3. **commit ③**:13 章成稿(并行子代理撰写,**并发 ≤3**——本账户 12 并发曾致 5 代理 429 夭折;约 5 批跑完;主代理做全书一致性统检)→ `fastgpt.mjs` status 翻 `published` 并 import 进 registry BUILDABLE_BOOKS → 按 `build/README.md` 跑全链路预演(`npm test`/`--check`/HTML/PDF fallback/`--site`;output/ 已 gitignore,预演为本地验证不入库)→ 根 README 翻 ✅
 
 ### 验收清单
 
