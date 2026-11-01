@@ -27,7 +27,7 @@ node build.mjs --pdf   --book agentscope-java  # HTML + Edge headless 打印 →
 npm run site           # 静态站点全站总装 + pagefind 索引 → output/site/（书架页 + 各书子站 + 全局搜索）
 ```
 
-`--book <bookId>` 可与任一模式（`--html` / `--pdf` / `--pdf-fallback` / `--check`）混排；缺省时仅一本可构建书则自动取之，多于一本则报错要求显式指定。`--site` 是全站总装，书无关。辅助：`node fetch-images.mjs` 把章节里的远程图片下载到书内 `assets/images/` 并改写引用。
+`--book <bookId>` 可与任一模式（`--html` / `--pdf` / `--pdf-fallback` / `--check`）混排；缺省时仅一本可构建书则自动取之，多于一本则报错要求显式指定。`--site` 是全站总装，书无关。辅助:`node fetch-images.mjs` 把章节里的远程图片下载到书内 `assets/images/` 并改写引用;缺省扫描书架全部含 `chapters/` 的书,`--book <bookId>` 限定单本。
 
 ## 上游更新流程
 

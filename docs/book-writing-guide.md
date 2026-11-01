@@ -73,6 +73,9 @@ source: docs/building-blocks/agent.md   # 来源;依据官方文档的书写官�
 - **文字过多时,优先改画成 mermaid 图提升可读性**:并列要点 ≥4 条(改 flowchart 分支)、步骤 ≥5 步(改 flowchart 或 sequenceDiagram)、状态/模式 ≥3 个(改 stateDiagram-v2)、概念间有层次或包含关系(改 classDiagram/graph)——大段"第一…第二…第三…"的枚举文字是图表化的首选对象
 - 章首图一律横向布局(`flowchart LR`),节点文字 2-3 行、每行要短,全图控制在 6-8 个节点——图过宽或过高都会被页面缩放到文字不可读
 - 必须在 GitHub 网页端原生渲染(mermaid 标准语法,不依赖插件)
+- **图片(位图)引用约定**:章节统一写相对路径 `../assets/images/…`(相对章节文件,解析到书内 `assets/images/`);构建把书内 `assets/` 整目录镜像到产物同级,相对引用零改写即可解析
+- **远程图床外链不进成品稿**:初稿可先写外链(如微信图床),入库前在 `build/` 下跑 `node fetch-images.mjs` 本地化——缺省扫描书架全部含 `chapters/` 的书(`--book <bookId>` 限定单本),远程图下载为 sha1 前 12 位哈希文件名落位书内 `assets/images/` 并改写引用;失败自动替换为占位引用块并留 HTML 注释记录原始 URL,下次运行自动重试;幂等,可重复跑
+- **图表分工**:章首图一律 mermaid(上方两条图式);实截图、照片等位图走图片本地化链路;能用 mermaid 表达的结构不截屏
 
 ## 5. 语言与标点
 
