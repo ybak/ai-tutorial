@@ -10,13 +10,12 @@
  * - legacyRootChapters: false(本仓库新增的书,不拥有旧站点根 chapters/ 路径)
  *
  * 版本基线:官方 docs v4.17.3(2026-11-01 核实)。
- * ⚠️ 立项时 status: 'planned',未在 registry.mjs 中 import——成稿并完成
- * 全链路预演后翻 'published' 并迁入 BUILDABLE_BOOKS(同 ragflow 流程)。
+ * 2026-11-02 成稿统检通过后翻 published 迁入 BUILDABLE_BOOKS(同 ragflow 流程)。
  */
 
 export const book = {
   bookId: 'fastgpt',
-  status: 'planned',
+  status: 'published',
   title: 'FastGPT:从入门到进阶',
   subtitle: '知识库与工作流,从搭建到生产运营',
   date: '2026-11-01',

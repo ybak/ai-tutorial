@@ -1,19 +1,23 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import path from 'node:path';
 import { resolveBookPaths } from './paths.mjs';
 import { BUILDABLE_BOOKS, PLANNED_BOOKS, ALL_BOOKS } from './registry.mjs';
+
+// Windows 下 path.join 产生反斜杠,统一归一为正斜杠再断言(可移植)
+const norm = (p) => p.split(path.sep).join('/');
 
 const FAKE_BOOK = { bookId: 'x', chaptersDir: 'books/x/chapters', assetsDir: 'books/x/assets',
   pdfFileName: 'x.pdf' };
 
 test('resolveBookPaths 推导子站与产物路径', () => {
   const p = resolveBookPaths(FAKE_BOOK, '/repo');
-  assert.equal(p.siteSubdir, 'x');
-  assert.equal(p.chaptersAbs, '/repo/books/x/chapters');
-  assert.equal(p.assetsAbs, '/repo/books/x/assets');
-  assert.equal(p.siteDir, '/repo/output/site/x');
-  assert.equal(p.htmlPath, '/repo/output/x/book.html');
-  assert.equal(p.pdfPath, '/repo/output/x/x.pdf');
+  assert.equal(norm(p.siteSubdir), 'x');
+  assert.equal(norm(p.chaptersAbs), '/repo/books/x/chapters');
+  assert.equal(norm(p.assetsAbs), '/repo/books/x/assets');
+  assert.equal(norm(p.siteDir), '/repo/output/site/x');
+  assert.equal(norm(p.htmlPath), '/repo/output/x/book.html');
+  assert.equal(norm(p.pdfPath), '/repo/output/x/x.pdf');
 });
 
 test('registry:legacy 所有权唯一且 published 书显式声明 legacyRootChapters', () => {
@@ -29,7 +33,7 @@ test('registry:legacy 所有权唯一且 published 书显式声明 legacyRootCha
 test('registry:bookId 唯一且 published 名单符合预期', () => {
   const ids = ALL_BOOKS.map((b) => b.bookId);
   assert.equal(new Set(ids).size, ids.length);
-  assert.deepEqual(BUILDABLE_BOOKS.map((b) => b.bookId), ['agentscope-java', 'mcp', 'ragflow', 'copilotkit']);
+  assert.deepEqual(BUILDABLE_BOOKS.map((b) => b.bookId), ['agentscope-java', 'mcp', 'ragflow', 'copilotkit', 'fastgpt']);
   for (const id of ['langfuse', 'cli'])
     assert.ok(PLANNED_BOOKS.some((b) => b.bookId === id));
 });

@@ -14,18 +14,13 @@ import { book as agentscopeJava } from './agentscope-java.mjs';
 import { book as mcp } from './mcp.mjs';
 import { book as ragflow } from './ragflow.mjs';
 import { book as copilotkit } from './copilotkit.mjs';
+import { book as fastgpt } from './fastgpt.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
-  {
-    bookId: 'fastgpt',
-    status: 'planned',
-    title: 'FastGPT:从入门到进阶',
-    tagline: '知识库问答与工作流编排实战,从搭建到生产运营',
-  },
   {
     bookId: 'langfuse',
     status: 'planned',
