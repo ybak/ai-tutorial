@@ -129,6 +129,12 @@ try (HarnessAgent agent = AGENT_BUILDER.build()) {
 
 同一个请求按输出需求选择 `call` 或 `streamEvents`。如果先 `call`，再用相同输入调用 `streamEvents`，会再次执行该请求。
 
+上面的事件分发逻辑跑在真实对话里，是下面这个样子。这张截图来自 2026-10-31 实测于 agentscope-examples documentation 模块的 BasicChatExample，模型 glm-5.3-flash，经 OpenAI 兼容网关接入：
+
+![实测终端中的流式对话：BasicChatExample 里 Assistant 以中文自我介绍并给出今日金句，文本随生成上屏](../assets/images/demo/fw-02-quickstart.png)
+
+Assistant 的自我介绍与「今日金句」都是边生成边上屏——`streamEvents` 陆续产出的文本增量，落到终端就是这段连续出现的文字；输入 `exit` 后程序正常退出。
+
 ### 在 Web 请求中使用
 
 命令行示例里实例随用随建；放进 Web 服务后，实例的生命周期要跟一次请求对齐。WebFlux 中使用 `Mono.using` 管理实例：订阅时从共享 Builder 构建 Agent，执行完成、报错或取消时关闭。不要在 `try` 块中返回尚未订阅的 `Mono`，否则 Agent 会提前关闭。下面是 handler 中的调用表达式：

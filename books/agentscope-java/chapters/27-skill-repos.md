@@ -38,6 +38,12 @@ ReActAgent agent = ReActAgent.builder()
 
 多种来源可以混用——实现 `AgentSkillRepository` 自己组合，或多个 repo 都注册到 toolkit。
 
+Git 后端真实跑起来是什么样子？2026-10-31 实测 agentscope-examples documentation 模块（glm-5.3-flash，OpenAI 兼容网关），GitSkillRepositoryExample 同步了官方技能仓库，再让 agent 盘点家底：
+
+![实测终端中的 Git 技能仓库：GitSkillRepositoryExample 从 agentscope-ai/skills 同步并列出可用技能清单，agent 总结出仓库当前包含 15 个技能并附简介表格](../assets/images/demo/fw-27-git-skill.png)
+
+截图里，示例从 `https://github.com/agentscope-ai/skills` 同步技能、逐条打印 Available skills 清单，agent 再把它们归纳成一张"15 个技能"的简介表——技能像代码一样躺在 Git 仓库里，clone 下来即可用，版本、review 与回滚沿同一条路走。
+
 ## 两条比选型更重要的契约
 
 **作用域隔离。** 技能名是人起的（`code-review`、`git-helper`），不同团队重名是常态。接口契约要求**每个仓储实例只服务一个作用域**：同名技能跨作用域共存，读写、覆盖（含 `force`）、删除都只发生在实例绑定的作用域内；实例够不着的作用域显式拒绝，而不是静默落到别处。各来源用后端原生维度表达作用域——Git 用仓库/分支/`skillsRoot`，数据库用 `namespace` 列，Nacos 用原生 `namespaceId`，构造时传入即可。

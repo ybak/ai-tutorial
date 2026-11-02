@@ -107,6 +107,12 @@ ReActAgent agent =
 
 扩展模块会通过 Java SPI（JDK 的服务提供者发现机制，按约定目录自动加载实现类）被自动发现。模型提供商会读取自己的标准环境变量，例如 `DASHSCOPE_API_KEY`、`OPENAI_API_KEY`、`GLM_API_KEY`、`DEEPSEEK_API_KEY`、`ANTHROPIC_API_KEY`、`GEMINI_API_KEY`。Ollama 会在存在时读取 `OLLAMA_BASE_URL`，否则默认使用本地 Ollama endpoint。
 
+这条最小路径真实跑通一次，靠的只是一个字符串。下图出自 2026-10-31 在 agentscope-examples documentation 模块完成的一轮实测，框架示例统一由 glm-5.3-flash 经 OpenAI 兼容网关充当底层模型：
+
+![实测终端中的 ModelRegistryExample：六个模型字符串全部解析可用，按字符串 qwen-plus 构建 Agent 后直接得到真实回复](../assets/images/demo/fw-06-model-registry.png)
+
+示例先把各提供商的 id 逐个交给 `ModelRegistry` 试解析，`openai:gpt-4o`、`dashscope:qwen-max`、简写 `qwen-plus` 等六个字符串全部通过；随后用字符串 `"qwen-plus"` 构建 Agent，一句「2 + 2 equals 4」说明模型真的接通了——换供应商时改的只是这一个字符串。
+
 ### 显式 Model builder
 
 需要自定义 API key、base URL、formatter、transport、timeout、生成参数或其他提供商专属配置时，推荐显式构造模型，再把 `Model` 实例传给 agent：

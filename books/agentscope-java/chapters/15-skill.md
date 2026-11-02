@@ -81,6 +81,12 @@ HarnessAgent agent = HarnessAgent.builder()
 
 后续推理时 agent 看得到这个仓库里的 skill，需要哪个就调 `load_skill_through_path` 加载详情。
 
+这段接入在 2026-10-31 真实跑通过：我们在 agentscope-examples documentation 模块实测（模型 glm-5.3-flash，OpenAI 兼容网关），这次挂的是本地文件系统仓库里的 data-analysis 技能：
+
+![实测终端中的技能加载：AgentSkillExample 经 FileSystemSkillRepository 装载 data-analysis 技能，agent 按技能要求的格式算出数据集 12、7、25、9 的统计量表，平均值 13.25](../assets/images/demo/fw-15-skill.png)
+
+截图里，agent 先声明"已加载 data-analysis 技能"，发现技能建议的 `analyze_data` 工具在当前会话不可用，便按技能要求的格式手动算出结果——数量 4、总和 53、平均值 13.25。技能本身只是一份 Markdown 指令，却实实在在改变了 agent 的输出格式与计算路径。
+
 ## 接技能市场
 
 `skillRepository(...)` 是统一入口，传什么后端都可以。（模型提供商精编与 Skill 仓库的进一步集成见第 21、27 章。）

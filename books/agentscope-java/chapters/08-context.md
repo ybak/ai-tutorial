@@ -128,6 +128,12 @@ call(msgs, RuntimeContext(userId, sessionId))
 
 > 推理期间主要更新内存状态；正常结束、受控失败/中断和停机路径会尝试保存 agent_state。强制终止进程不保证完成保存。clearContext 等管理操作也可显式保存；执行观察、验证结果还会独立写入其他 State key，不能据此假设整个存储每次 call 只写一次。
 
+这条链路真实跑一遍是什么样子？RuntimeContextExample 在 2026-11-01 跑出的实录如下——环境是 agentscope-examples documentation 模块，模型 glm-5.3-flash（OpenAI 兼容网关）：以 `alice` 的身份连聊两轮，会话从空历史起步：
+
+![实测运行 RuntimeContextExample：第一轮问好后 Agent 答出 Hi Alice，第二轮答出用户名是 Alice；会话从 Loaded 0 message(s) 起步，结束时 Final context size 为 4 条消息](../assets/images/demo/fw-08-context.png)
+
+第二轮还能答出「你叫 Alice」，靠的不是模型记性，而是第一轮结束时存进状态存储、第二轮开始时又加载回来的历史——上下文从 0 条累积到 4 条，加载、推理、保存这条链路完整走了两遍。
+
 ### 内置与扩展实现
 
 只要实现 `io.agentscope.core.state.AgentStateStore` 接口，任何后端都能接进来。选择哪一种，取决于你的部署形态：

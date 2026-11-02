@@ -68,6 +68,12 @@ AgentScope 通过 `Agent` 接口统一智能体的调用方式，提供底层的
 
 `call` 和 `streamEvents` 都可以用于多轮对话；每次调用可包含多次推理和工具执行。使用默认配置的 HarnessAgent 时，两者也会保存 Session Log 和 checkpoint。仅需要记住上一轮或查询历史时，可以继续直接调用。
 
+「多轮对话」落到实测里，不只是把上一轮问答带进上下文——Agent 还会在对话中把值得记住的事实写进长期记忆。下面是 UserIsolatedMultiTurnsExample 的输出实录，2026-10-31 跑通于 agentscope-examples documentation 模块，同一轮实测统一用 glm-5.3-flash（OpenAI 兼容网关）：
+
+![实测终端中的多轮记忆：第一轮 Agent 记住用户 Alice 的名字与今天的目标，第二轮确认已把「喜欢吃苹果」写入长期记忆](../assets/images/demo/fw-04-agent-memory.png)
+
+第一轮里 Agent 记下了用户名字与今天的安排；到第二轮，它确认把「喜欢吃苹果」写入长期记忆，并承诺在今后的对话中记住这一偏好——连续两次 `call` 的间隙，记忆已经落定。
+
 先按下文完成直接调用。有后台任务管理需求时，再阅读第 19 章（会话日志与恢复）。通过 HTTP 使用托管 Agent 时，见第 31 章（Session API）。
 
 ### 主循环

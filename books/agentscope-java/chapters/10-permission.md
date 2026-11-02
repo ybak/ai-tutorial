@@ -361,6 +361,12 @@ if (result != null && result.getGenerateReason() == GenerateReason.PERMISSION_AS
 }
 ```
 
+四步流程真实跑一遍是这样的：2026-11-01，我们在 agentscope-examples documentation 模块实测了 PermissionHITLExample（模型 glm-5.3-flash，经 OpenAI 兼容网关调用）。`safe_read` 自动放行，Agent 先读到了文件；紧接着的删除动作命中 ASK 规则，它停下来把决定权交还给人：
+
+![实测运行 PermissionHITLExample：safe_read 自动放行让 Agent 读到 /tmp/xbd-demo-secret.txt 的内容，随后的删除操作命中 ASK 规则被拦下，Agent 回复「删除操作不可撤销」，等待用户回复确认指令](../assets/images/demo/fw-10-permission.png)
+
+屏幕上这句追问对应流程的第二步与第三步——`PERMISSION_ASKING` 暂停加上待确认操作的展示；等用户回复确认，才轮到第四步用 `ConfirmResult` 恢复执行。
+
 ### 全部工具被拒绝
 
 当用户在确认界面拒绝了本轮推理产出的**全部**工具调用时，agent 默认会继续下一轮推理 —— 此时模型只能看到 "Permission denied by user" 的工具结果，容易产生无效推理。

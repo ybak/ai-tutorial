@@ -330,6 +330,12 @@ public class FullObservabilityMiddleware implements MiddlewareBase {
 
 完整可运行示例：`agentscope-examples/documentation/.../middleware/CustomizedMiddlewareExample.java`、`middleware/ModelCallMiddlewareExample.java`、`middleware/SystemPromptMiddlewareExample.java`。
 
+这些 hook 挂上真实模型是什么效果？下面的实录来自 2026-11-01 的示例实测——agentscope-examples documentation 模块，glm-5.3-flash 走 OpenAI 兼容网关。`ModelCallMiddlewareExample` 只实现 `onModelCall`，在每次模型调用前后各记一笔审计：
+
+![实测运行 ModelCallMiddlewareExample：Agent 回复前后各输出一条审计日志，Audit #1 记录 model=OpenAIChatModel、messages=2、tools=0 与 5301 ms 耗时，收尾的 Audit Summary 显示拦截到 1 次模型调用、收到 209 个事件](../assets/images/demo/fw-09-middleware.png)
+
+进内层之前记请求元数据，出内层之后累计耗时与事件数——一次 `onModelCall` 就完成了一次完整的调用审计，而自始至终没改一行 agent 代码。
+
 ### 状态就绪通知
 
 `onAgentStateReady` 是通知式 hook（没有 `next`）：每次调用同步触发一次，时点在 call 级 `AgentState` 绑定到 `RuntimeContext` 之后、输入进入流水线之前。`state` 与 `ctx.getAgentState()` 是同一实例且永不为 `null`——全新会话拿到的是刚创建、上下文为空的状态。`inputMessages` 是本次调用输入的私有可变副本：就地修改对本次调用全程生效，调用方原始列表不受影响。

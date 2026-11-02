@@ -117,6 +117,12 @@ toolkit.registerTool(new SimpleTools());
 
 `@Tool` 还有几个常用属性：`readOnly` 标记只读（默认 `false`）；`concurrencySafe` 声明可并发调用（默认 `true`）；`stateInjected` 让框架在调用时注入 `AgentState`；`converter` 指定自定义返回值到 `ToolResultBlock` 的转换器；`dangerousFiles` / `dangerousDirectories` 追加自定义危险路径列表。完整属性表见本章末参考速查。
 
+这段代码真实跑起来的样子——2026-11-01 实测于 agentscope-examples 的 documentation 模块，模型 glm-5.3-flash（经 OpenAI 兼容网关接入）。示例注册了时间、计算器、搜索三个工具，再让模型回答「现在几点、北京天气如何」：
+
+![实测运行 ToolCallingExample：注册 get_current_time、calculate、search 三个工具后，模型调用 get_current_time 报出 2026 年 11 月 1 日的北京时间，并如实说明 search 工具返回的是占位数据、查不到真实天气](../assets/images/demo/fw-07-toolcalling.png)
+
+模型自己决定调用 `get_current_time`，报出的正是当天的北京时间；`search` 只返回占位数据，它也没有编造天气，而是如实向用户说明——工具返回什么，模型就如实面对什么。
+
 #### 显式返回执行状态
 
 工具调用成功时返回 `ToolResultBlock.success(text)`，失败时返回 `ToolResultBlock.error(message)`；两者既可直接返回，也可包装在 `Mono<ToolResultBlock>` 中。不要通过文本前缀判断失败。`ToolResultBlock.text(text)` 默认是 `RUNNING`；如需保留既有 JSON 或多行输出，请用 `withState(...)` 明确终态。
@@ -323,7 +329,7 @@ public class TenantAwareTool extends ToolBase {
 
 自己的工具自己写之外，现成的工具生态可以用 MCP 直接接入。
 
-AgentScope 集成 [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)，让 agent 可以接入任意 MCP 兼容的工具提供方。框架自动处理协议协商、工具发现与结果转换。
+AgentScope 集成 [Model Context Protocol （MCP）](https://modelcontextprotocol.io/)，让 agent 可以接入任意 MCP 兼容的工具提供方。框架自动处理协议协商、工具发现与结果转换。
 
 支持三种连接方式：
 
@@ -388,6 +394,12 @@ toolkit.registerMcpClient(search).block();
 ```
 
 完整运行示例：`agentscope-examples/documentation/.../mcp/McpStdioExample.java`、`mcp/McpSseExample.java`、`mcp/McpStreamableHttpExample.java`。
+
+MCP 通道在 2026-11-01 真实测通过一次（agentscope-examples documentation 模块，模型 glm-5.3-flash 经 OpenAI 兼容网关）：`McpStdioExample` 起 stdio 子进程完成握手，Agent 靠 MCP 工具列出了 /tmp 目录的真实文件——协议两端全程不知道对方是谁：
+
+![MCP stdio 实测：Agent 经 MCP 协议列出 /tmp 目录真实文件，含 drawio 图等条目](../assets/images/demo/fw-26-mcp-stdio.png)
+
+图中回答基于 MCP 客户端返回的目录清单生成，而不是模型臆测——这正是「工具结果进上下文、模型只负责组织语言」的实证。
 
 ## Skill
 
@@ -585,6 +597,12 @@ ReActAgent agent =
 - 未激活 group 中的 tool 不会出现在 agent 的工具 schema 中，从而把上下文留给当前激活的工具集。
 
 > **警告**：Meta tool 的输入表示所有 group 的**最终状态**而非增量。任何未显式置为 `true` 的 group 都会被停用，无论之前的状态如何。
+
+meta tool 的这些语义落到真实运行里是这样的：同一轮实测中的 ToolGroupExample 让 Agent 面对初始全部停用的 file_ops、math_ops、network_ops 三个组，用户只提了一个请求——「算一下 5 的阶乘」：
+
+![实测运行 ToolGroupExample：file_ops、math_ops、network_ops 三个工具组初始均为 INACTIVE，模型经 meta tool 自主激活 math_ops 组后算出 5 的阶乘等于 120，并列出连乘过程](../assets/images/demo/fw-07-toolgroup.png)
+
+激活哪个组、何时激活，是模型在运行时自己决定的，用户提示词里没有出现任何工具名；而下次调用 meta tool 时，任何未显式保留的组都会按整体覆盖语义被停用。
 
 ## 请求级工具视图与会话隔离
 

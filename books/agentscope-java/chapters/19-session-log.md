@@ -174,6 +174,12 @@ session.transcript().messages()
 session.start(); // 应用启动时，重新开启已接收任务的调度。
 ```
 
+换个实例再进来是什么效果？2026-10-31 用 documentation 模块的 StateAutoSaveExample 做过一次两阶段验证（模型 glm-5.3-flash，OpenAI 兼容网关）：第一个实例记住两个事实后关闭，第二个实例从同一存储恢复会话：
+
+![实测终端中的状态自动保存与恢复：StateAutoSaveExample 第一阶段记录蓝色与幸运数字 7 后落盘 /tmp/agentscope-sessions，第二阶段新实例载入同一会话的 4 条历史并准确回忆](../assets/images/demo/fw-19-autosave.png)
+
+截图里，第一阶段的两次调用把历史攒到 4 条并保存到 `/tmp/agentscope-sessions`；第二阶段的全新实例一进来就是 `History size after reload: 4 messages`，并准确说出"你最喜欢的颜色是 blue，幸运数字是 7"——相同身份加相同存储，新实例就能找回原会话。
+
 `start()` 会检查持久队列，但不会擅自恢复已中断的任务；由应用决定何时调用 `resume`，或等待用户回答待办。`submit`、`resume`、`respond` 本身会自动开启调度，因此正常交互不必每次手工调用 `start()`。
 
 关闭所属 `agent` 会停止调度并中断其持有的执行，已提交日志和队列由持久后端保留。如果进程被强制终止，可能还需要等待旧执行的写入租约释放或到期，新的执行才能安全接手。

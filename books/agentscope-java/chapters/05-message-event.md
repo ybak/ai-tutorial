@@ -201,6 +201,12 @@ sequenceDiagram
 
 同一次回复中的所有事件共享相同的 `replyId`。在回复内部，用 `blockId` 关联文本/思考/数据块事件，用 `toolCallId` 关联工具调用和工具结果事件。`blockId` 是 `replyId` 作用域内的关联键，不要求是全局唯一的随机 ID；当某类内容块在一次回复中最多出现一个生命周期时，实现可以使用稳定的类型标识（如文本块的固定标识）作为 `blockId`。
 
+抽象的时序落到真实运行里，就是一条按顺序到达的事件序列。下面这张实录与本章后文的流式输出图同出一轮实测——2026-10-31 实测于 agentscope-examples documentation 模块，模型 glm-5.3-flash（OpenAI 兼容网关）：
+
+![实测终端中的完整事件序列：从 AGENT_START 到 AGENT_END，MODEL_CALL_END 报出 inputTokens 285、outputTokens 109，首尾事件共享同一 replyId](../assets/images/demo/fw-05-eventstream.png)
+
+一次「北京和上海的天气怎么样」的调用把生命周期完整走了一遍：`MODEL_CALL_END` 报出本次用量 inputTokens=285、outputTokens=109，`AGENT_START` 与 `AGENT_END` 携带同一个 replyId——「同一次回复共享相同 replyId」在真实输出里一目了然。
+
 ### 事件类型
 
 所有事件继承自 `AgentEvent`（位于 `io.agentscope.core.event`），提供以下公共方法：
@@ -343,6 +349,12 @@ agent.streamEvents(new UserMessage("user", "帮我查一下订单 OD-2049 的物
         })
         .blockLast();
 ```
+
+这段模式跑在终端上，就是下面的样子——与上一张事件序列图同出一轮实测，增量事件到用户眼里就是连续滚动的回答：
+
+![实测终端中的流式输出：StreamingConsoleExample 对「什么是 RAG」的中文回答逐句到达、逐句上屏](../assets/images/demo/fw-05-streaming.png)
+
+关于「什么是 RAG」的三句话回答逐句到达、连续上屏——`TextBlockDeltaEvent` 的增量片段在真实对话里就是这样一条文本流，流式界面照此逐字刷新即可。
 
 ## AgentEvent 与持久 SessionEvent
 
