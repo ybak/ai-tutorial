@@ -126,7 +126,7 @@ flowchart TD
 | 向量库 | 全文后端 | 说明 |
 |--------|---------|------|
 | Milvus（≥ 2.5.16） | Milvus BM25 | 向量与全文同存于 `modeldata_v2` 单表，不再写 MongoDB 全文表；语言识别默认 `lingua`，可用 `MILVUS_LANGUAGE_IDENTIFIER=whatlang` 切换——`lingua` 识别更准，`whatlang` 速度更快 |
-| PG / OceanBase / SeekDB / openGauss | MongoDB `$text` + jieba 分词 | 默认路径，无需额外配置 |
+| PG / OceanBase / SeekDB / openGauss | MongoDB `$text` + jieba 分词 | 默认路径，无需额外配置（openGauss 官方素材另列；第 2 章部署主线的四选一不含它） |
 
 贯穿案例按第 2 章选型跑在 PgVector 上，全文检索走的就是 MongoDB `$text` + jieba——本节后续的 BM25 迁移流程，是为索引量上了量级、或全文质量需要更强的读者准备的。
 

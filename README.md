@@ -2,7 +2,7 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=social)](https://github.com/ybak/ai-tutorial)
 
-AgentScope Java、MCP、RAGFlow、CopilotKit：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
+AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
 
 如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)。
 
