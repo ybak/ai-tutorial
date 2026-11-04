@@ -232,6 +232,12 @@ PageIndex 按文档章节结构生成层级索引，配置面围绕「抽什么�
 | 文档级 | Graph、Tree、PageIndex、MindMap、Timeline | 随文档编译直接产出；在文件列表点击文件名查看对应结果 |
 | 知识库级 | Wiki（部分工件支持升级为库级） | 相关文档编译完成后，到 Artifacts 页点击 **generate**，系统基于当前库内编译结果生成；库级任务有独立日志 |
 
+上表的两级行为，先从 Artifacts 页本身看起。截图实测于 2026-11-04 同一环境：after-sales-kb 的 Artifacts 页，右上角类型下拉展开——此时编译尚未执行，页面中央是空态。
+
+![Artifacts 页右上角类型下拉展开，五项：Wiki、Tree/PageIndex、Graph、Mind map、Timeline；页面中央为 No wiki yet 空态文案](../assets/images/demo/ragflow-06-artifacts-dropdown.png)
+
+下拉实为五项：Wiki、Tree/PageIndex、Graph、Mind map、Timeline——正文所列六项中的 **To Skills** 不在其列，它是工件内容页内的操作入口，不占类型下拉。界面把层级索引类拼写为 Tree/PageIndex，也没有单独的「Navigation」项——正文说「命名以界面下拉项为准」，实测结果在此落地。页面中央的空态文案「No wiki yet——Compiled automatically when documents are parsed」把编译时机写在了界面上：编译挂在文档解析流程上，编译未执行，工件区自然是空的。另有一处出入如实记录：这句空态文案说 Wiki 随解析自动编译，而 apply 文档（6.6）称 Wiki 编译完成后还需在 Artifacts 页手动 generate——界面文案与文档口径不一致，留待实测编译流程后核验。
+
 ### 质检：六类工件各自的检查重点
 
 工件生成后，按所用模板对照检查内容与结构是否符合预期（apply 文档原表，直接背下来当验收单）：
@@ -344,8 +350,8 @@ flowchart LR
 
 ## 复核清单（发布前）
 
-- [ ] 全章界面操作（Agent 页创建模板的 Compilation Operator 入口、Artifacts 页类型下拉、Update 按钮与悬停提示、To Skills 流程）未实测，待 v1.0.0-rc2 环境就绪后对照 Web UI 核验
-- [ ] 「Navigation」与「Tree/Page index」的界面命名对应关系：本章按 dataset Artifacts 文档原文（「such as Wiki, Navigation, and Graph」）处理，待 UI 截图确认下拉项实际命名
+- [x] Artifacts 页类型下拉已于 2026-11-04 实测(截图见 6.5):五项 Wiki、Tree/PageIndex、Graph、Mind map、Timeline;Compilation Operator 入口、Update 按钮与 To Skills 流程仍待走查(编译流程未执行,工件区为空态)
+- [x] 「Navigation」与「Tree/Page index」的界面命名:实测界面拼写为 **Tree/PageIndex**(一项,无独立 Navigation 项),正文「命名以界面下拉项为准」由此落地
 - [ ] 六模板默认实体/关系类型清单（Graph 6+6、Wiki 8+7、MindMap 4+4、Timeline 2+1、PageIndex 字段 3+关系 1）已对照 built_in_templates_and_dedicated_configuration.md 复核（2026-10-27），发布前重对一遍
 - [ ] Wiki 的 Plan 开关（官方仅一句「建议启用」）语义待环境实测补充
 - [ ] 贯穿案例的 PageIndex 配置决策（全局规则文案、Re-chunk parser output 开启）为本书立场演绎，待实测后回填实际参数效果

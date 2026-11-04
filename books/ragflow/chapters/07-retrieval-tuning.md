@@ -95,6 +95,12 @@ Setting 区的可调参数如下(以 v1.0.0-rc2 文档为准,核实日期 2026-1
 
 最后两行说明:Top 的默认值官方文档未载明,本书不杜撰;知识图谱切片的生成在第 6 章,本表只关心它参与检索时的排序行为——它是混合检索规则的一个例外。
 
+上表落到 rc2 界面上长这样。截图实测于 2026-11-04，本机 Docker 部署的 RAGFlow v1.0.0-rc2：Retrieval testing 页左栏 Setting 区的参数全景，右栏 Results 还是「No test has been run yet」的空态——测试尚未开始。
+
+![Retrieval testing 页左栏 Setting：Similarity threshold 20、Keyword similarity weight（full-text 0.70 / vector 0.30）、Rerank model 空、Cross-language search、Meta data、Rerank candidates 64、Top N 与查询输入框，右栏 Results 为空态](../assets/images/demo/ragflow-07-retrieval-settings.png)
+
+rc2 把混合权重呈现为 **Keyword similarity weight**，一根滑杆两端分别标注 full-text 0.70 与 vector 0.30——参数表的「向量相似度权重 0.3」即此处的 vector 0.30，两套说法是同一件事：两路互补、和为 1。界面顶部的说明文字正是下方「关键行为：测试参数不落盘」那条 Note 的原文：变更不会自动保存，必须应用到聊天助手或 Retrieval agent 组件设置。另有一处与正文的出入，如实记录：7.3 说 Rerank candidates 是「Retrieval Testing 页上不存在的参数」，但 rc2 实测把它直接放在了测试页 Setting 里（默认 64）——测试页与应用侧的参数面在 rc2 已部分对齐，7.3 的「搬运时核对候选池」提醒相应减轻，但应用侧仍需另行配置的纪律不变。
+
 ### 综合得分怎么算
 
 理解调参之前,先看综合得分公式长什么样。官方文档给了一个实测例子:混合检索在无重排模型时,综合得分 = 加权关键词相似度 + 加权向量余弦相似度:
@@ -104,6 +110,12 @@ Setting 区的可调参数如下(以 v1.0.0-rc2 文档为准,核实日期 2026-1
 ```
 
 换成重排模型后,向量余弦那一项换成向量重排分。这张公式决定了每个旋钮的作用位置:阈值卡的是最终综合分,权重分配的是两个相似度的话语权,重排模型替换的是向量侧的打分器。
+
+官方算例之外，本书在实测里把同一公式复算了一遍。截图实测于 2026-11-04 同一环境：在 Retrieval testing 页输入查询「退货时限是几天」并点 Run，右栏 Results 返回 5 条。
+
+![查询「退货时限是几天」的检索测试结果：第一条为 product-faq.xlsx 的 FAQ 表格切片，标注 Hybrid similarity 46.25、Term similarity 31.51、Vector similarity 80.62，查询关键词青色高亮](../assets/images/demo/ragflow-07-retrieval-testing.png)
+
+第一条命中的正是 product-faq.xlsx 的「退货时限是几天」行——Title/Content/Category/Year 四列表格形态，内容列给出答案「自签收之日起 30 个自然日内可无理由退货」；第二条是政策手册 2.2 跨境订单条款（Hybrid 41.00）。得分可以逐条复算：0.7×31.51+0.3×80.62=46.25，第二条 0.7×24.10+0.3×80.42=41.00——上文的综合得分公式在真实数据上兑现，查询关键词也在结果中以青色高亮标出。
 
 ### 一轮基线的操作与记录
 
@@ -392,8 +404,8 @@ flowchart TD
 ## 复核清单(发布前)
 
 - [ ] 全章对照 retrieval_testing.md、search_settings.md、configuration.md(PageRank 与 Basic Information 段)、notes_and_faqs.md(检索段)原文复核(素材核实日期 2026-10-27)
-- [ ] Top 参数默认值官方未载明——待实测 v1.0.0-rc2 界面后补记
-- [ ] 7.2「综合得分 28.56」算例为官方文档截图数据,待实测复现
-- [ ] 7.7 三个样例的界面操作路径(Retrieval Testing 页、Metadata 过滤配置)未实测,待环境就绪后走查
+- [x] 「综合得分 28.56」官方算例之外,已于 2026-11-04 实测复算:查询「退货时限是几天」两条结果的得分 0.7×31.51+0.3×80.62=46.25、0.7×24.10+0.3×80.42=41.00(截图见 7.2),公式在真实数据上兑现
+- [x] 7.2 Retrieval Testing 页与 7.7 部分界面路径已于 2026-11-04 实测(截图见本章);Metadata 过滤配置的走查仍待补
+- [x] Top 参数:聊天助手侧 Top N 默认 8 已实测确认(与正文 8.4.2 表一致);检索测试页同名字段的默认读数待补
 - [ ] MRR/命中率示例数值(0.41→0.63)为案例设定值,非实测数据——已在文中以贯穿案例口径表述,确认无歧义
 - [ ] 「测试参数不落盘」在 Agent 检索组件(Retrieval 组件)侧的配置入口截图待补(第 10 章交叉核对)

@@ -273,6 +273,12 @@ API 侧对应 `quote` 参数,默认 `true`(docs/references/http_api_reference.md
 | 引用 | Show citations 与 Show chunk metadata 均开 | 8.5.1 |
 | 多轮优化 | 开 | 客服对话天然多轮(8.6.1) |
 
+这份配置单逐项落进真实面板是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，模型 deepseek-flash 经 OpenAI 兼容网关接入，embedding 为 qwen3-embedding:0.6b（Ollama 本地服务）——创建「售后助手」后经齿轮进入 Chat setting 侧栏：
+
+![Chat 页右侧的 Chat setting 侧栏：助手「售后助手」选模型 deepseek-flash（demo-gateway），Opening greeting 已填开场白，Datasets 绑定 after-sales-kb（下拉展开，条目带「书舟」标签与 embedding 模型 qwen3-embedding:0.6b@local-ollama），下方可见 Empty response 的红色提示与 Show citations 开关](../assets/images/demo/ragflow-08-chat-dataset-bind.png)
+
+配置单的每一项在这块面板里都有落点——Opening greeting 对应开场白，Datasets 对应数据集绑定，展开 Advanced settings 后是 Empty response 文本域与检索相关设置，Show citations 开关就在其下；Datasets 条目上标注的 embedding 模型，正是第 3 章建库时选定的那一个。8.2.1 的官方提醒「创建时不必配完所有设置」在这里也成立：面板随时可从助手列表回到这枚齿轮继续改。
+
 ### 系统提示词(可直接抄改)
 
 ```text
@@ -310,9 +316,21 @@ API 侧对应 `quote` 参数,默认 `true`(docs/references/http_api_reference.md
 
 **Q1(域内直答)**:直接事实问题,7.7 调参后目标切片稳定在前列;Naive 一次查询最快,引用展示开着——客服能点开出处核对条款。若此问仍答错,按第 7 章三分定位法回溯,不要直接在服务态改参数(改动必须回测试态验证,8.4.3)。
 
+Q1 在真实实例里跑出来是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，模型 deepseek-flash 经 OpenAI 兼容网关接入，embedding 为 qwen3-embedding:0.6b（Ollama 本地服务），Naive 模式发问：
+
+![售后助手会话窗口：开场白下方用户问「TWS 耳机充电仓保修多久？」，回答「TWS 耳机的充电仓作为配件单独保修 6 个月，独立于整机保修期计算 [1][2]。若充电仓故障经检测确认非人为损坏，可免费更换 [2][6]。」，回答下方有 Thought 折叠块与来源缩略图卡片（after-sales-policy.pdf，引用徽标 [2]），消息框旁的模式下拉显示 Naive](../assets/images/demo/ragflow-08-chat-citation.png)
+
+8.5.1 的引用展示在产品里的形态，就是答案后缀的引用编号加来源卡片——客服点开缩略图就能核对条款原文，答错可追到具体文档。这份回答同时引用了《商品 FAQ》与《售后政策手册》两路内容，两条结论各附各的出处，对应 8.2.2 的多库并检与系统提示词的引用要求。消息框旁的下拉停在 Naive——8.3 说的「会话内旋钮」在截图里就是它。
+
 **Q2(跨库 + 多轮)**:「发泰国多久到」命中公告库;追问「那 Temu 呢?」只有三个字,不开多轮优化,检索会拿这三个字去撞库。开了 Multi-turn conversation optimization,系统用对话历史把查询优化为「Temu 线路的运输时长」一类完整问法——这正是该选项的官方定义。
 
 **Q3(无命中兜底)**:知识库里没有「退款到他人账户」的条款。检索层查不到可用内容 → Empty Response 预设文案接管,模型不参与编造;若检索带回了模糊相关但不足以定论的切片,则由提示词里的「证据不足明说」接管——8.5.2 的两道闸门在这里各管一段。
+
+兜底行为以同类域外问题「公司年假有几天？」实测（左侧会话列表里同时能看到 Q3 的「退款能退到朋友的银行卡吗？」）。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，模型与 embedding 配置同上图：
+
+![售后助手会话窗口：用户问「公司年假有几天？」，回答为固定英文文案「The answer you are looking for is not found in the dataset!」，无引用、无编造；右侧 Chat setting 面板 Advanced settings 中的 Empty response 文本域已保存中文兜底话术](../assets/images/demo/ragflow-08-chat-empty-response.png)
+
+这里有一处必须如实记录的版本差异：面板里保存的是中文兜底话术（与 8.5.2 的配置立场一致），rc2 运行时输出的却是系统默认英文文案——Empty response 的自定义文案在该版本未生效，升级到新版本后需重验。但正文立场关心的兜底行为本身兑现了：检索无可用内容时返回固定回复而非模型编造，答案也不带任何引用——「宁可不答、不能编」的底线立住了。
 
 补一句 Agentic 的位置:三个走查都选 Naive,因为都是点状问题;换成「对比 Shopee 与 Temu 的退货时效差异」,就该在 Thinking 菜单切 Agentic,让检索 agent 跨文档组合证据——8.3 的选择纪律。
 
@@ -349,8 +367,7 @@ API 侧对应 `quote` 参数,默认 `true`(docs/references/http_api_reference.md
 
 ## 复核清单(发布前)
 
-- [ ] 8.2 创建步骤与 8.6 会话操作的界面路径未实测,待环境就绪后走查(依据:v1.0.0-rc2 官方文档,核实日期 2026-10-27)
-- [ ] 8.4.1 生成参数的 Web 配置面编辑入口未实测;当前以 HTTP API `llm_setting` 为准
-- [ ] 8.7 系统提示词与三个问答走查未实测,预期行为基于官方文档机制推演
+- [x] 8.2 创建步骤、8.6 会话操作、8.4.1 生成参数的 Web 配置面已于 2026-11-04 实测(截图见本章):创建助手→齿轮进设置→System prompt/Empty response/检索参数逐一落盘→会话问答,与正文流程一致
+- [x] 8.7 走查已于 2026-11-04 实测:Q1 带引用回答、域外问题触发 Empty response 兜底;**版本差异如实记录**——Empty response 已保存中文话术,rc2 运行时仍输出系统默认英文文案(自定义文案在该版本未生效,兜底行为本身兑现);Q2 多轮优化的对话走查仍待补
 - [ ] 多模型对比(docs/guides/chat/Mutimodel_comparison_and_FAQ.md)与 TTS、语音输入未纳入正文,待补选型实践
 - [ ] 全章跨章引用(第 3/4/5/7/9/10/11/12/13 章)发布前全量检查

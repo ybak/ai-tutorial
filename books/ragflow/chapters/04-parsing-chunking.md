@@ -96,6 +96,12 @@ flowchart LR
 | Audio | WAV/MP3/AAC/FLAC/OGG 等音频 | 先经 ASR 模型转写为文本，再从转写文本切片 |
 | Email | EML/MSG 等邮件文件 | 提取发件人、收件人、主题、正文与附件后切片 |
 
+这张表落到 rc2 界面上长这个样子。截图实测于 2026-11-04，本机 Docker 部署的 RAGFlow v1.0.0-rc2：Agent 页的 Built-in pipelines 区，切片方法在这里以摄取管线模板的形式出现。
+
+![Agent 页 Built-in pipelines 模板卡 12 张：General、Q&A、Manual、Table、Paper、Book、Laws、Presentation、Picture、One、Audio、Email，每张卡带复制按钮](../assets/images/demo/ragflow-04-chunk-templates.png)
+
+12 张卡与上表的 11 种方法可逐一对上，唯一多出的是独立的 **Picture**（图像）模板——rc2 把图像摄取单独成卡，正文表格未单列；正文提到的 Manual 模板也确实在列。模板卡就是切片方法的实物清单：选型时把这张图与上表互相照一遍，再进 4.3 的解析器配置，选型依据就有了界面落点。
+
 ### 选型决策：素材形态优先
 
 官方选型建议一句话：按素材本身的形态选方法——常规文档先用 General，表格素材先用 Table，问答集、手册、论文、图片、音频、邮件各选对应方法，以减少后续的切片调整成本。
@@ -307,6 +313,12 @@ Title Chunker 从标题层级识别文档结构并组织切片，提供 **Hierar
 | 启用 / 停用 | 启用状态决定该切片是否参与数据集检索 | 过时、错误或暂不需要的内容**停用而非删除**——停用的切片保留在解析结果中，只是检索不再召回 |
 | 删除 | 从当前文档解析结果中移除 | 仅确认不再需要时使用；想临时排除出检索，用停用 |
 
+这张能力表落到界面上，是下面这个版式。截图实测于 2026-11-04 同一环境：`after-sales-policy.pdf` 解析完成后的解析结果页——左栏 PDF 原文预览，右栏 Chunk result 切片列表。
+
+![解析结果页左侧为售后政策手册 PDF 原文预览，右侧为 Chunk result 切片列表，每片带源文缩略图、正文与启用开关，底部 Total 5](../assets/images/demo/ragflow-04-chunk-list.png)
+
+上表「源文联动预览」在这张图里有了实物：左栏 PDF 原文、右栏切片列表，每片带源文缩略图与启用开关，顶部的 Full text/Ellipse 切换即「长正文全显/折叠切换」，底部 Total 5 是这份小样本手册的切片数。顺带如实记一处实测瑕疵：右栏首片正文行尾有轻微截断（「2.1 退货时」缺了「限」字），与左栏原文对照即现——切片质量的最后一公里要在 chunk 管理页逐片修正，正是本节开头的立场。
+
 ### 4.6.2 解析日志与故障定位
 
 解析失败的排查顺序，官方给的是一条三段路径：**文档状态 → 配置 → Logs**。先确认文档还在解析中还是已失败；再检查解析方法、模型与数据源配置；最后打开文档日志详情看错误原因。
@@ -424,7 +436,8 @@ Title Chunker 从标题层级识别文档结构并组织切片，提供 **Hierar
 ## 复核清单(发布前)
 
 - [ ] 全章对照官方 configuration.md 原文(v1.0.0-rc2，核实日期 2026-10-27)
-- [ ] 界面操作全部未实测：11 种方法选型、PDF 解析器切换、General/Title 参数、列角色 Manual 三角色、chunk 管理页编辑与停用——待环境就绪逐项补测
+- [x] 部分界面操作已于 2026-11-04 实测(截图见本章):切片方法模板清单(Agent 页 Built-in pipelines,12 张卡)、chunk 管理页(左预览右切片联动)——均与正文对齐
+- [ ] 仍待实测:PDF 解析器切换、General/Title 参数逐一调参的解析效果对比、列角色 Manual 三角色(演示数据用 General 切片通过,未走 Manual 路径)
 - [ ] General Chunker 的 Overlap ratio、Table context window、Image context window 默认值未在文档中给出，以界面实测补录
 - [ ] 「切片方法 ↔ Chunker 配置组的对应关系」(如 Manual/Book/Laws 是否对应 Title Chunker)官方文档未明说，以界面实测确认
 - [ ] Table 方法「每行一片」遇超长行(>512 tokens)的切分行为，以界面实测确认

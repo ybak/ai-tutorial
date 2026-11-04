@@ -76,6 +76,12 @@ flowchart LR
 
 创建只是第一步。官方文档建议：创建后到数据集配置页，按实际场景进一步检查并配置语言、解析方法、自动元数据、数据源关联等选项，再批量上传文档。`after-sales-kb` 走的正是「先创建、后配置」——弹窗里定名称、embedding 与解析类型，随后进配置页补齐下面的五件套。
 
+「先创建」的实测弹窗如下。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，embedding 预填值承接第 2 章设定的租户默认模型：
+
+![实测 Create dataset 弹窗：Name 填 after-sales-kb，Embedding model 预填 text-embedding-v4（demo-gateway），解析方法下拉显示 General 并带 Built in 徽标，右下角 Save 按钮](../assets/images/demo/ragflow-03-create-dataset.png)
+
+必设三项在弹窗里一次到齐：Name 必填（after-sales-kb）、Embedding model 必填、解析方法下拉——General 旁的 Built in 徽标即 Built-in 类型在界面上的样子。Embedding model 一栏已自动预填 text-embedding-v4（demo-gateway），预填值来自第 2 章设定的租户默认 embedding；上表决策里的 BAAI/bge-m3 是本书案例设定，实测画面用的是网关侧的 text-embedding-v4，无论选哪个，「创建时锁定」的性质不变。
+
 ### 基本信息五件套
 
 配置页的基本信息包含五件套加两项检索相关设置。五件套：
@@ -87,6 +93,12 @@ flowchart LR
 | **Avatar** | 头像，支持图片上传，最大 4 MB | 售后图标，列表里一眼认出 |
 | **Description** | 说明资料范围、业务用途或维护信息 | 「售后域三类知识：政策手册 / 商品 FAQ / 物流公告；客服与店铺运营使用」 |
 | **Permissions** | 控制数据集的访问与允许的操作范围 | Team——客服与各店铺运营共用（权限体系全貌见第 13 章） |
+
+五件套在配置页上是一张纵向表单，after-sales-kb 的实测页如下：
+
+![实测 after-sales-kb 的 Dataset configuration 页：Basic 区含 Name=after-sales-kb、Language=Chinese、Avatar 上传位、中文 Description、Permissions=Team、Embedding model 与 Page rank=0，下方解析模式区可见 Parser、General Chunker、Extractor、Indexer 四个标签页](../assets/images/demo/ragflow-03-dataset-basic.png)
+
+五件套与两项检索设置逐项可见：Language=Chinese、Permissions=Team、Page rank 停在 0；Description 实测填的是「跨境电商售后知识底座：售后政策手册、商品 FAQ 与物流时效公告。」，与上表建议的措辞不同、意思一致。更值得留意的是 Basic 区下方的 Select or switch the parsing mode——rc2 把 Parser、General Chunker、Extractor、Indexer 做成了页内标签，本书第 4、5 章要讲的解析与切片配置面就摊在这里。
 
 ### embedding 模型与 PageRank
 
@@ -103,6 +115,12 @@ flowchart LR
 第三条最容易被忽略，后果也最实在：换模型后如果不重新解析，库里就是新旧两种向量混住，检索质量不可预期；要让旧文档吃到新模型的向量，只能重新解析（重新解析的场景清单见 3.3 与第 4 章）。
 
 所以本书把它称为**准不可逆**决定（**本书立场**）：技术上提供了带检查的切换通道，工程上应当在创建时把 embedding 选型当作一次定终身来对待——先用小批量样本解析并到检索测试里验证（第 7 章），确认召回效果，再全量上文档。
+
+这道闸门在实测里真的拦下过一次切换——在已有切片的 after-sales-kb 上把 embedding 换成另一个模型并保存，右上角当场弹出红色错误（2026-11-04 实测于 RAGFlow v1.0.0-rc2）：
+
+![实测切换 embedding 被拒：Dataset configuration 页右上角弹出红色错误 toast，提示新旧向量平均相似度低于 0.9、向量空间不兼容，Embedding model 下拉保持 text-embedding-v4（demo-gateway）不变](../assets/images/demo/ragflow-03-embedding-switch-guard.png)
+
+右上角红色 toast 给出完整原因：「hint : 10 Embedding model switch failed: the average similarity between old and new vectors is below 0.9, indicating incompatible vector spaces.」——平均余弦相似度低于 0.9，切换被拒，Embedding model 下拉停在原模型 text-embedding-v4 上，「检查失败则恢复原来的选择」兑现为界面行为。这是全书少见的失败分支实测图：第 2 章引用的 caution 与本节的三条行为不是纸面约束，数据集 embedding 的准不可逆在界面上有明确的闸门。
 
 > **本书立场**:embedding 选型的三个考量——语料语言（中文语料选中文或多语言模型）、表格等特殊内容的表现、部署成本（本地模型还是在线 API，接入方式见第 2 章）。三个考量里，前两个都能用第 7 章的检索测试事实验证，不要凭模型排行榜拍板。
 
@@ -162,6 +180,12 @@ flowchart LR
 | **Parse** | 当前解析方法与解析入口 | 单文档可改解析方法，只影响该文档，不动数据集默认配置（第 4 章） |
 | **Status** | 解析任务状态：waiting / running / completed / failed / canceled | 失败时去 **Logs** 查原因，排障后重新解析 |
 | **Action** | 重命名、查看信息、下载、删除 | 删除会连同切片、元数据与解析结果一起移除，操作前确认 |
+
+九个字段落在真实列表里，就是验收清单那条「列表可见 → 状态变化 → Chunks 计数出现」链路的终点画面。四份种子文档解析完成后的 Files 页（2026-11-04 实测于 RAGFlow v1.0.0-rc2）：
+
+![实测 after-sales-kb 的 Files 页：四份文档解析完成——shipping-notice.eml 1 chunk（Parse 列为 Email）、shipping-notice.html 3 chunks、product-faq.xlsx 11 chunks、after-sales-policy.pdf 5 chunks（General），Enable 开关全部开启，Chunks 计数列已出数](../assets/images/demo/ragflow-03-files-parsed.png)
+
+「上传后列表可见 → 状态变化 → Chunks 计数出现」在四行文档上完整兑现。eml 切出 1 chunk 且 Parse 列显示 Email——rc2 在上传邮件原件时自动切到了内建 Email 配置，第 2 章复核清单里挂账的「eml 是否受支持」在此有了实证；html、xlsx、pdf 走 General，分别得 3、11、5 个 chunk。一处版本差异如实说明：rc2 的列头是 Name、Upload date、Enable、Chunks、Metadata、Parse、Action，九字段里的 Size、Source、Status 没有单列成列。
 
 列表还支持按名称搜索、按解析状态/启用状态/来源过滤，勾选复选框后出现批量操作条：**Enabled** / **Disabled** / **Run**（批量解析）/ **Cancel**（取消解析）/ **Metadata**（批量维护元数据）/ **Delete**。重新解析的典型场景——解析方法或参数变更、切片配置变更、自动元数据配置变更、表列角色变更、源文档更新替换、解析结果不正确——会在第 4 章逐一遇到。
 
