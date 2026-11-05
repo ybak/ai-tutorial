@@ -211,6 +211,12 @@ RAGFlow 按角色使用模型，官方文档列出七类：
 3. 填写实例名与连接信息（如 **API Key** 与 **Base URL**），从列表选择或添加所需模型，逐一验证后保存实例；
 4. 在 **Set default models** 里选定 Chat 模型与 Embedding 模型，其余类型按需配置。
 
+上面这套四步落到真实界面里，第一眼看到的往往是最后一步那页。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2（User settings → Model providers），新账号首进 Set default models 时六类默认模型全是空下拉：
+
+![实测 Set default models 页：LLM、Embedding、VLM、ASR、Rerank、TTS 六类默认模型下拉全部为空，LLM 带红色必填星号，左侧 Available models 列出 OpenAI-API-Compatible、OpenAI、Anthropic、Gemini 等供应商](../assets/images/demo/ragflow-02-default-models.png)
+
+页首提示「Please complete these settings before beginning」，LLM 一项还带着红色必填星号——默认模型不设，业务页面就没有模型可用。左侧 Available models 排着 OpenAI、Anthropic、Gemini 一长串供应商，但下拉里能选的模型只来自已建实例（OpenAI-API-Compatible 旁的绿点是 demo-gateway 实例已就绪的标记，这张截图摄于建实例之后、设默认之前）——先建 Provider 实例、再回来设默认，顺序在界面上是硬约束。
+
 几个文档强调的细节值得抄进操作习惯：
 
 - **实例是连接配置的集合**：可为测试、生产、本地模型或代理网关分别建实例，避免用途混装；
@@ -219,6 +225,24 @@ RAGFlow 按角色使用模型，官方文档列出七类：
 - **默认模型至少设两个**：Default LLM 与 Default embedding（配了 rerank 后再补默认 rerank）——业务页面在未指定模型时自动取默认，先设默认可避免选到不可用模型；
 - **自定义模型**：列表里没有但 Provider 实际支持时手动添加，模型名必须与 Provider API 暴露的 model ID 完全一致，并正确选择模型类型；支持工具调用的模型可开启 **Tool calling**（这关系到第 10 章的 Agent 能力）；
 - **API Key 纪律**：不要泄露；个别 Provider 有角色限制（如 Bedrock 的 API key 认证不支持 rerank 模型），生产环境优先短期凭证。
+
+四步里的第 2、3 步——选 Provider 建实例、填连接信息——落在界面上是下面这个表单。同一轮实测（2026-11-04，RAGFlow v1.0.0-rc2）中从 Available models 选中 OpenAI-API-Compatible 后新建实例：
+
+![实测 OpenAI-API-Compatible 实例表单：Instance name 填 demo-gateway，API Key 以圆点显示，Base URL 一栏已打码，Models 区为空（All models 0），提供 List models、Verify all models、Add all models 按钮](../assets/images/demo/ragflow-02-provider-instance.png)
+
+Instance name 取 demo-gateway，对应「为测试、生产、代理网关分别建实例」的习惯；API Key 以圆点回显，Base URL 整条黑幕打码（网关地址按敏感信息隐去）。Models 区此刻是空的——All models 0、No models available，旁边的 List models、Verify all models、Add all models 正是下一步用来装模型、做验证的三个按钮。
+
+实例保存之后再点开，表单变成了档案视图：
+
+![实测实例 demo-gateway 保存后的只读视图：标题行显示 demo-gateway，供应商名旁出现绿点，Models 区有 deepseek-flash（LLM）与 doubao-embedding-vision、text-embedding-v4（Embedding）三张模型卡](../assets/images/demo/ragflow-02-provider-saved.png)
+
+标题行换成实例名 demo-gateway，供应商名旁多出绿点；Models 区有了三张卡，分类计数为 All models 3 / LLM 1 / Embedding 2。两张 embedding 卡（text-embedding-v4、doubao-embedding-vision）是 List models 从网关拉到的；deepseek-flash 这张 LLM 卡则是用「+」手动添加的——填模型名、类型选 Chat、再补 Max context length，走的正是正文「自定义模型」那条路。
+
+实例与模型就绪，回头把开篇那页空表单补上：
+
+![实测 Set default models 页设定完成：LLM 选 deepseek-flash（demo-gateway），Embedding 选 text-embedding-v4（demo-gateway），其余四类保持为空，顶部出现绿色 Modified 提示](../assets/images/demo/ragflow-02-default-set.png)
+
+六类里实测只动了两类——LLM 与 Embedding，正对应「默认模型至少设两个」；VLM、ASR、Rerank、TTS 留空不影响「检索 + 生成」主链，rerank 按本书节奏留给第 7 章。下拉项以「模型名 + 实例名」成对显示（deepseek-flash demo-gateway），模型隶属于实例、默认值落到哪个实例一眼可辨。
 
 ### 2.4.3 本地模型
 
@@ -234,6 +258,18 @@ sudo docker exec ollama ollama pull qwen3-embedding:0.6b
 ```
 
 接入 RAGFlow：**Model providers** 里选 **Ollama** 建实例，Base URL 填下表中的地址，**API Key 留空**，把 `openbmb/minicpm5-2b` 添加为 Chat、`qwen3-embedding:0.6b` 添加为 Embedding（模型名必须与 Ollama 返回的名字完全一致），验证后保存。
+
+Ollama 的接入表单在实测里长这样。同一轮实测里新建 Ollama 实例，宿主机跑的是 Ollama 0.20.5：
+
+![实测 Ollama 供应商实例表单：Instance name 为 local-ollama，API Key 留空，Base URL 一栏给出 http://host.docker.internal:11434，Models 区尚未拉取模型](../assets/images/demo/ragflow-02-ollama-instance.png)
+
+Base URL 一栏给出的地址就是 `http://host.docker.internal:11434`——RAGFlow 在容器里、Ollama 在宿主机，「容器内的 localhost 不是宿主机」这条铁律，界面在输入框里就替你预防了；API Key 留空即可，本机 Ollama 不做鉴权。
+
+点一下 List models，本机模型直接进了实例：
+
+![实测 Ollama 实例 local-ollama 的 Models 区：gemma4:26b 标记为 LLM，qwen3-embedding:0.6b 标记为 Embedding，分类计数 All models 2 / LLM 1 / Embedding 1](../assets/images/demo/ragflow-02-ollama-models.png)
+
+List models 从本机 Ollama（0.20.5）拉到两个模型，名字与 `ollama list` 的输出完全一致：gemma4:26b 归入 LLM，qwen3-embedding:0.6b 归入 Embedding——正文示例里的 `qwen3-embedding:0.6b` 原样出现，chat 模型实测用的是本机已有的 gemma4:26b，替代书中示例的 `openbmb/minicpm5-2b`。
 
 **vLLM——GPU 高吞吐。** 提供 OpenAI 兼容服务：
 
@@ -285,7 +321,7 @@ sudo docker exec -it <RAGFLOW_CONTAINER> curl http://host.docker.internal:11434/
 
 落到贯穿案例：① 建数据集（名取 `after-sales-kb`），② 只上传 `after-sales-policy.pdf`（50 页、含表格，首次解析正好感受 CPU 推理的耗时量级），③ 在 **Retrieval Testing** 里问「退货时限是几天」看召回的政策切片，④ 建助手「售后助手」，⑤ 问「跨境订单的退货时限和运费承担」——拿到一条带引用的回答，本章的验收就完成了。两个补充：其一，解析方法的选择（50 页 PDF 用哪种、XLSX 用哪种）是第 4 章的主题，本章先用 Built-in 的默认推荐；其二，**售后政策问答必须设置 Empty response**——政策类问题答错比不答更糟，留空意味着允许模型在无据可依时自由发挥（本书立场：知识库问答上线前这一项不允许留空）。解析与切片的深入干预（见第 4 章），聊天助手的完整配置（见第 8 章）。
 
-> 本章所有命令与界面操作**均未实测**，依 v1.0.0-rc2 官方文档撰写，实测项挂账于章末复核清单。
+> 本章界面操作已于 2026-11-04 在本机 Docker 部署的 v1.0.0-rc2 实例实测(截图见各节插图);部署与运维命令依官方文档撰写,实测口径见章末复核清单。
 
 ## 2.6 源码启动：什么场景才需要
 
@@ -323,8 +359,8 @@ sudo docker exec -it <RAGFLOW_CONTAINER> curl http://host.docker.internal:11434/
 
 ## 复核清单（发布前）
 
-- [ ] **本章全部命令未实测**：2.2 五步（sysctl / clone / checkout / compose up / healthz）、2.3 重启命令、2.4 Ollama 与 vLLM 部署接入、容器内 curl 连通性验证——待 Docker 环境就绪后逐条实测并回填
-- [ ] 界面操作路径（User settings > Model providers、Create dataset、Chunk 页、Create chat）未实测，以 v1.0.0-rc2 文档与实际界面对照
+- [x] **模型通道界面操作已于 2026-11-04 实测**(截图见本章):OpenAI 兼容网关建实例、List models、手动加 chat 模型、Ollama 接入(host.docker.internal:11434)、Set default models——与正文流程一致;部署五步(sysctl / clone / checkout / compose up)按官方标准 compose 撰写,本机为定制 compose 就地升级,未逐条重跑,命令本身仍以官方文档为准
+- [x] 界面操作路径(User settings > Model providers、Create dataset、Chunk 页、Create chat)已于 2026-11-04 实测,与 v1.0.0-rc2 界面对照一致
 - [ ] 2.1 组件-职责表与 2.1 拓扑图对照 `docker-compose-base.yml` 实际渲染结果核对（当前依 configuration.md 文字描述归纳）
 - [ ] `MEM_LIMIT` 默认值 8073741824 字节（约 7.52 GiB）与 `docker stats` 实测值对照复核
 - [ ] Ollama / vLLM 示例模型（`openbmb/minicpm5-2b`、`qwen3-embedding:0.6b`）的可用性与命名以实测时两家仓库为准

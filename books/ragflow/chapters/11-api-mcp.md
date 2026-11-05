@@ -104,6 +104,12 @@ Base URL 即 RAGFlow 服务地址，Go API 端口默认 `9380`（SDK 示例写�
 
 数据集创建也以 `parse_type` + `parser_id` 取代了旧的 `chunk_method`。Go 后端的响应带 `X-API-Source: go` 头，迁移期可用它确认实际服务的后端。官方还提醒:Go 后端部分校验业务码、错误消息与认证 HTTP 状态与 Python 有差异——**按文档化的业务码做分支判断，不要按消息文本匹配**。
 
+这一页在真实实例里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，入口为右上角头像 → User settings → API：
+
+![设置页 API 区：RAGFlow API 标题与 API Key 按钮、API server 地址（http://127.0.0.1）、HTTP API 文档入口（说明文字含 1.0 Go 后端迁移注记）、ERROR CODES 区的 HTTP status codes 表（200/400/401/403/404），页面底部是 Langfuse 区与 Configuration 按钮](../assets/images/demo/ragflow-11-api-page.png)
+
+本节的几个关键件在这张图里同屏：生成并复制 API Key 的按钮、API server 地址，以及「双层错误码」的官方原文说明——HTTP status codes 表把 200 与 400/401/403/404 逐行列出，200 那行的提示「Check the response body code for the business result」正是双层错误码的出处。页面底部的 Langfuse 区（Traces、evals、prompt management）在本章只是路过，第 12 章配置 tracing 用的就是同一页面的这个区。
+
 ## 11.3 HTTP API 全景导航
 
 HTTP API 参考按域组织，本节给一张「域 → 职责 → 代表端点」的地图（依据 v1.0.0-rc2 参考目录，核实日期 2026-10-27），具体参数以官方参考为准:

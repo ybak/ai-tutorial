@@ -153,7 +153,31 @@ flowchart LR
 
 邀请流程四步(invite_members.md)：打开 **Team** 页 → 在 **Team members** 区点击 **Invite** → 输入对方 email → 点击 **OK**。三条边界：email 必须属于**已存在的 RAGFlow 用户**，否则返回 user-not-found 错误；已加入或已在邀请中的用户，重复邀请会被拒绝；邀请创建后成员记录以 `invite` 角色存在，**对方接受后才转为 normal**——团队页的 Joined teams 区里能看到待接受的邀请。
 
+四步流程的起点画面是下面这张。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，owner 账号「书舟」的 Team 页：
+
+![User settings 的 Team 页：「书舟 workspace」标题下是 Team members 空表（Name/Date/Email/State/Action 列，提示 No data available）与右上角 Invite member 按钮；下方 Joined teams 区只有创建者自己一行（书舟，demo@ragflow-book.local）](../assets/images/demo/ragflow-13-team-page.png)
+
+13.2 说的「团队页以昵称 + workspace 为标题」就是这块页面：标题里的书舟 workspace 是 owner 的工作空间，Joined teams 区里始终有创建者自己一行——工作空间即团队，自己就是第一个成员。邀请动作的入口是右上角的 Invite member 按钮，四步流程从这里开始。
+
+在 Invite 弹窗输入 demo2@ragflow-book.local 并确认后，同一个页面变成下面这样（同日同实例实测）：
+
+![Team members 表出现「演示二号」一行（demo2@ragflow-book.local），State 列为青色 Invite 徽标，Action 列为删除图标；Joined teams 区不变](../assets/images/demo/ragflow-13-invite-success.png)
+
+上一段正文的「邀请创建后成员记录以 invite 角色存在」在这里兑现：State 列的 Invite 徽标就是 invite 角色——接受前不算正式加入，owner 随时可从 Action 列的删除图标撤掉邀请。一个实测前提要补：邀请前对方必须已完成注册——实测邀请未注册邮箱会报「102 user not found」，弹窗提示 Only registered users can be invited，与本节「email 必须属于已存在的 RAGFlow 用户」的边界一致。
+
+同一份邀请在被邀请方那边长这样。这张截图来自同日实测：切换到「演示二号」账号登录后的 Team 页，对应正文说的「Joined teams 区里能看到待接受的邀请」：
+
+![演示二号 workspace 的 Team 页：Joined teams 区出现「书舟」行（demo@ragflow-book.local），Action 列为 Accept 与 Decline 两个动作；Team members 仍为空表](../assets/images/demo/ragflow-13-join-accept.png)
+
+待接受的邀请不在通知里，而在被邀方自己的 Joined teams 区，接受动作就在这一行——Accept 之后，13.2 的成员关系（`user_tenant`）才正式建立，角色由 invite 转 normal；Decline 则直接谢绝。前两张图与这张合起来是邀请链路的两侧：owner 侧看到 Invite 徽标，成员侧看到 Accept/Decline。
+
 成员管理一句话总结：默认每人一个同名团队；**只有 owner 能邀请与移除**；成员加入后能帮上三件官方点名的忙——向共享数据集上传文档、解析共享数据集中的文档、使用共享的 Agent。最后一步是运营动作(本书立场)：配置完共享，**换一个成员账号登录验证可见性**——共享范围配错方向(该 Team 的留在 Only me)或配过头(不该共享的共享了)，都只有换账号才看得出来。
+
+「换一个成员账号登录验证可见性」的实测结果就是下面这张。这张截图来自同日实测：演示二号接受邀请后，登录自己的 Dataset 页：
+
+![演示二号的 Dataset 列表：出现共享的 after-sales-kb 卡片（4 files，04/11/2026 21:54:55），日期旁带「书舟」共享来源徽标；页首 Create dataset 按钮与筛选、搜索框](../assets/images/demo/ragflow-13-shared-visible.png)
+
+「资源不会自动共享，显式配置才生效」在这张图里是可验证的：owner 侧把 Permissions 设为 Team 之后，成员账号的 Dataset 列表出现同一数据集，卡片上以他人昵称「书舟」标注共享来源——共享范围配错方向（该 Team 的留在 Only me，或不该共享的共享了），只有这样换账号才看得出来，本节的运营动作由此有据。
 
 ## 13.4 多租户知识库治理：系统管权限，SOP 管秩序(本书立场)
 
@@ -300,6 +324,12 @@ flowchart TD
 
 排查口诀一句话(官方原文归纳)：**先判断问题发生在单个文档还是整个数据集，再去对应的日志看**。Status 为 Failed 就打开 Operations 里的日志详情看具体错误；长时间停在 Pending、Running 或 Schedule，先核对状态与开始时间再判断是否仍在正常运行。日志把「解析坏了」从感觉变成记录——13.6 的日巡检扫的就是这本账。
 
+这本账在真实实例里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，after-sales-kb 的 Logs 页，四个文档全部解析完成：
+
+![after-sales-kb 的 Logs 页：顶部统计行 Total files 4、Downloading 0（Success 0 / Failed 0）、Processing 0（Success 4 / Failed 0），下方 File / Dataset / Data source 三个并列标签（当前在 File），任务表列出 4 条 Parse 任务——after-sales-policy.pdf、product-faq.xlsx、shipping-notice.html 走 general 管线，shipping-notice.eml 走 email 管线，全部 Success](../assets/images/demo/ragflow-13-logs.png)
+
+与上面对比表的一个实测差异要如实给出：rc2 的日志实际分 **File / Dataset / Data source 三层并列标签**，比官方文档写的「两层」多出 Data source 一层（数据源同步任务的日志），口径以界面为准。任务表里 Ingestion pipeline 列直接显示每份文档用的解析管线——前三份走 general，.eml 邮件归档走 email，第 3 章的数据源接入与第 4 章的管线选型在这里留下记录；顶部 Processing 卡片的 Success 4 / Failed 0，就是日巡检要扫的那个数。
+
 日志之外的定位框架沿用官方 FAQ 的四步：「答案不对」先分层——文档解析是否正确 → 切片是否包含预期内容 → **Retrieval Testing** 能否召回相关切片 → 检索正常而回答仍错，才查应用设置、Prompt 与模型。配套两条 FAQ 结论值得贴在巡检手册里：解析成功**不等于**可检索成功(还要过切片、嵌入、阈值、rerank 几关)；答案在库里**不等于**会被检索到、更不等于模型会遵循(幻觉三查：索引、召回、生成)。这两条是巡检时「别急着归罪解析」与「别急着归罪模型」的依据。
 
 ### 定期回归：测试集是巡检的仪表盘
@@ -415,7 +445,8 @@ flowchart TD
 ## 复核清单(发布前)
 
 - [ ] 全章对照官方素材原文复核(docs/guides/team/ 下 permission_system_overview、sharing_scope_configuration、team_management 三组，docs/guides/dataset/logs.md，docs/guides/data_source/add_to_knowledge_base_and_sync.md，docs/faq.mdx 相关条目；素材核实日期 2026-10-27)——权限与共享模型随版本演进快，发布前重对一遍
-- [ ] 界面操作未实测：Team 页邀请流程、Permissions 字段配置、Agent 设置对话框与 Memory 高级设置的共享入口、Logs 页字段、Artifacts 页 Update 提示——待 v1.0.0-rc2 环境逐项走查
+- [x] 部分界面操作已于 2026-11-04 实测(截图见本章):Team 页邀请全流程(邀请→invite 徽标→被邀方 Accept→换账号可见共享数据集)、Logs 页;**实测补充:邀请前对方必须已完成注册**(未注册邮箱报 102 user not found)
+- [ ] 仍待实测:Permissions 字段切换后的实际可见性矩阵、Agent 设置对话框与 Memory 高级设置的共享入口、Artifacts 页 Update 提示
 - [ ] Read/Write/Manage 到具体操作的映射官方未逐一载明，13.2 仅给「常见级别」的运营粒度表述——待界面截图确认后决定是否补充
 - [ ] 「同一文档重新解析是否触发工件 Update 提示」：官方明确文档**增删**触发提示，同文档内容更新的提示行为待实测(影响 13.5 演练第 4 步表述)
 - [ ] 演练设定(改版日期、东南亚站点划分、`version`/`region` 元数据取值)与巡检节奏、指标定义、SOP 角色分工均为本书立场或案例演绎，非官方素材——已在文中标注，定稿时确认标注完整

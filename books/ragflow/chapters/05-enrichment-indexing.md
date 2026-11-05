@@ -69,6 +69,12 @@ Extractor 各增强项共用一个模型入口：**Model** 下拉框选定 Extra
 
 **本书立场**：Extractor 的活是「读一段切片、输出结构化短文本」，对推理能力要求不高、对调用量敏感——选一个便宜、快、中文拿得稳的模型即可，不必把最好的推理模型耗在这里。真正的模型分级，留给 PDF 解析的视觉模型（第 4 章）。
 
+上面说的 Model 下拉框，在配置页里的位置如下。截图实测于 2026-11-04，本机 Docker 部署的 RAGFlow v1.0.0-rc2：数据集配置页的 Extractor 标签区，模型选了经 OpenAI 兼容网关接入的 deepseek-flash——恰是本书立场里「便宜、快、中文拿得稳」的那类选择。
+
+![数据集配置页的 Extractor 标签区，与 Parser、General Chunker、Indexer 并列，Model 下拉选中 deepseek-flash（demo-gateway）](../assets/images/demo/ragflow-05-extractor.png)
+
+rc2 把 Extractor 做成了配置页的页内标签，与 Parser、General Chunker、Indexer 并列——5.2 的模型入口与 5.3 的自动问题、5.5 的增强上下文都收在这一个标签区里。图中可见的正是共用模型入口；自动关键词的数量与 `System prompt` 等参数位于 Model 下拉下方，本截图未展开，字段名以界面实际显示为准。页面同时露出了 Basic 区的 Page rank 滑杆（值为 0）与 Embedding model（qwen3-embedding:0.6b）——前者是 7.4 将展开的数据集级排序杠杆，后者来自第 3 章的模型通道。
+
 ### Automatic Keywords：给切片加语义线索
 
 开启后，系统自动为每个切片提取能代表其主要内容的关键词或短语：

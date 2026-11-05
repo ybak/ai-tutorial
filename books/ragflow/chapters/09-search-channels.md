@@ -88,6 +88,12 @@ Search Settings 配置知识源、检索策略与结果呈现，改完点击 **S
 
 四个检索策略参数与第 7 章的 Retrieval Testing 页同源——阈值与权重的原理、rerank 的先裸排再重排，第 7 章已讲透(见第 7 章)，本节不重复，只强调两个应用侧差异：一，**Rerank candidates** 是应用侧多出来的旋钮，控制的是候选池大小，不是最终返回条数；二，Search 设置是落盘配置，与 Retrieval Testing「测试参数不落盘」的实验台性质不同——调这里影响的是所有使用该 Search 的人，改前先在测试页验证过。
 
+九个参数落在真实面板里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，新建名为「售后检索」的 Search 应用，右侧为其 Search settings 面板：
+
+![Search 应用的 Search settings 面板：应用名「售后检索」，必填的 Datasets 选择框，Similarity threshold 滑杆（20）、Keyword similarity weight（full-text 0.70 / vector 0.30）、Rerank candidates（100）与 Rerank model 开关，下方 Model 选择框与 AI summary、Enable related search、Show query mindmap 三个开关，底部 Save；左侧是 Search 应用页的查询界面](../assets/images/demo/ragflow-09-search-settings.png)
+
+面板与九参数表的对应一目了然，另有两个实测细节值得点出：其一，权重字段在 rc2 界面上叫 **Keyword similarity weight**，以全文与向量两个数值呈现（0.70 / 0.30）——与官方文档的 Vector similarity weight 是同一个旋钮，只是表述口径相反；其二，Datasets 带必填星号，创建后先绑数据集再对外用，正是本节开头创建五步的最后一步。Similarity threshold 显示 20，即阈值 0.2 的百分比口径，与第 7 章的定参同源。
+
 ### 适用场景
 
 Search 应用适合「要找到内容本身」的场合。两个典型：
@@ -96,6 +102,12 @@ Search 应用适合「要找到内容本身」的场合。两个典型：
 - **工单辅助**：处理工单时按产品型号、故障代码检索历史方案，要的是精确命中——同一路数。
 
 反过来，问题开放、需要澄清追问的场合(「我的耳机充不进电怎么办」)是对话的领地，别用 Search 硬接。
+
+「客服核对运输破损的赔偿标准原文」这个典型场景，在真实实例里跑出来是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，Search 应用查询「运输破损的赔偿标准是多少」，返回 9 条切片：
+
+![Search 页查询「运输破损的赔偿标准是多少」的结果列表（Total: 9）：4.1 赔偿标准条款切片、完整的「表 4-1 运输破损赔偿标准」表格（数码电子 30% 上限 USD 120/单、家居日用 20%、服饰配件 15%、易碎品 50% 及各档举证要求）、物流时效公告的时效边界声明切片，每条带来源文档徽标（after-sales-policy.pdf、shipping-notice.html）与关键词高亮](../assets/images/demo/ragflow-09-search-result.png)
+
+与 Chat 的最大差异一眼可见——返回的是原文切片本身，没有模型转述：赔偿表 4-1 连行列结构与各档上限、举证要求完整保留，这是第 4 章 DeepDoc 表格识别在检索侧的直接证据；每条切片底部标注来源文档徽标，查询词在命中切片里高亮。「要原文与出处」的选型理由（9.1），在这张图里就是产品形态。
 
 贯穿案例的内部检索出口就按这个思路配置(9.5 展开)：绑定 after-sales-kb；开 **Show chunk metadata**——客服要核对出处；**Vector similarity weight** 调低——型号与编码靠全文匹配；**Rerank model** 先关，拿第 7 章的裸排基线对照，准头不够再开。
 
@@ -250,7 +262,7 @@ sequenceDiagram
 ## 复核清单(发布前)
 
 - [ ] 全章对照官方文档 v1.0.0-rc2(search/create_search、search/search_settings、chatchannel 三篇、agent/embed_into_web_pages)，核实日期 2026-10-27
-- [ ] 未实测：Search 应用创建与九参数配置(含多数据集同时检索行为)
+- [x] Search 应用创建与数据集绑定已于 2026-11-04 实测(截图见 9.2):创建、绑定 after-sales-kb、检索出结果全链路走通
 - [ ] 未实测：任一渠道(计划以飞书或 WeCom 为准)从建渠道到测试消息的全流程
 - [ ] 未实测：WeCom 渠道绑定 Flow Agent 的连接对话框与 `[Chat assistant]`/`[Agent]` 前缀
 - [ ] 未实测：Agent 嵌入(Embed Setup、Widget Customization、Embed code)；聊天助手侧嵌入入口与参数待补

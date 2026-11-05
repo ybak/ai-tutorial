@@ -122,6 +122,12 @@ RAGFlow 内置 Langfuse 集成,记录聊天 trace 与聊天模型的 generation 
 - Web UI:右上角头像 → **API** → 拉到底部 **Langfuse Configuration**,填 Host、Public Key、Secret Key,保存;
 - HTTP API(见第 11 章)。
 
+Web UI 这条路径的「拉到底部」在真实实例里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，与第 11 章的插图是同一张 API 页，此处看页面底部：
+
+![设置页 API 区底部：Langfuse 区，说明文字为「Traces, evals, prompt management and metrics to debug and improve your LLM application.」，右侧是 Configuration 按钮](../assets/images/demo/ragflow-11-api-page.png)
+
+正文说的「API 页拉到底部」在这张图里兑现：Langfuse Configuration 区就挂在 ERROR CODES 的状态码表之下，页面最底部一行——点 Configuration 进入 Host、Public Key、Secret Key 三元组的填写与保存。API Key 在页面顶部，tracing 配置在页面底部，一页之隔，两个动作用的是同一个入口。
+
 保存后,Go chat pipeline 在**使用知识库或 web 搜索**的聊天请求上使用这些凭据上报。一次被追踪的聊天,在 Langfuse 里长这样:
 
 | 观测对象 | 记录内容 |
@@ -306,7 +312,19 @@ RAGFlow(admin)> MQ SHOW;
 | User management | 查询用户、创建用户、`Active`/`Inactive` 启停、重置密码、删除、看详情(最近登录时间等) | 不能对当前登录的自己执行禁用/改类型/重置/删除;删除是高风险动作,先交接资源、先 `Inactive`;`Superuser` 只授予真正需要进 Admin UI 的人 |
 | Sandbox settings | 选择并测试代码执行沙箱 provider | 系统级设置,保存即全部署生效(12.7) |
 
+三张页面里的第一张在真实实例里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，以 Superuser 账号进入主站 /admin 的 Service status 页：
+
+![Admin UI 的 Service status 页：8 行服务全部 Alive——mysql（database，3306）、elasticsearch（doc_engine，9200）、minio（storage_engine，9000）、kvrocks（cache，6379）、nats（message_queue，4222），以及进程行 ragflow-server-4277c299（api_server，9380）、ingestor-cc1a91af（ingestor）、syncer-6efbb8b9（file_syncer）](../assets/images/demo/ragflow-12-admin-services.png)
+
+正文说的「驾驶舱」就是这张画面：五行依赖（database、doc_engine、storage_engine、cache、message_queue）加三行运行时进程（api_server、ingestor、file_syncer）全部 Alive，12.8 检查表第 8 项「Admin UI 服务状态进每日巡检」扫的就是它。两个实测口径单独记下：Admin UI 的入口是主站 /admin 路径，不是 9381 端口的根路径；且仅 Superuser 可进——实测用普通账号访问返回 403。
+
 初始管理员:Admin Service 以 `--init-superuser` 启动且尚无超级用户时,创建 `admin@ragflow.io`(初始密码 `admin`)——首登立即改密;该账号用于系统初始化与创建后续管理员,**不作长期共享的日常运维账号**。账号状态语义:`Active` 可正常登录使用;`Inactive` 禁止登录但账号与数据保留。官方对密码的口径:创建表单前端校验至少 6 字符、重置密码至少 8 字符——生产环境应施加更强的统一密码策略。
+
+User management 页在真实实例里是下面这个样子。这张截图来自 2026-11-04 实测于本机 Docker 部署的 RAGFlow v1.0.0-rc2，共 4 个用户，其中一行已打码：
+
+![Admin UI 的 User management 页：Email、Nickname、Status、User type、Actions 列，4 行用户——书舟（demo@ragflow-book.local，Superuser）、admin（admin@ragflow.io）、一行打码、演示二号（demo2@ragflow-book.local，Normal），Status 与 User type 均为行内下拉，右上角 New user 按钮](../assets/images/demo/ragflow-12-admin-users.png)
+
+Status 与 User type 都是行内下拉——账号启停与 Superuser 授予就在这两列上改，上表「不能对当前登录的自己执行禁用/改类型/重置/删除」的约束在图里也能看出来：当前登录账号（书舟）这两列是静态徽标，不带下拉。普通账号与 Superuser 在 User type 列一目了然，12.7.2 的「Superuser 最小授予」对应的就是这一列的纪律。
 
 ## 12.7 代码执行沙箱与安全面
 
@@ -400,7 +418,7 @@ Runner 镜像、容量、内存、服务超时与网络访问属于部署侧设�
 
 ## 复核清单(发布前)
 
-- [ ] 本章全部命令未实测(`docker compose`、`migration.sh backup`、SSL 七步、CLI 安装与各命令族、`healthz` 探测)——待环境就绪后按节补测
+- [x] Admin UI(Service status、User management)已于 2026-11-04 实测(截图见 12.6.2):入口为主站 /admin(9381 根路径返回 JSON),仅 Superuser 可进(普通账号 403);`docker compose`、`migration.sh backup`、SSL 七步、CLI 命令族仍待按节补测
 - [ ] v0.27.2 → v1.0.0-rc1 迁移全流程未演练(不可逆操作,需专用可丢弃环境)
 - [ ] Admin UI 三页的界面元素与 v1.0.0-rc2 实际版本逐一对照
 - [ ] 自托管 Langfuse 对接实测(trace 字段与异步投递行为)
