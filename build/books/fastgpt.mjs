@@ -20,7 +20,7 @@ export const book = {
   subtitle: '知识库与工作流,从搭建到生产运营',
   date: '2026-11-01',
   tagline: '知识库问答与工作流编排实战,从搭建到生产运营',
-  sourceNote: '基于 FastGPT 官方仓库文档(v4.17.3)撰写,含运营实践视角;代码示例未实测',
+  sourceNote: '基于 FastGPT 官方仓库文档(v4.17.3)撰写,含运营实践视角;关键界面与主链路已本机实测并配图,部分进阶项仍挂账,见各章复核清单',
   sourceDescription: 'FastGPT 官方仓库 labring/FastGPT 的 document/content/ 目录(v4.17.3)',
   licenseNote: 'FastGPT 以 Apache-2.0 附加条件许可发布;本书为学习整理稿,遵循本仓库整体许可证分发。',
   trademarkNote: 'FastGPT 及相关商标归其权利人所有;本书与 FastGPT 项目及 labring 官方无隶属关系。',
