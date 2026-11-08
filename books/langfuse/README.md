@@ -1,6 +1,6 @@
 # Langfuse:LLM 可观测与评估
 
-> 状态:规划中
+> 状态:**成稿中(2026-11-08)——13 章规划定稿;实操前置:本机 Docker 自托管 Langfuse v4.76.0(2026-11-08 部署核实)+ Python SDK 5.2.0,贯穿案例全链路(trace/session/Prompt/数据集/实验/成本)已跑通并产出实测素材,各章边写边截。**
 
 ## 定位
 
@@ -12,31 +12,49 @@ LLM 应用的追踪、评估与 Prompt 管理。本书以 Langfuse 为抓手,覆
 - 运维工程师:trace 采集、成本监控与线上质量看板
 - 运营人员:Prompt 版本管理、A/B 实验与 badcase 运营
 
-## 与平台缺口地图的对应
+## 素材源与版本基线
 
-以下条目来自[设计规格附录 A](../../docs/superpowers/specs/2026-10-24-multi-book-restructure-design.md)(跨境电商智能体多租户平台 · 技术缺口地图):
+- 素材源:[langfuse/langfuse](https://github.com/langfuse/langfuse) 官方文档(langfuse.com/docs)与自托管指南
+- 版本基线:**Langfuse v4.76.0(2026-11-05 发布)+ Python SDK 5.2.0**,核实日期 2026-11-08
+- 每章 frontmatter `source` 与构建配置 `sources` 字段记录对应官方文档路径,供溯源与未来 `--check`
+- 实操基准:本机 Docker 自托管六容器栈(web/worker/clickhouse/minio/redis/postgres),贯穿案例全部事实来自该真实实例
 
-| 角色 | 技术域 | 具体内容 | 覆盖 |
-|------|--------|---------|------|
-| 测试 | Agent 评估 | 轨迹评估、数据集与评分 | ✅ 书内第 39 章 + 🔜 langfuse 书 |
-| 测试 | LLM 质量工程 | Prompt 回归、幻觉检测、红队 | 🔜 langfuse 书 |
-| 运维 | LLM 可观测 | Langfuse trace/成本 | 🔜 langfuse 书 |
-| 运营 | Prompt 运营 | 版本管理、A/B | 🔜 langfuse 书内章 |
+## 贯穿案例
 
-## 章节规划(初稿)
+**售后客服可观测底座**:延续书架跨境电商售后域。Python Demo 应用「售后助手」(关键词检索 → Langfuse 托管 Prompt → 智谱 glm-5.3-flash → 回答 → 评分)经 Langfuse Python SDK 埋点,随章节成长:第 3 章首条 trace → 第 4 章 session 串联 → 第 6 章 Prompt 入管 → 第 7-9 章评估数据集 `after-sales-qa` 与实验 → 第 12 章回归门禁 → 第 13 章红队数据集。第 10 章把 ragflow 书的「售后助手」(RAGFlow 实例)tracing 指向同一 Langfuse——**并如实记录 rc2 与 v4 的兼容性实测结论**(项目名 `after-sales`、Prompt `after-sales-answer`、数据集 `after-sales-qa` 全书一致,禁止各章自造)。
 
-| 章节 | 内容一句话 |
-|------|-----------|
-| 第 1 章 初识 Langfuse | LLM 可观测与评估平台全景,与日志系统/传统 APM 的区别 |
-| 第 2 章 快速开始 | SDK 接入与第一条 trace |
-| 第 3 章 Trace 与链路追踪 | span 层级、多轮会话串联与 trace 采集规范 |
-| 第 4 章 成本与性能监控 | token 统计、成本核算、延迟分析与告警看板 |
-| 第 5 章 Prompt 管理 | Prompt 版本管理、与 trace 的关联与回滚 |
-| 第 6 章 数据集与评分 | 评估数据集建设、LLM-as-judge 与人工评分 |
-| 第 7 章 A/B 与线上实验 | Prompt A/B 实验、版本切换与效果对比 |
-| 第 8 章 LLM 质量工程 | Prompt 回归测试、幻觉检测与红队演练 |
+## 术语约定
 
-> 章节规划为初稿,启动时细化。
+- **trace(追踪)**:一次请求的完整链路;**observation(观测)**:链路上的节点,分 span(跨段)/generation(生成)/event(事件)三类
+- **experiment(实验)**:v4 对「数据集跑测一轮(dataset run)」的 UI 称谓,本书沿用 UI 术语
+- **prompt label(Prompt 标签)**:production/staging/experimental 三档发布位;**playground(调试场)**
+- **v4 迁移写模式**:events_only(默认)/dual/legacy,第 10 章联动实测涉及
+
+## 章节规划(13 章 4 篇)
+
+| 章节 | 内容一句话 | 分量 |
+|------|-----------|------|
+| [第 1 章 初识 Langfuse](chapters/01-overview.md) | LLM 可观测全景、四大能力面、开源 vs 企业版边界 | 薄 |
+| [第 2 章 本地部署](chapters/02-deploy.md) | Docker Compose 六容器、初始化、升级与排障实录 | 中 |
+| [第 3 章 快速开始](chapters/03-quickstart.md) | Python SDK 接入、首条 trace、两种埋点风格 | 中 |
+| [第 4 章 Trace 模型与链路追踪](chapters/04-tracing.md) | 数据模型层级、session 串联、采集规范、过滤视图 | 重 |
+| [第 5 章 成本与性能监控](chapters/05-cost-metrics.md) | 模型价格、成本核算、看板、延迟分析与告警 | 中 |
+| [第 6 章 Prompt 管理](chapters/06-prompt-mgmt.md) | 版本与 label、变量编译、Playground、trace 关联 | 重 |
+| [第 7 章 数据集与评分](chapters/07-datasets-scores.md) | 数据集建设、score 三来源、标注队列 | 重 |
+| [第 8 章 实验与 A/B](chapters/08-experiments.md) | 数据集实验、run 对比、Prompt A/B 流量切分 | 中 |
+| [第 9 章 自动化评估](chapters/09-evals.md) | LLM-as-judge、持续评估、幻觉检测入门 | 中 |
+| [第 10 章 接入已有系统](chapters/10-integrations.md) | RAGFlow 联动实测(含兼容性)、OpenAI wrapper、集成清单 | 中 |
+| [第 11 章 多项目与团队管理](chapters/11-org-admin.md) | 组织/项目/环境隔离、成员角色、EE 边界 | 薄 |
+| [第 12 章 Prompt 回归与质量门禁](chapters/12-regression.md) | 回归三件套、门禁脚本、CI 集成思路 | 重 |
+| [第 13 章 红队与安全评估](chapters/13-redteam.md) | 对抗数据集、安全评分、badcase 运营闭环 | 中 |
+
+> 初稿 8 章规划(README 规划稿)按实测素材面细化为 13 章:部署独立成章,原「数据集与评分」拆为 7/8/9 三章,新增第 10 章承接书架联动,原「LLM 质量工程」拆为 12/13 两章。
+
+## 与其他书的交叉引用
+
+- **ragflow 书**:ragflow 书 12.3 预留「售后助手 tracing 进 Langfuse」的交叉引用,本书第 10 章实测对接并给出版本兼容性结论(需回改 ragflow 书 12.3 标注)
+- **fastgpt 书**:同为本地部署实测路线;对话运营与评测(其第 13 章)可与本书 7-9 章互参
+- **mcp 书**:Agent 的工具调用链路 trace 采集(第 4 章)与中台售后域视角互见
 
 ---
 
