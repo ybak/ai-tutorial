@@ -18,7 +18,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到�
 | FastGPT:从入门到进阶 | ✅ 已发布 | 4 篇 13 章,知识库与工作流,从搭建到生产运营 | [books/fastgpt/](books/fastgpt/README.md) |
 | CopilotKit:从前端接入 AI Agent | ✅ 已发布 | 4 篇 8 章,在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | [books/copilotkit/](books/copilotkit/README.md) |
 | Langfuse:LLM 可观测与评估 | 🔜 规划中 | LLM 应用的追踪、评估与 Prompt 管理 | [books/langfuse/](books/langfuse/README.md) |
-| Super-agent 设计探索——以 Grok Bot 为例深度探索 | 🔜 规划中 | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | [books/super-agent/](books/super-agent/README.md) |
+| Super-agent 设计探索——以 Grok Bot 为例深度探索 | ✅ 已发布 | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | [books/super-agent/](books/super-agent/README.md) |
 
 在线阅读：[ybak.github.io/ai-tutorial](https://ybak.github.io/ai-tutorial/)（书架首页，各书在 `/agentscope-java/` 等子路径下）。
 
@@ -64,3 +64,4 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到�
 ## 📄 声明
 
 各书的来源、许可与用途声明见 [NOTICE.md](NOTICE.md)。书架内容仅供学习与技术分享，禁止用于商业用途。
+

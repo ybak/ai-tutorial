@@ -33,7 +33,8 @@ test('registry:legacy 所有权唯一且 published 书显式声明 legacyRootCha
 test('registry:bookId 唯一且 published 名单符合预期', () => {
   const ids = ALL_BOOKS.map((b) => b.bookId);
   assert.equal(new Set(ids).size, ids.length);
-  assert.deepEqual(BUILDABLE_BOOKS.map((b) => b.bookId), ['agentscope-java', 'mcp', 'ragflow', 'copilotkit', 'fastgpt']);
+  assert.deepEqual(BUILDABLE_BOOKS.map((b) => b.bookId), ['agentscope-java', 'mcp', 'ragflow', 'copilotkit', 'fastgpt', 'super-agent']);
   for (const id of ['langfuse', 'cli'])
     assert.ok(PLANNED_BOOKS.some((b) => b.bookId === id));
 });
+

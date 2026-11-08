@@ -191,7 +191,7 @@ test("runSite 产出旧路径 stub 且清场重建无残留", async () => {
   const path = await import("node:path");
   // runSite 需要每本 published 书的源目录存在;章节文件缺失仅 warn,不影响 stub
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "site-run-"));
-  for (const id of ["agentscope-java", "mcp", "ragflow", "copilotkit", "fastgpt"]) {
+  for (const id of ["agentscope-java", "mcp", "ragflow", "copilotkit", "fastgpt", "super-agent"]) {
     fs.mkdirSync(path.join(tmp, "books", id, "chapters"), { recursive: true });
     fs.mkdirSync(path.join(tmp, "books", id, "assets"), { recursive: true });
   }
@@ -284,3 +284,4 @@ test("renderCover/renderColophon 随 book 配置:假书零 agentscope,真书文�
   assert.ok(renderColophon(book).includes("整理自 AgentScope 官方仓库 agentscope-java"));
   assert.ok(renderColophon(book).includes("Apache License 2.0"));
 });
+

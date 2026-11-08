@@ -15,9 +15,10 @@ import { book as mcp } from './mcp.mjs';
 import { book as ragflow } from './ragflow.mjs';
 import { book as copilotkit } from './copilotkit.mjs';
 import { book as fastgpt } from './fastgpt.mjs';
+import { book as superAgent } from './super-agent.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt, superAgent];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
@@ -32,12 +33,6 @@ export const PLANNED_BOOKS = [
     status: 'planned',
     title: 'AI CLI:编程助手团队实战',
     tagline: 'Claude Code 等 AI 编程 CLI 在团队工作流中的配置、技能与治理',
-  },
-  {
-    bookId: 'super-agent',
-    status: 'planned',
-    title: 'Super-agent 设计探索——以 Grok Bot 为例深度探索',
-    tagline: '解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态',
   },
 ];
 

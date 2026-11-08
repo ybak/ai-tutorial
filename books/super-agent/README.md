@@ -1,6 +1,6 @@
 # Super-agent 设计探索——以 Grok Bot 为例
 
-> **状态：规划中 / 三章改写稿**（核实日期 2026-11-07，Asia/Hong_Kong）。  
+> **状态：已发布**（成稿 2026-11-07，迁入可构建书架 2026-11-08，Asia/Hong_Kong）。  
 > 把 DeepSeek Harness 团队的架构文，翻译成中台工程师**听得懂、用得上**的一天工作法。  
 > **立场：不是 DeepSeek 产品说明书**；Grok Bot 是对照实例，不是论文复刻。  
 > 章节编写遵循 [书稿编写规范](../../docs/book-writing-guide.md)；文风优先**深入浅出**。
@@ -85,3 +85,4 @@
 | 旧单章 | 原 `01-super-agent-with-grokbot.md` 已拆入三章并删除 |
 
 元数据（书名 / 一句话）以 [`build/books/registry.mjs`](../../build/books/registry.mjs) 为单一来源。
+
