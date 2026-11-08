@@ -33,6 +33,12 @@ export const PLANNED_BOOKS = [
     title: 'AI CLI:编程助手团队实战',
     tagline: 'Claude Code 等 AI 编程 CLI 在团队工作流中的配置、技能与治理',
   },
+  {
+    bookId: 'super-agent',
+    status: 'planned',
+    title: 'Super-agent 设计探索——以 Grok Bot 为例深度探索',
+    tagline: '解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态',
+  },
 ];
 
 /** 全量书目（构建中 + 规划中） */
