@@ -381,6 +381,7 @@ admin 视角的三条守则：默认态（events_only）最干净但有兼容代
 | 6 | Members 页顶部 legacy UI 横幅与 Switch to latest UI 按钮（v4 迁移期双 UI） | lf-members.png（11.5.1） |
 | 7 | 写模式变量 `LANGFUSE_MIGRATION_V4_WRITE_MODE=dual`（web+worker）使 v3 批量摄取端点接受 trace-create 事件（201，落 default.traces）；v2 单事件端点在 v4 仍 404 | 第 10 章实测（11.5.2） |
 | 8 | API Key 创建弹窗三项 Name（必填）/Expiration（默认 No expiration）/Permissions（默认 Full access，View 84 permissions）；pk-/sk- 只显示一次 | 第 2 章 2.4.3（11.4.1） |
+| 9 | 健康检查 `GET /api/public/health` 返回 `{"status":"OK","version":"4.76.0"}`，与首页版本标识 `v4.76.0 OSS` 一致——管理员巡检的两个版本锚点 | 第 2 章 2.3.2、1.3.1（11.5.3） |
 
 ## 延伸阅读
 

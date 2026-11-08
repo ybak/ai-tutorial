@@ -1,6 +1,6 @@
 # Langfuse:LLM 可观测与评估
 
-> 状态:**成稿中(2026-11-08)——13 章规划定稿;实操前置:本机 Docker 自托管 Langfuse v4.76.0(2026-11-08 部署核实)+ Python SDK 5.2.0,贯穿案例全链路(trace/session/Prompt/数据集/实验/成本)已跑通并产出实测素材,各章边写边截。**
+> 状态:**成稿(2026-11-08)——13 章 7033 行全部完成,基于官方文档(v4.76.0 + Python SDK 5.2.0,核实日期 2026-11-08)与本机 Docker 自托管实例实测撰写;实操前置(部署栈 → 管理员初始化 → Demo 全链路 → Prompt/数据集/实验/成本 → RAGFlow 联动)先于成稿完成,全部界面事实来自真实实例;实测截图 30 张按「引导句→图→解读」三段式插入各章(assets/images/);实测与文档差异如实标注(SDK v5 旧 API 投影不全/legacy UI 列表空态/label 与双花括号两个 demo 修复/tenant_model 位掩码 1=chat 2=embedding);兼容性实测实锤:RAGFlow rc2(v2 单事件上报)× Langfuse v4(旧端点已移除)不兼容,dual 迁移模式只救活 v3 batch——ragflow 书 12.3 行为表需按此回改标注。未实测项(端到端告警/annotation queue 全流程/CI workflow/OTel 桥接)已在各章复核清单如实挂账。**
 
 ## 定位
 

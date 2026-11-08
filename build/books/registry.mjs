@@ -16,18 +16,13 @@ import { book as ragflow } from './ragflow.mjs';
 import { book as copilotkit } from './copilotkit.mjs';
 import { book as fastgpt } from './fastgpt.mjs';
 import { book as superAgent } from './super-agent.mjs';
+import { book as langfuse } from './langfuse.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt, superAgent];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt, superAgent, langfuse];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [
-  {
-    bookId: 'langfuse',
-    status: 'planned',
-    title: 'Langfuse:LLM 可观测与评估',
-    tagline: 'LLM 应用的追踪、评估与 Prompt 管理',
-  },
   {
     bookId: 'cli',
     status: 'planned',

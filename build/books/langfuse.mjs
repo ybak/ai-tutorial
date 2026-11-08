@@ -15,7 +15,7 @@
 
 export const book = {
   bookId: 'langfuse',
-  status: 'draft',
+  status: 'published',
   title: 'Langfuse:LLM 可观测与评估',
   subtitle: '追踪、评估与 Prompt 管理,从自托管到质量工程',
   date: '2026-11-08',
