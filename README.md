@@ -2,7 +2,7 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=social)](https://github.com/ybak/ai-tutorial)
 
-AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
+AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
 
 如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)。
 
@@ -17,7 +17,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到�
 | RAGFlow:从入门到进阶 | ✅ 已发布 | 4 篇 13 章,从搭建知识库到生产级检索调优 | [books/ragflow/](books/ragflow/README.md) |
 | FastGPT:从入门到进阶 | ✅ 已发布 | 4 篇 13 章,知识库与工作流,从搭建到生产运营 | [books/fastgpt/](books/fastgpt/README.md) |
 | CopilotKit:从前端接入 AI Agent | ✅ 已发布 | 4 篇 8 章,在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | [books/copilotkit/](books/copilotkit/README.md) |
-| Langfuse:LLM 可观测与评估 | 🔜 规划中 | LLM 应用的追踪、评估与 Prompt 管理 | [books/langfuse/](books/langfuse/README.md) |
+| Langfuse:LLM 可观测与评估 | ✅ 已发布 | 4 篇 13 章,LLM 应用的追踪、评估与 Prompt 管理,从自托管部署到质量工程(本机实测配图) | [books/langfuse/](books/langfuse/README.md) |
 | Super-agent 设计探索——以 Grok Bot 为例深度探索 | ✅ 已发布 | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | [books/super-agent/](books/super-agent/README.md) |
 
 在线阅读：[ybak.github.io/ai-tutorial](https://ybak.github.io/ai-tutorial/)（书架首页，各书在 `/agentscope-java/` 等子路径下）。
@@ -28,11 +28,11 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT：多本「从入门到�
 
 | 角色 | 推荐书与章节 | 对应技术域 |
 | --- | --- | --- |
-| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；知识库问答与低代码编排 → **fastgpt** 书；前端 AI 集成 → **copilotkit** 书；跨框架工具接入 → **mcp** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议 |
-| 测试 | **agentscope-java** 第 39 章（轨迹评估）起步；数据集与评分、Prompt 回归、幻觉检测 → **langfuse** 书（规划中） | Agent 评估、LLM 质量工程（性能压测为轻量专题，按需） |
-| 运维 | **langfuse** 书（规划中）：trace/成本监控、Prompt 版本管理与 A/B；传统运维（Prometheus/Grafana、K8s、CI/CD）团队已有基础，按需补 | LLM 可观测、评估运营 |
+| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；知识库问答与低代码编排 → **fastgpt** 书；前端 AI 集成 → **copilotkit** 书；跨框架工具接入 → **mcp** 书；LLM 应用埋点与可观测 → **langfuse** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议、LLM 可观测 |
+| 测试 | **agentscope-java** 第 39 章（轨迹评估）起步；数据集与评分、Prompt 回归、幻觉检测 → **langfuse** 书（第 7-9、12 章） | Agent 评估、LLM 质量工程（性能压测为轻量专题，按需） |
+| 运维 | **langfuse** 书：trace/成本监控（第 4-5 章）、本地部署与排障（第 2 章）、Prompt 版本管理与 A/B（第 6/8 章）；传统运维（Prometheus/Grafana、K8s、CI/CD）团队已有基础，按需补 | LLM 可观测、评估运营 |
 | 产品 | AI 产品设计（交互模式、意图设计、badcase 管理）→ 并入 **ai-platform** 或薄册（候选池） | AI 产品设计 |
-| 运营 | 知识库运营（切片治理/更新流程）→ **ragflow** 书内章；FastGPT 对话质检与评测 → **fastgpt** 书内章；Prompt 运营（版本管理、A/B）→ **langfuse** 书内章（规划中）；合规 → 附录专题（候选池） | 知识库运营、Prompt 运营、合规 |
+| 运营 | 知识库运营（切片治理/更新流程）→ **ragflow** 书内章；FastGPT 对话质检与评测 → **fastgpt** 书内章；Prompt 运营（版本管理、A/B）→ **langfuse** 书内章（第 6/8 章）；合规 → 附录专题（候选池） | 知识库运营、Prompt 运营、合规 |
 
 ## 🗃️ 候选池
 
