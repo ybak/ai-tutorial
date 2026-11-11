@@ -25,3 +25,5 @@ demo/cross-border-commerce/.env
 demo/cross-border-commerce/.state.env
 books/copilotkit/demo/starfish-console/.env
 books/copilotkit/demo/starfish-console/node_modules/
+# LiteLLM 书本地实验密钥
+books/litellm/demo/.env

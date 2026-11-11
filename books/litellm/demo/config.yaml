@@ -1,0 +1,53 @@
+# 星帆出海本地实验配置。上游密钥只从环境变量读，不写进这个文件。
+# 模型别名全书固定：seashore-cs、seashore-cs-fast、aurora-cs。
+# 价格是实验用的自定义单价，用来让花费不等于 0。不是任何厂商的官价。
+
+model_list:
+  - model_name: seashore-cs
+    litellm_params:
+      model: openai/mock-qwen-plus
+      api_base: http://127.0.0.1:18001/v1
+      api_key: os.environ/MOCK_UPSTREAM_KEY
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+    model_info:
+      id: seashore-cs-primary
+      mode: chat
+
+  - model_name: seashore-cs-fast
+    litellm_params:
+      model: openai/mock-qwen-turbo
+      api_base: http://127.0.0.1:18002/v1
+      api_key: os.environ/MOCK_UPSTREAM_KEY
+      input_cost_per_token: 0.0000004
+      output_cost_per_token: 0.0000008
+    model_info:
+      id: seashore-cs-fast
+      mode: chat
+
+  - model_name: aurora-cs
+    litellm_params:
+      model: openai/mock-qwen-plus
+      api_base: http://127.0.0.1:18001/v1
+      api_key: os.environ/MOCK_UPSTREAM_KEY
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+    model_info:
+      id: aurora-cs-primary
+      mode: chat
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 0
+  timeout: 8
+  allowed_fails: 1
+  cooldown_time: 15
+  fallbacks:
+    - seashore-cs: ["seashore-cs-fast"]
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+
+litellm_settings:
+  drop_params: true

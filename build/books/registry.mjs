@@ -17,9 +17,10 @@ import { book as copilotkit } from './copilotkit.mjs';
 import { book as fastgpt } from './fastgpt.mjs';
 import { book as superAgent } from './super-agent.mjs';
 import { book as langfuse } from './langfuse.mjs';
+import { book as litellm } from './litellm.mjs';
 
 /** 可构建书（status: 'published'） */
-export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt, superAgent, langfuse];
+export const BUILDABLE_BOOKS = [agentscopeJava, mcp, ragflow, copilotkit, fastgpt, superAgent, langfuse, litellm];
 
 /** 规划中书（status: 'planned'），仅元数据，不参与构建 */
 export const PLANNED_BOOKS = [

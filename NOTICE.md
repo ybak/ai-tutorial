@@ -32,3 +32,9 @@
 ## 许可
 
 本仓库整体以 **Apache License 2.0** 发布（详见 [LICENSE](LICENSE)）。依据 Apache License 2.0 第 4 条，本仓库对原作品作出了上述修改声明；原作品的许可声明与免责条款继续适用于其原始内容。
+
+## 其他书的来源
+
+书架后来追加的教程（MCP、RAGFlow、FastGPT、CopilotKit、Langfuse、Super-agent、LiteLLM 等）是面向同一平台案例的学习整理，不是把上述 AgentScope 文档再发行一遍。各书 README 写明素材与许可。与上游项目无隶属关系。
+
+《LiteLLM：多模型网关、配额与降级》（2026-11-11）依据 [BerriAI/litellm](https://github.com/BerriAI/litellm) 的公开文档与仓库许可撰写，不随本仓库分发 LiteLLM 源码。2026-11-11 读取的根 `LICENSE` 写明：`enterprise/` 目录适用该目录自己的许可，其余为 MIT。`enterprise/LICENSE.md` 为商业许可。本书必做步骤不使用该目录。New API（QuantumNous/new-api）在书中仅作许可对照，其 AGPL-3.0 及第 7 条附加署名条款以该项目仓库为准，本书不包含其代码。
