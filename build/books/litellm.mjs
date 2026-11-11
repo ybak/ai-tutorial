@@ -1,8 +1,10 @@
 /**
  * litellm.mjs — 《LiteLLM：多模型网关、配额与降级》书配置
  *
- * 2026-11-11 成稿。开源核心（MIT）为主线，enterprise/ 不进必做步骤。
- * 版本基线：PyPI litellm 1.109.0，与本机 importlib.metadata 一致。
+ * 2026-11-12 用官方镜像 main-stable 登录 Admin UI 后修订。
+ * 开源核心（MIT）为主线，enterprise/ 不进必做步骤，不设置 LITELLM_LICENSE。
+ * 侧栏显示 v1.169.0；同一次成功响应头 x-litellm-version 为 1.109.0。
+ * 2026-11-11 的 pip 安装另记为 1.109.0。不要把这两个读数合成一个版本。
  * legacyRootChapters: false
  */
 
@@ -11,10 +13,10 @@ export const book = {
   status: 'published',
   title: 'LiteLLM：多模型网关、配额与降级',
   subtitle: '虚拟密钥、租户配额与降级，把现有 Java 客户端接到同一网关',
-  date: '2026-11-11',
+  date: '2026-11-12',
   tagline: '多模型路由、虚拟密钥与租户配额，把 AgentScope / Spring AI / Langfuse 接到同一网关',
-  sourceNote: '基于 LiteLLM 官方文档与本机 1.109.0 代理（模拟上游、PostgreSQL）实测撰写；无厂商密钥处已标明未实测',
-  sourceDescription: 'LiteLLM 文档 docs.litellm.ai 与 BerriAI/litellm 仓库（核心 MIT，enterprise/ 另议），核实 2026-11-11',
+  sourceNote: '基于 LiteLLM 官方文档，以及 2026-11-12 官方镜像 main-stable 的 Admin UI 实测（模拟上游、PostgreSQL 16，无厂商密钥）。侧栏显示 v1.169.0，同一次成功响应头为 x-litellm-version: 1.109.0',
+  sourceDescription: 'LiteLLM 文档 docs.litellm.ai 与 BerriAI/litellm 仓库（核心 MIT，enterprise/ 另议）。界面核实 2026-11-12；pip 路径的状态码核实 2026-11-11',
   licenseNote: 'LiteLLM 核心以 MIT 许可发布；enterprise/ 目录为商业许可，不在本书必做步骤内。本书为学习整理稿，遵循本仓库整体许可证分发。',
   trademarkNote: 'LiteLLM 及相关商标归 BerriAI 所有；New API 归其权利人所有。本书与上述项目官方无隶属关系。',
   chaptersDir: 'books/litellm/chapters',

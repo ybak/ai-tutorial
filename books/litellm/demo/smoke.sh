@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # 对已经启动的本地代理做只读冒烟。不创建密钥，不打印 Authorization。
-# 用法：先按 README 起 mock 与 litellm，再执行本脚本。
+# 用法：先按 README 执行 docker compose up，再导出 LITELLM_MASTER_KEY，然后执行本脚本。
+# 它证明网关和主上游活着。虚拟密钥的名单要另用 alice / bob 的钥匙看。
 set -euo pipefail
 
 BASE="${LITELLM_BASE:-http://127.0.0.1:4000}"

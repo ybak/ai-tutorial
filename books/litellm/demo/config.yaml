@@ -1,12 +1,13 @@
-# 星帆出海本地实验配置。上游密钥只从环境变量读，不写进这个文件。
+# 星帆出海本地实验配置。上游是 compose 里的模拟服务，不需要厂商密钥。
 # 模型别名全书固定：seashore-cs、seashore-cs-fast、aurora-cs。
 # 价格是实验用的自定义单价，用来让花费不等于 0。不是任何厂商的官价。
+# api_base 用 compose 服务名。在宿主机上用 127.0.0.1 会让网关容器访问不到模拟上游。
 
 model_list:
   - model_name: seashore-cs
     litellm_params:
       model: openai/mock-qwen-plus
-      api_base: http://127.0.0.1:18001/v1
+      api_base: http://mock-primary:18001/v1
       api_key: os.environ/MOCK_UPSTREAM_KEY
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
@@ -16,8 +17,8 @@ model_list:
 
   - model_name: seashore-cs-fast
     litellm_params:
-      model: openai/mock-qwen-turbo
-      api_base: http://127.0.0.1:18002/v1
+      model: openai/mock-qwen-plus
+      api_base: http://mock-backup:18002/v1
       api_key: os.environ/MOCK_UPSTREAM_KEY
       input_cost_per_token: 0.0000004
       output_cost_per_token: 0.0000008
@@ -28,7 +29,7 @@ model_list:
   - model_name: aurora-cs
     litellm_params:
       model: openai/mock-qwen-plus
-      api_base: http://127.0.0.1:18001/v1
+      api_base: http://mock-primary:18001/v1
       api_key: os.environ/MOCK_UPSTREAM_KEY
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002

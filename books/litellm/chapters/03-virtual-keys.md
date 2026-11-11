@@ -1,12 +1,12 @@
 ---
 chapter: 3
 title: 虚拟密钥
-source: docs.litellm.ai/docs/proxy/virtual_keys；本机 1.109.0 对 /team/new、/key/generate、/key/info、/key/list 的调用，2026-11-11
+source: docs.litellm.ai/docs/proxy/virtual_keys；2026-11-12 Admin UI 的 Virtual Keys 页；2026-11-11 对 /team/new、/key/generate、/key/info、/key/list 的调用（pip 1.109.0）
 ---
 
 # 第 3 章 虚拟密钥
 
-> 主密钥能让 curl 替 OD-2049 问出一句「仍在途」。把它写进 `xbd-seashore-cs-agent`，等于把签发权交给客服进程。这一章签发两把虚拟密钥，看清返回体里哪些字段真有约束力，哪些只是回显。
+> 主密钥能让 curl 替 OD-2049 问出一句「仍在途」。把它写进 `xbd-seashore-cs-agent`，等于把签发权交给客服进程。这一章先看管理界面上已经种入的 alice 和 bob，再回到签发接口，看清返回体里哪些字段真有约束力，哪些只是回显。
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,31 @@ flowchart LR
 
 *本章操作流程图*
 
+## 界面上的 alice 和 bob
+
+2026-11-12 的 Virtual Keys 页上有两行。钥匙原文被遮住，团队、预算和模型还在。
+
+![Virtual Keys：bob 末四位 g1Rg，状态 Active，团队 aurora-main，用户列是横线，11 月 12 日创建并活跃，Spend $0.0001 of $8，Lifetime Spend $0.0001，Budget Reset Never，模型 aurora-cs。alice 末四位 DX5Q，团队名被截成 seashore-m...，Spend $0.0001 of $10，模型 seashore-cs 与 seashore-cs-fast。默认列没有 RPM](../assets/images/04-virtual-keys.png)
+
+这张表能回答的和不能回答的，分开记：
+
+| 你能从这张表读到的 | 表上没有、不要脑补的 |
+| --- | --- |
+| 两把钥匙都是 Active，用户列是 `-` | 末四位 `g1Rg`、`DX5Q` 只属于这次库。`seed.sh` 重跑会换掉 |
+| bob 属于 `aurora-main`，预算 $8；alice 的预算是 $10，团队名被截成 `seashore-m...` | 截断不等于团队没建成。Teams 页上的全名是 `seashore-main` |
+| 模型列写着别名：bob 只有 `aurora-cs`，alice 有 `seashore-cs` 和 `seashore-cs-fast` | 默认列没有 RPM。alice 的 rpm 30、bob 的 rpm 20 是签发时写上的，这张表看不出来 |
+| Spend 都显示 $0.0001，Budget Reset 是 Never | $0.0001 比成功日志和 Playground 上的 $0.000062 粗。对账不要用这一列的四位小数 |
+| Created At 与 Last Active 都是 Nov 12, 2026 | 表上没有 403。alice 调 `aurora-cs` 被拒绝，记在第 4 章的 Request Logs 里 |
+
+同一天用这两把钥匙打过的请求：alice 调 `seashore-cs` 得到 HTTP 200，正文以 `[primary] 订单 OD-2049 仍在途。` 开头，响应头 `x-litellm-model-id: seashore-cs-primary`，`x-litellm-attempted-fallbacks: 0`，费用约 $0.000062；alice 调 `aurora-cs` 得到 HTTP 403，类型 `key_model_access_denied`；bob 调 `aurora-cs` 得到 HTTP 200。403 的整段 JSON 是 11 日记下来的，见后面一节。12 日确认的是状态码和类型，不把 11 日的消息原文说成 12 日又抄了一遍。
+
+用户列的横线，和后面「管理员签发的钥匙没有主人」是同一件事。alice 不是海岸优品的店主账号，bob 也不是极光的店主。店主仍是 AgentScope 里的 alice 和 bob。网关钥匙只是借用了这两个名字，方便在截图里对上商家。
+
+`demo/seed.sh` 用主密钥创建上表这四样：两个团队、两把钥匙。空库执行一次。密钥原文只在那次输出里出现，页面上从此只有掩码。丢失就作废重签，不要指望这张表把 `sk-` 还回来。
+
 ## 先有团队，再有钥匙
+
+界面上的两行是种入之后的样子。签发顺序仍然是：先 `/team/new`，再 `/key/generate`。下面 11 日的调用把字段形状记全了，预算和别名与截图不同：那天海岸钥匙的 `key_alias` 是 `seashore-cs-agent`，`max_budget` 是 `0.01`。截图里的 alice 是 10 美元、rpm 30。读返回体时用 11 日的样本，读页面时用上一节。
 
 Virtual Keys 页的顺序是：建团队，再给团队签发钥匙。星帆的两家商家对应两个 `team_alias`，用 namespace 的名字，避免第二套命名。
 

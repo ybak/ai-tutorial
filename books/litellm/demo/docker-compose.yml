@@ -1,0 +1,68 @@
+# 默认启动方式：官方镜像 + Postgres 16 + 两个模拟上游。
+# 配置和脚本用卷挂载，不打进自定义镜像。
+# 下面的口令只给本机演示。没有厂商密钥，也不要设置 LITELLM_LICENSE。
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: llmproxy
+      POSTGRES_PASSWORD: dbpassword9090
+      POSTGRES_DB: litellm
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U llmproxy -d litellm"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - litellm-pg:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  mock-primary:
+    image: python:3.12-slim
+    command: ["python", "/opt/mock_upstream.py", "18001"]
+    environment:
+      MOCK_NAME: primary
+      MOCK_MODE: ok
+    volumes:
+      - ./mock_upstream.py:/opt/mock_upstream.py:ro
+    ports:
+      - "127.0.0.1:18001:18001"
+
+  mock-backup:
+    image: python:3.12-slim
+    command: ["python", "/opt/mock_upstream.py", "18002"]
+    environment:
+      MOCK_NAME: backup
+      MOCK_MODE: ok
+    volumes:
+      - ./mock_upstream.py:/opt/mock_upstream.py:ro
+    ports:
+      - "127.0.0.1:18002:18002"
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    depends_on:
+      db:
+        condition: service_healthy
+      mock-primary:
+        condition: service_started
+      mock-backup:
+        condition: service_started
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    environment:
+      LITELLM_MASTER_KEY: sk-starsail-master
+      DATABASE_URL: postgresql://llmproxy:dbpassword9090@db:5432/litellm
+      STORE_MODEL_IN_DB: "True"
+      MOCK_UPSTREAM_KEY: sk-mock-upstream
+      LITELLM_LOG: INFO
+      UI_USERNAME: admin
+      UI_PASSWORD: "StarsailDemo#2026"
+
+volumes:
+  litellm-pg:

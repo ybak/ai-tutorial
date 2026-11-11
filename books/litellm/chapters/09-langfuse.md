@@ -22,11 +22,13 @@ flowchart LR
 
 ## 埋在网关，而不是每个 Java 进程各埋一次
 
-客服在 AgentScope，订单接口在 Spring AI。若两边各自接 Langfuse SDK，OD-2049 的一次客户提问会变成两套 trace 习惯：字段名不同，模型名一个写别名、一个写响应里的 `mock-qwen-turbo`。网关是两边的公共点。`success_callback` 和 `failure_callback` 在这里各记一笔，Java 进程只保留业务 span（查订单、写工单），模型 span 以网关为准。
+客服在 AgentScope，订单接口在 Spring AI。若两边各自接 Langfuse SDK，OD-2049 的一次客户提问会变成两套 trace 习惯：字段名不同，模型名一个写别名、一个写响应里的上游模型字符串。网关是两边的公共点。`success_callback` 和 `failure_callback` 在这里各记一笔，Java 进程只保留业务 span（查订单、写工单），模型 span 以网关为准。
 
 代价是：网关没覆盖到的调用不会出现。有人绕过 `llm.example.com` 直连供应商，Langfuse 里就是安静的。第 1 章的密钥纪律是这个前提。上游密钥不在业务进程里，直连更难发生。仍要在网络策略上禁止 Dataplane 访问供应商网段，否则纪律只是配置审查。
 
-Langfuse 书的组织名、项目名不要抄过来。那本书的示例组织不适用于星帆。星帆的轨迹按商家分：海岸一个项目，极光一个项目。项目怎么建、界面长什么样，读 Langfuse 书的部署和追踪章。本书不重复那些截图，也没有新的截图。
+Langfuse 书的组织名、项目名不要抄过来。那本书的示例组织不适用于星帆。星帆的轨迹按商家分：海岸一个项目，极光一个项目。项目怎么建、界面长什么样，读 Langfuse 书的部署和追踪章。本书没有 Langfuse 的截图。
+
+2026-11-12 网关自己的账在第 4 章：Usage 和当时只有三行的 Request Logs。那不是 Langfuse 的 trace。第 2 章侧栏那张图上，Telemetry 的 Proxy requests 是 Off，没有向 LiteLLM 远端送用量。本章的回调也没开，所以 Langfuse 里不会出现 OD-2049。
 
 ## 文档里的接法
 

@@ -1,12 +1,12 @@
 ---
 chapter: 6
 title: 别名、部署和业务看见的模型名
-source: docs.litellm.ai/docs/proxy/configs 与 docs/proxy/load_balancing；本机 /v1/models 与补全响应，2026-11-11
+source: docs.litellm.ai/docs/proxy/configs 与 docs/proxy/load_balancing；2026-11-12 Admin UI 的 Models 页与 Playground Trace；2026-11-11 的 /v1/models 与补全响应
 ---
 
 # 第 6 章 别名、部署和业务看见的模型名
 
-> 小帆的配置里如果写 `qwen-plus`，网关会 400：这个名字不在 `/v1/models` 里。业务应该只认识 `seashore-cs`。上游今天是模拟器，明天可以换成别的兼容端点，Agent 定义不用跟着改。这一章把三个名字拆开，并记下降级之后响应里的 `model` 字段会变脸。
+> 小帆的配置里如果写 `qwen-plus`，网关会 400：这个名字不在 `/v1/models` 里。业务应该只认识 `seashore-cs`。上游今天是模拟器，明天可以换成别的兼容端点，Agent 定义不用跟着改。这一章在 Models 页和 Playground 的 Trace 上看这三个名字落在哪一台上游，并记下 11 日那次降级把响应里的 `model` 字段换成了上游 id。
 
 ```mermaid
 flowchart LR
@@ -16,10 +16,49 @@ flowchart LR
     D --> E["上游 api_base<br/>18001/v1"]
     E --> F{"上游可达?"}
     F -->|"是"| G["响应 model<br/>仍可能是别名"]
-    F -->|"否"| H["改走 seashore-cs-fast<br/>响应 model 变成上游 id"]
+    F -->|"否"| H["改走 seashore-cs-fast<br/>看 model id 响应头"]
 ```
 
 *本章导览图*
+
+## Models 页上的三个别名
+
+登录后打开 Models + Endpoints。Deployed Models 里是三行，都标着 Defined in config。没有在界面上点 Add Model。
+
+![Model Management 的 Deployed Models：seashore-cs、seashore-cs-fast、aurora-cs 三行，Credentials 为 Manual，Created by 为 Defined in config。费用列 seashore-cs 与 aurora-cs 是 IN $1.00 / OUT $2.00，seashore-cs-fast 是 IN $0.40 / OUT $0.80。筛选停在 Team Personal、View Current Team Models。页底提示：要访问这些模型，去 Virtual Keys 页创建不选团队的虚拟密钥](../assets/images/03-models.png)
+
+每百万 token 的标价就是配置里的单价乘以一百万：`0.000001` 显示成 $1.00，`0.0000004` 显示成 $0.40。输出是输入的两倍，所以 OUT 是 $2.00 和 $0.80。这是实验单价，不是通义或 OpenAI 的官价。Model ID 列被截断，第三行能看见 `aurora-cs-p` 这个前缀，和配置里的 `aurora-cs-primary` 对得上开头，整段 id 以配置和响应头为准。
+
+点开 `seashore-cs` 一行，浮出来的不是路由图。
+
+![seashore-cs 行上的浮层：Public Model Name 是 seashore-cs，下面是 LiteLLM Model Name。配置里写的是 openai/mock-qwen-plus；截图里这一串被截断，有的地方看起来像 openai1/。浮层没有画出 api_base，也没有画出到 mock-primary 的连线](../assets/images/03-models-detail.png)
+
+浮层把「业务别名」和「上游模型字符串」分成两行。三个别名的上游模型字符串在这份配置里都是 `openai/mock-qwen-plus`，所以浮层不能告诉你这一行走 18001 还是 18002。`api_base` 在 Trace 里，见下一节。
+
+同一页的 Auto-Routers、Model Group Alias 是空的。降级不在这两个标签里。Settings → Router Settings → Fallbacks 才有 `seashore-cs` 到 `seashore-cs-fast` 那一行，第 7 章打开它。页顶的 Decision models 提示这次没有使用。
+
+## Playground 把 OD-2049 打到 mock-primary
+
+Models 页证明别名已经载入。请求落在哪一台机器，要看 Playground 的 Trace。这次用的是登录后的 Current UI session，模型选 `seashore-cs`，不是 alice 的虚拟密钥。
+
+发送的句子是「查询订单 OD-2049 的物流状态」。开着 Stream response 的第一下会卡住，关掉之后才得到下面这一屏。图是关掉流式之后的成功结果，不是流式自己完成的。
+
+![Playground 的 Chat：用户句「查询订单 OD-2049 的物流状态」，seashore-cs 回复「[primary] 订单 OD-2049 仍在途。请核对运单后再答复客户。」耗时 0.11s，18 in、22 out，$0.000062。右侧 Trace：Requested 与 Served by 都是 seashore-cs，Provider model 为 openai/mock-qwen-plus，API base 为 http://mock-primary:18001/v1，Fallbacks 0，Retries 0，Overhead 60ms。Guardrails 写着这次没有策略跑过。Speed and cost 里 Gateway time 75ms](../assets/images/06-playground.png)
+
+Trace 上能对上的几行：
+
+| Trace 上的字 | 值 | 说明 |
+| --- | --- | --- |
+| Requested / Served by | `seashore-cs` | 请求的别名和实际服务的别名相同。这次没有降级 |
+| Provider model | `openai/mock-qwen-plus` | 和浮层里的 LiteLLM Model Name 是同一层。三个别名都长这样 |
+| API base | `http://mock-primary:18001/v1` | 这一行才是「打到了 primary」。fast 的配置是 `mock-backup:18002` |
+| Fallbacks / Retries | 0 / 0 | 和 `num_retries: 0`、这次没有失败相符 |
+| 正文前缀 | `[primary]` | 模拟器加上的进程名。生产上游不会有这个前缀 |
+| 费用 | $0.000062 | 18 × 0.000001 + 22 × 0.000002。Usage 卡片把同一类小额显示成 $0.00 |
+
+Guardrails and policies 写着 No guardrails or policies ran on this request。这次没有配防护。页底的输入框仍停在 `seashore-cs` 和 `chat/completions`。
+
+Call ID 在 Trace 里有一行。本书不抄那串字符：它是这一次调用的 id，重放会变。
 
 ## 三层名字
 
@@ -27,7 +66,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | 业务别名 | `model_name`，也是请求体 `model` | `seashore-cs`、`seashore-cs-fast`、`aurora-cs` | 很少变。变了就要改 Agent 定义和钥匙名单 |
 | 部署 id | `model_info.id` | `seashore-cs-primary`、`seashore-cs-fast`、`aurora-cs-primary` | 加机器、换区域时新增，不改业务别名 |
-| 上游模型 | `litellm_params.model` | `openai/mock-qwen-plus`、`openai/mock-qwen-turbo` | 换供应商时只改这里和 `api_base`、`api_key` |
+| 上游模型 | `litellm_params.model` | 现在三行都是 `openai/mock-qwen-plus`。11 日的 fast 曾经是 `openai/mock-qwen-turbo` | 换供应商时只改这里和 `api_base`、`api_key` |
 
 `openai/` 前缀表示按 OpenAI 兼容协议调用，不是表示厂商。模拟器没有校验密钥，但配置仍走 `os.environ/MOCK_UPSTREAM_KEY`，免得有人把一把真钥匙写进 yaml。
 
@@ -45,9 +84,9 @@ Step 13 里的 `merchant-gateway` 是 Dataplane 的教学别名，表示「走�
 
 ## 响应里的 model 不可当别名用
 
-主上游活着时，请求 `seashore-cs`，响应 JSON 的 `model` 是 `seashore-cs`，响应头 `x-litellm-model-id` 是 `seashore-cs-primary`。
+主上游活着时，请求 `seashore-cs`，11 日那次响应 JSON 的 `model` 是 `seashore-cs`，响应头 `x-litellm-model-id` 是 `seashore-cs-primary`。12 日的 Playground 在主上游活着时，Trace 的 Served by 也是 `seashore-cs`，API base 指向 `mock-primary`。
 
-主上游进程停掉、降级成功时（第 7 章的那次）：
+主上游进程停掉、降级成功，是 11 日的那一次。当天 fast 的上游模型名还是 `openai/mock-qwen-turbo`：
 
 | 位置 | 值 |
 | --- | --- |
@@ -57,7 +96,7 @@ Step 13 里的 `merchant-gateway` 是 Dataplane 的教学别名，表示「走�
 | `x-litellm-attempted-fallbacks` | `1` |
 | 正文前缀 | `[backup]` |
 
-响应 `model` 从别名变成了上游 id。若小帆把响应里的 `model` 写回会话，下一轮再原样送出，网关会收到 `mock-qwen-turbo`。这个名字不在 `/v1/models`，结果是 400，和直接请求 `qwen-plus` 同一类：
+那次响应 `model` 从别名变成了上游 id。12 日的 compose 把 fast 也写成了 `openai/mock-qwen-plus`，而且没有再停一次主上游，所以不要在现在的界面上找 `mock-qwen-turbo`。若小帆把响应里的上游 id 写回会话，下一轮再原样送出，网关会收到一个不在 `/v1/models` 里的名字，结果是 400，和直接请求 `qwen-plus` 同一类：
 
 ```json
 {
@@ -99,8 +138,8 @@ Agent 定义、Spring 配置、工单里的「用的哪个模型」都写 `seash
 
 | 字符串 | 为什么 |
 | --- | --- |
-| `openai/mock-qwen-plus` | 实验上游 id |
-| `mock-qwen-turbo` | 降级后响应里会出现，抄回去就会 400 |
+| `openai/mock-qwen-plus` | 实验上游 id。三个别名现在都写这个 |
+| `mock-qwen-turbo` | 只出现在 11 日那次降级响应里。抄回去就会 400。现行配置不再产生它 |
 | `seashore-cs-primary` | 部署 id，只在日志和响应头 |
 | `http://127.0.0.1:18001` | 模拟器 |
 | 任何供应商的真实模型名 | 换供应商时会漏改 |

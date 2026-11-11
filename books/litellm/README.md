@@ -1,6 +1,6 @@
 # LiteLLM：多模型网关、配额与降级
 
-> 状态：**成稿（2026-11-11）**。10 章。主线只写 LiteLLM 开源核心（仓库根 `LICENSE` 为 MIT；`enterprise/` 另有商业许可，不进必做步骤）。版本基线是 PyPI `litellm` **1.109.0**，与本机 `importlib.metadata` 读数一致。代理、虚拟密钥、团队预算、跨模型拒绝、每分钟请求上限、主上游断开后的降级，在本地 PostgreSQL 16 加模拟上游上跑过。没有厂商密钥，没有 Admin UI 操作截图，没有向 Langfuse 投递。Spring AI 与 AgentScope Java 的接入代码按各自文档和书架既有章节编写，进程未在本章环境里启动，章内标了复核清单。
+> 状态：**成稿（2026-11-12 修订）**。10 章。主线只写 LiteLLM 开源核心（仓库根 `LICENSE` 为 MIT；`enterprise/` 另有商业许可，不进必做步骤，也不设置 `LITELLM_LICENSE`）。2026-11-12 用官方镜像 `ghcr.io/berriai/litellm:main-stable`、Postgres 16 和两个本地模拟上游把 Admin UI 跑起来并登录。侧栏显示 LiteLLM **v1.169.0**；同一次成功的 Chat Completions 响应头是 `x-litellm-version: 1.109.0`。两个数都保留。2026-11-11 的 pip 安装另是 **1.109.0**，那天测过虚拟密钥、团队预算、跨模型拒绝、每分钟请求上限，以及主上游断开后的降级。没有厂商密钥，没有向 Langfuse 投递。界面截图在 `assets/images/`，图注以当天实拍为准。Spring AI 与 AgentScope Java 的接入代码按各自文档和书架既有章节编写，进程未在本章环境里启动，章内标了复核清单。
 
 署名只用虚构名林舟。不要在书稿、配置或示例组织名里写真实作者姓名。
 
@@ -34,14 +34,14 @@ LiteLLM Proxy 是这件事的开源网关：对外提供 OpenAI 兼容的 Chat C
 | 平台侧教学别名 | `merchant-gateway` | demo Step 13，指「接到公司网关」，不是上游模型名 |
 | 网关模型别名 | `seashore-cs`、`seashore-cs-fast`、`aurora-cs` | 本书为两家商家固定的 `model_name`，只此三个 |
 
-本地实验端口、模拟上游和配置在 [demo/](demo/README.md)。生产形态的主机名仍写 `llm.example.com`，不要把 `127.0.0.1:4000` 写进业务仓库。
+本地实验用 [demo/](demo/README.md) 的 Docker Compose 启动：官方镜像、Postgres 16、两个模拟上游，配置用卷挂载。管理界面在 http://127.0.0.1:4000/ui/ ，登录用 `UI_USERNAME` / `UI_PASSWORD`，API 用主密钥。生产形态的主机名仍写 `llm.example.com`，不要把 `127.0.0.1:4000` 写进业务仓库。
 
 ## 章节
 
 | 章 | 一篇话 | 文件 |
 | --- | --- | --- |
 | 1 | 上游密钥为什么不能进业务仓 | [chapters/01-keys-stay-out.md](chapters/01-keys-stay-out.md) |
-| 2 | 把 Proxy 在本地跑起来，并给 New API 一个位置 | [chapters/02-run-the-proxy.md](chapters/02-run-the-proxy.md) |
+| 2 | 用 Compose 把 Proxy 跑起来，登录 Admin UI，看 Home | [chapters/02-run-the-proxy.md](chapters/02-run-the-proxy.md) |
 | 3 | 虚拟密钥：上游密钥留在网关 | [chapters/03-virtual-keys.md](chapters/03-virtual-keys.md) |
 | 4 | 团队预算与限流 | [chapters/04-budgets-and-limits.md](chapters/04-budgets-and-limits.md) |
 | 5 | 租户隔离停在网关的哪一层 | [chapters/05-tenant-on-the-gateway.md](chapters/05-tenant-on-the-gateway.md) |
@@ -51,22 +51,22 @@ LiteLLM Proxy 是这件事的开源网关：对外提供 OpenAI 兼容的 Chat C
 | 9 | 调用轨迹交给 Langfuse | [chapters/09-langfuse.md](chapters/09-langfuse.md) |
 | 10 | 许可、enterprise 目录、与 New API 的边界 | [chapters/10-boundaries.md](chapters/10-boundaries.md) |
 
-`wc -l books/litellm/chapters/*.md`（2026-11-11）：
+`wc -l books/litellm/chapters/*.md`（2026-11-12）：
 
 | 文件 | 行数 |
 | --- | --- |
 | 01-keys-stay-out.md | 230 |
-| 02-run-the-proxy.md | 293 |
-| 03-virtual-keys.md | 242 |
-| 04-budgets-and-limits.md | 198 |
-| 05-tenant-on-the-gateway.md | 172 |
-| 06-model-alias.md | 173 |
-| 07-fallback.md | 166 |
+| 02-run-the-proxy.md | 280 |
+| 03-virtual-keys.md | 266 |
+| 04-budgets-and-limits.md | 234 |
+| 05-tenant-on-the-gateway.md | 194 |
+| 06-model-alias.md | 212 |
+| 07-fallback.md | 178 |
 | 08-java-clients.md | 200 |
-| 09-langfuse.md | 147 |
-| 10-boundaries.md | 155 |
+| 09-langfuse.md | 149 |
+| 10-boundaries.md | 157 |
 
-写作规范希望每章不少于 500 行。这十章都短于该数，第 9、10 章差距最大。短的原因是：本环境没有厂商控制台、没有 Admin UI 操作、没有 Langfuse 投递、没有第二副本和 Redis，实测表面就这些。没有用换一种说法把同一段响应再写一遍来凑行。补上那些实验之后再加行，而不是现在加。
+写作规范希望每章不少于 500 行。这十章都短于该数。短的原因是：没有厂商控制台、没有 Langfuse 投递、没有第二副本和 Redis，Admin UI 也只覆盖登录后实际打开的那些页。没有用换一种说法把同一段响应再写一遍来凑行。Request Logs 当时少于 Usage，这个缺口留在第 4 章，不补造行。
 
 ## 许可
 
