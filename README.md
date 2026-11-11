@@ -2,7 +2,7 @@
 
 [![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=social)](https://github.com/ybak/ai-tutorial)
 
-AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
+AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse、LiteLLM：多本「从入门到进阶」教程，在线阅读与源码在同一仓库。
 
 如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)。
 
@@ -19,6 +19,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse：多本「从
 | CopilotKit:从前端接入 AI Agent | ✅ 已发布 | 4 篇 8 章,在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | [books/copilotkit/](books/copilotkit/README.md) |
 | Langfuse:LLM 可观测与评估 | ✅ 已发布 | 4 篇 13 章,LLM 应用的追踪、评估与 Prompt 管理,从自托管部署到质量工程(本机实测配图) | [books/langfuse/](books/langfuse/README.md) |
 | Super-agent 设计探索——以 Grok Bot 为例深度探索 | ✅ 已发布 | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | [books/super-agent/](books/super-agent/README.md) |
+| LiteLLM：多模型网关、配额与降级 | ✅ 已发布 | 4 篇 10 章，虚拟密钥、租户配额与降级；AgentScope / Spring AI / Langfuse 接到同一开源网关（模拟上游实测，无厂商密钥） | [books/litellm/](books/litellm/README.md) |
 
 在线阅读：[ybak.github.io/ai-tutorial](https://ybak.github.io/ai-tutorial/)（书架首页，各书在 `/agentscope-java/` 等子路径下）。
 
@@ -28,7 +29,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse：多本「从
 
 | 角色 | 推荐书与章节 | 对应技术域 |
 | --- | --- | --- |
-| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；知识库问答与低代码编排 → **fastgpt** 书；前端 AI 集成 → **copilotkit** 书；跨框架工具接入 → **mcp** 书；LLM 应用埋点与可观测 → **langfuse** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议、LLM 可观测 |
+| 开发 | **agentscope-java** 全书主线；RAG 知识库 → **ragflow** 书；知识库问答与低代码编排 → **fastgpt** 书；前端 AI 集成 → **copilotkit** 书；跨框架工具接入 → **mcp** 书；LLM 应用埋点与可观测 → **langfuse** 书；多模型网关、虚拟密钥与降级 → **litellm** 书 | Agent 编排、RAG 知识库、前端 AI 集成、协议、LLM 可观测、模型网关 |
 | 测试 | **agentscope-java** 第 39 章（轨迹评估）起步；数据集与评分、Prompt 回归、幻觉检测 → **langfuse** 书（第 7-9、12 章） | Agent 评估、LLM 质量工程（性能压测为轻量专题，按需） |
 | 运维 | **langfuse** 书：trace/成本监控（第 4-5 章）、本地部署与排障（第 2 章）、Prompt 版本管理与 A/B（第 6/8 章）；传统运维（Prometheus/Grafana、K8s、CI/CD）团队已有基础，按需补 | LLM 可观测、评估运营 |
 | 产品 | AI 产品设计（交互模式、意图设计、badcase 管理）→ 并入 **ai-platform** 或薄册（候选池） | AI 产品设计 |
@@ -36,7 +37,7 @@ AgentScope Java、MCP、RAGFlow、CopilotKit、FastGPT、Langfuse：多本「从
 
 ## 🗃️ 候选池
 
-按需立项，不成书架常驻：**ai-platform**（多租户平台架构：隔离策略、租户路由、配额计费、网关鉴权——当前最大缺口）、**spring-ai**（Java AI 应用：Spring AI / LangChain4j）、**dify**、**vercel-ai-sdk**。
+按需立项，不成书架常驻：**ai-platform**（多租户平台架构仍未成书。其中「网关鉴权、配额、模型降级」已由 **litellm** 书落地为 10 章，隔离策略、计费产品和商家控制台仍在本候选里）、**spring-ai**（Java AI 应用：Spring AI / LangChain4j。LiteLLM 书第 8 章只写了如何把 Spring AI 的 OpenAI 客户端指到网关，不是 Spring AI 专书）、**dify**、**vercel-ai-sdk**。
 
 ## 🔧 构建
 
