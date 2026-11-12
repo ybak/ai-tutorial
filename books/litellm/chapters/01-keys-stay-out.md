@@ -224,7 +224,7 @@ x-litellm-model-id: seashore-cs-primary
 
 ## 接着读
 
-- 第 2 章把 Proxy 在没有厂商密钥的机器上跑起来，并说明 New API 为什么只作对照。
+- 第 2 章用 Docker Compose 把 Proxy 在没有厂商密钥的机器上跑起来，登录 Admin UI，并说明 New API 为什么只作对照。
 - AgentScope Java 第 6 章写了 `baseUrl` 与模型扩展。密钥从环境变量读，是那一章已经有的纪律；本书把变量的值从上游钥匙换成虚拟钥匙。
 - AgentScope Java 第 43 章和 demo Step 13 是这条业务链的上游。Step 13 注明 Dataplane 到网关的真实请求当时未测。本书补的是网关自己，不回头宣称那次 Dataplane 请求已经测过。
 - demo 的 `.env.example` 把 `XBD_MODEL_API_KEY` 留空。空着是对的。填进去的应该是以后的虚拟密钥，而不是供应商密钥。

@@ -1,12 +1,12 @@
 ---
 chapter: 7
 title: 降级、重试和负载
-source: docs.litellm.ai/docs/proxy/reliability、docs/proxy/load_balancing、docs/routing；本机停掉 18001 后的两次请求，2026-11-11
+source: docs.litellm.ai/docs/proxy/reliability、docs/proxy/load_balancing、docs/routing；2026-11-12 Admin UI 的 Router Settings → Fallbacks；2026-11-11 停掉 18001 后的两次请求
 ---
 
 # 第 7 章 降级、重试和负载
 
-> 主模拟进程一停，OD-2049 的问题还在。有一把预算充足的钥匙得到了备用模型的回答，另一把预算看起来还没用完的钥匙被预检拒绝，主模型的连接错误原样返回。降级不是配置里写一行 `fallbacks` 就结束。这一章按这两次真实响应写，并把重试、冷却和负载策略放在它们实际发生的层次上。
+> 主模拟进程一停，OD-2049 的问题还在。有一把预算充足的钥匙得到了备用模型的回答，另一把预算看起来还没用完的钥匙被预检拒绝，主模型的连接错误原样返回。降级不是配置里写一行 `fallbacks` 就结束。这一章先看 Router Settings 里已经载入的那一行，再按 11 日的两次真实响应写，并把重试、冷却和负载策略放在它们实际发生的层次上。12 日的界面没有再停一次主上游。
 
 ```mermaid
 flowchart LR
@@ -20,6 +20,18 @@ flowchart LR
 
 *本章操作流程图*
 
+## 界面上的那一行来自 config.yaml
+
+Settings → Router Settings → Fallbacks。左边是 `seashore-cs`，箭头指向 `seashore-cs-fast`，行上标着 config.yaml。
+
+![Router Settings 的 Fallbacks 标签：一条规则，seashore-cs 指向 seashore-cs-fast，来源标记为 config.yaml。旁边有 Add Fallbacks。同一页的其他标签是 Loadbalancing、Routing Groups、Prompt Caching、General](../assets/images/09-router.png)
+
+Add Fallbacks 这次没有点。规则是配置文件挂进去的，不是在这个按钮上新建的。Models 页的 Auto-Routers 和 Model Group Alias 是空的，到那里找这条箭头会找空。
+
+同一组设置里的 Loadbalancing 页，这次运行能看见 routing strategy `simple-shuffle`、retries 0。那一页没有单独截图。retries 0 就是 `num_retries: 0`：主上游一失败就进入 fallback，不先在同一部署上空转。
+
+这张图证明规则已经被载入。它不证明切换发生过。12 日的 Playground 上 Fallbacks 是 0，请求打在 `mock-primary`。真正换到 backup 的响应头在 11 日，见下一节。那天的配置里 fast 的上游模型名还是 `openai/mock-qwen-turbo`，`api_base` 是宿主机的 `127.0.0.1:18002`。现在的 compose 把 fast 也写成 `openai/mock-qwen-plus`，地址是 `http://mock-backup:18002/v1`。读 11 日的 `model` 字段时带着这个差别。
+
 ## 实验配置把重试关掉了
 
 `router_settings.num_retries` 是 0，`timeout` 8 秒，`allowed_fails` 1，`cooldown_time` 15 秒。`fallbacks` 只有一条：`seashore-cs` 到 `seashore-cs-fast`。
@@ -32,7 +44,7 @@ flowchart LR
 
 ## 降级成功的那一次
 
-停掉 18001，18002 仍返回 `{"name":"backup"}`。新签一把海岸团队的钥匙，`models` 含两个 seashore 别名，`max_budget` 100，`rpm_limit` 60。请求 `model` 为 `seashore-cs`。
+下面是 2026-11-11 的 pip 进程，不是 12 日的界面。停掉 18001，18002 仍返回 `{"name":"backup"}`。新签一把海岸团队的钥匙，`models` 含两个 seashore 别名，`max_budget` 100，`rpm_limit` 60。请求 `model` 为 `seashore-cs`。当天 fast 的上游模型名是 `openai/mock-qwen-turbo`。
 
 | 项 | 值 |
 | --- | --- |

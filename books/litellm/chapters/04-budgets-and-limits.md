@@ -1,12 +1,12 @@
 ---
 chapter: 4
 title: 团队预算与限流
-source: docs.litellm.ai/docs/proxy/team_budgets 与 config_settings 中的 budget_exceeded_status_code；本机 1.109.0 实测，2026-11-11
+source: docs.litellm.ai/docs/proxy/team_budgets 与 config_settings 中的 budget_exceeded_status_code；2026-11-12 Admin UI 的 Usage 与 Request Logs；2026-11-11 pip 1.109.0 的 422 与 429
 ---
 
 # 第 4 章 团队预算与限流
 
-> OD-2049 的第三次催单如果变成一个重试循环，海岸优品的客服会在供应商还没告警时先把共享额度打空。预算和限流是网关上的两道不同的门：一道数钱，一道数次数。这一章用故意小得离谱的数字把两道门都撞开，并记下错误信息里的金额和数据库里的金额对不上的那一次。
+> OD-2049 的第三次催单如果变成一个重试循环，海岸优品的客服会在供应商还没告警时先把共享额度打空。预算和限流是网关上的两道不同的门：一道数钱，一道数次数。这一章先看跑起来之后的 Usage 和 Request Logs 把小额收成什么样，再用故意小得离谱的数字把两道门都撞开，并记下错误信息里的金额和数据库里的金额对不上的那一次。
 
 ```mermaid
 flowchart LR
@@ -21,7 +21,43 @@ flowchart LR
 
 *本章操作流程图*
 
+## 界面上的花费先被收成 0
+
+第 3 章的钥匙表把 alice 和 bob 的 Spend 显示成 $0.0001。Usage 页的 Spend 卡片更粗，直接是 $0.00。单笔手算是 $0.000062。三处精度不同，以响应头和成功日志上的 $0.000062 为这一笔的价，不以卡片上的 0 为没有花钱。
+
+![Usage / Global Usage，时间范围 5 Nov 02:04 到 12 Nov 02:04。Spend $0.00，No budget set；Total Requests 6，5 ok、1 failed；Total Tokens 160，0 cache read；Avg cost / request $0.0000；Avg latency 15ms；83.33% success rate。日柱在 Nov 11，纵轴仍是 $0.00](../assets/images/08-usage.png)
+
+![Usage 下半：Top models 上 aurora-cs 与 seashore-cs 各 50%、$0.00。Top agents 上 curl 120 token（$0.00，75%），Mozilla 40 token（$0.00，25%）。Spend by Provider 的 openai 一行是 Successful 4、Failed 1、160 token，总花费 $0.00](../assets/images/08-usage-2.png)
+
+和 Home 对在一起看，两次截图不是同一瞬间：
+
+| 页 | 请求 | token | 成功率 | Spend |
+| --- | --- | --- | --- | --- |
+| Home（第 2 章） | 4，3 ok，1 failed | 120 | 75.0%，延迟 12ms | $0.00，No budget set |
+| Usage 上半 | 6，5 ok，1 failed | 160 | 83.33%，延迟 15ms | $0.00，No budget set |
+| Usage 的 Provider 行 | Successful 4，Failed 1 | 160 | 这一行加不出 6 | $0.00 |
+
+上半的 6 个请求和 Provider 行的 4 次成功加 1 次失败，在同一张 Usage 页上并排出现，没有被收成同一个数。本书不补一个「还有一次没画出来」的解释。Top models 两个别名各一半、各 $0.00。Top agents 的 120 加 40 等于 160：curl 75%，Mozilla 25%。Mozilla 那 40 token 和 Playground 一轮 18+22 的体积相同。curl 上的 120 token 是三次 40 token 的体积。这是页面上的数字对得上，不是一份逐条清单。
+
+Provider 写成 openai，是因为配置里的模型字符串以 `openai/` 开头。模拟上游没有离开这台机器。
+
+No budget set 写在全局 Spend 下面。团队预算在第 5 章的 Teams 页上，海岸 $50、极光 $30，不显示在这张全局卡片里。
+
+## 请求日志当时只有三行
+
+Logs 的 Request Logs、Last 24 Hours，当时列出 3 条。Live Tail 开着。
+
+![Request Logs，Last 24 Hours，Live Tail 开着。三行：一次 Failure，团队和模型都空，token 0；alice 在 seashore-main 上的一次 Failure，模型列以 openai/mock-q 开头，token 0；alice 的一次 Success，费用 $0.000062，token 40（18+22）。bob 的成功和 Playground 的成功不在这三行里](../assets/images/07-logs.png)
+
+按这次运行的记录，三行分别是：一次未认证的 `/health` 失败，alice 的 403，以及 alice 的一次成功。成功那一行的费用 $0.000062、40 token（18+22）、团队 `seashore-main`、钥匙别名 alice，和 alice 调 `seashore-cs` 的那一笔对得上。列表本身没有把路径 `/health` 印在可见列里，未认证这一笔的辨认来自当时的记录，不来自图上一个你能指着读的单元格。
+
+bob 的 HTTP 200，以及后来 Playground 的成功，当时不在这张列表里。Usage 随后却显示了更多请求。所以：这张 Request Logs 不是 Usage 的逐条展开。值班时如果只翻这三行，会漏掉 bob 和浏览器里的那一问。不要把缺口改写成「日志与用量完全一致」，也不要为了缺口去改图。
+
+成功行的模型列同样被截成 `openai/mock-q` 一带。它不能用来区分 `seashore-cs` 和 `aurora-cs`，两个别名的上游模型字符串在这份配置里都是 `openai/mock-qwen-plus`。别名看钥匙和团队，部署看响应头。
+
 ## 团队先吃掉一截
+
+截图里的团队预算是海岸 $50、极光 $30，钥匙是 alice $10、bob $8。那是 12 日种进界面的数字，大到不会被两笔 $0.000062 撞开。下面 11 日的实验用的是另一组数字：海岸团队 `max_budget` 1.0 美元，极光团队 0.5 美元，用来撞门的钥匙更小。不要拿 Teams 页上的 $50 去对 422。
 
 `/team/new` 时海岸优品的 `max_budget` 是 1.0 美元，`budget_duration` 是 `1d`，`rpm_limit` 30，`tpm_limit` 20000。极光是 0.5 美元和 `rpm_limit` 20，没有设 `tpm_limit`。
 

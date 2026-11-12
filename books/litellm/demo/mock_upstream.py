@@ -3,6 +3,7 @@
 
 没有真实厂商密钥。响应正文固定带上 MOCK_NAME，方便确认请求打到了哪一个进程。
 MOCK_MODE=fail 时返回 HTTP 500，用来配合网关降级。
+监听 0.0.0.0，供同一 Docker 网络里的网关访问。不要改回 127.0.0.1。
 """
 
 import json
@@ -79,7 +80,7 @@ def main():
         sys.stderr.write("usage: mock_upstream.py <port>\n")
         sys.exit(2)
     port = int(sys.argv[1])
-    ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
+    ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 
 if __name__ == "__main__":

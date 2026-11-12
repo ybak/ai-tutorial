@@ -1,7 +1,7 @@
 ---
 chapter: 5
 title: 租户隔离停在网关的哪一层
-source: 原创。对照 AgentScope namespace（demo Step 02、05）与本机虚拟密钥模型名单，2026-11-11
+source: 原创。对照 AgentScope namespace（demo Step 02、05）、2026-11-12 Admin UI 的 Teams 页，以及虚拟密钥模型名单
 ---
 
 # 第 5 章 租户隔离停在网关的哪一层
@@ -19,6 +19,28 @@ flowchart LR
 ```
 
 *本章导览图*
+
+## Teams 页上的两家商家
+
+网关里的商家，12 日的界面上就是两行。
+
+![Teams / Your Teams：aurora-main，id 5d1e432d-fbb1-4496-8a51-bea176084366，Organization 为横线，Members 1、Models 1、Keys 1，Team spend 不到 $0.01 / $30.00，My Spend $0.00 / Unlimited，创建于 Nov 12, 2026。seashore-main，id fbc26c00-fd5e-4e75-af6b-43c91ed76712，Members 1、Models 2、Keys 1，Team spend 不到 $0.01 / $50.00。模型列是数量，不列出别名](../assets/images/05-teams.png)
+
+| 列 | aurora-main | seashore-main |
+| --- | --- | --- |
+| 这次库里的 id | `5d1e432d-fbb1-4496-8a51-bea176084366` | `fbc26c00-fd5e-4e75-af6b-43c91ed76712` |
+| Organization | `-` | `-` |
+| Members / Models / Keys | 1 / 1 / 1 | 1 / 2 / 1 |
+| Team spend | 不到 $0.01，上限 $30.00 | 不到 $0.01，上限 $50.00 |
+| My Spend | $0.00 / Unlimited | $0.00 / Unlimited |
+
+Models 是 1 和 2，不是 `aurora-cs` 这三个字。海岸的 2 对应 `seashore-cs` 与 `seashore-cs-fast`，极光的 1 对应 `aurora-cs`，这个对应在配置和钥匙页上，不在这一列的文字里。Keys 各 1，就是 bob 和 alice。Members 各 1，是签发时带上的代理默认用户，不是店主 alice，也不是店主 bob。第 3 章说过：`members_with_roles` 里的 `default_user_id` 不要写进商家成员表。
+
+Organization 为空。本书没有建组织。My Spend 的 Unlimited 是当前登录管理员自己的花费上限，和团队的 $30、$50 不是同一个桶。Team spend 用 `< $0.01` 表示两家都已经有花费、但还没到一美分。钥匙页上的 $0.0001 和日志上的 $0.000062 是更细的两位读数，团队列把它们收进了「不到一美分」。
+
+Available Teams、Default Team Settings 这两个标签这次没有打开。Your Teams 上的两行就是种入的全部。
+
+`xbd-seashore-cs-team` 仍然是 AgentScope 里处理 OD-2049 工单的人。它不出现在这张表上。表上的 `seashore-main` 是预算桶。
 
 ## 两套名字指的不是同一层
 
