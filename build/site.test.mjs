@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildSite, flattenPages, renderIndexPage, renderPager, renderRedirectPage, renderSearchPage, renderShelfPage, renderShell, renderSidebar, rewriteMarkdownLinks, runSite } from "./site.mjs";
+import { buildSite, flattenPages, renderEnglishHome, renderIndexPage, renderPager, renderRedirectPage, renderSearchPage, renderShelfPage, renderShell, renderSidebar, rewriteMarkdownLinks, runSite } from "./site.mjs";
 import { book } from "./books/agentscope-java.mjs";
+import { localeSwitchHrefs, localizedBook, UI } from "./i18n.mjs";
 
 // 与 buildSite 内的推导一致:rewriteMarkdownLinks 的第二参数是「demo/ 目录的上级」blob 前缀
 const demoBase = book.demoGithubBase.replace(/demo\/$/, "");
@@ -283,5 +284,121 @@ test("renderCover/renderColophon 随 book 配置:假书零 agentscope,真书文�
   assert.ok(renderCover(book).includes("基于 AgentScope Java v2 官方文档整合"));
   assert.ok(renderColophon(book).includes("整理自 AgentScope 官方仓库 agentscope-java"));
   assert.ok(renderColophon(book).includes("Apache License 2.0"));
+});
+
+test("localeSwitchHrefs:中文书架、章节与无译文的书", () => {
+  assert.equal(localeSwitchHrefs({ locale: "zh", page: "shelf" }).enHref, "en/index.html");
+  assert.equal(localeSwitchHrefs({ locale: "zh", page: "search" }).enHref, "en/search.html");
+  assert.equal(localeSwitchHrefs({
+    locale: "zh", page: "chapter", bookId: "mcp", chapterHref: "chapters/01-overview.html", hasTranslation: false,
+  }).enHref, "../../en/index.html");
+  assert.equal(localeSwitchHrefs({
+    locale: "zh", page: "chapter", bookId: "litellm", chapterHref: "chapters/01-keys-stay-out.html", hasTranslation: true,
+  }).enHref, "../../en/litellm/chapters/01-keys-stay-out.html");
+  assert.equal(localeSwitchHrefs({
+    locale: "en", page: "chapter", bookId: "litellm", chapterHref: "chapters/01-keys-stay-out.html",
+  }).zhHref, "../../../litellm/chapters/01-keys-stay-out.html");
+  assert.equal(localeSwitchHrefs({ locale: "en", page: "book", bookId: "litellm" }).zhHref, "../../litellm/index.html");
+  assert.equal(localeSwitchHrefs({ locale: "en", page: "shelf" }).zhHref, "../index.html");
+});
+
+test("renderEnglishHome 链到 LiteLLM 英文版和 README.en", () => {
+  const html = renderEnglishHome();
+  assert.ok(html.includes('lang="en"'));
+  assert.ok(html.includes('href="litellm/index.html"'));
+  assert.ok(html.includes("README.en.md"));
+  assert.ok(html.includes('href="../index.html"'));
+  assert.ok(html.includes('aria-current="page"'));
+  assert.ok(html.includes(">English</span>"));
+  assert.ok(html.includes('href="../index.html" hreflang="zh-CN"'));
+});
+
+test("中文渲染缺省文案不变,英文 pager 用英文", () => {
+  const flat = flattenPages(twoParts);
+  assert.ok(renderPager(flat, 1).includes("← 上一篇"));
+  assert.ok(renderPager(flat, 1, UI.en).includes("← Previous"));
+  assert.ok(!renderPager(flat, 1, UI.en).includes("上一篇"));
+  const shell = renderShell({ title: "t", content: "<p>x</p>", rootPrefix: "", ui: UI.en });
+  assert.ok(shell.includes('lang="en"'));
+  assert.ok(shell.includes("Search…"));
+  assert.ok(shell.includes("Source repository · Star if this helps"));
+});
+
+test("litellm 中英文章节文件名一一对应,命令与输出围栏保持原样", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: litellm } = await import("./books/litellm.mjs");
+  const en = localizedBook(litellm, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "litellm");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/litellm/en/chapters");
+  assert.equal(en.assetsDir, litellm.assetsDir);
+  const zhFiles = litellm.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 10);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  const stripComments = (body, lang) => body.split("\n").map((line) => {
+    if (lang === "yaml" && /^\s*#/.test(line)) return "";
+    if (lang === "java" && /^\s*\/\//.test(line)) return "";
+    if (lang === "yaml") return line.replace(/\s+#.*$/, "");
+    if (lang === "java") return line.replace(/\s+\/\/.*$/, "");
+    return line;
+  }).filter((line) => line !== "").join("\n");
+
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, litellm.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    for (const lang of ["bash", "json", "text"]) {
+      assert.deepEqual(fences(enText, lang), fences(zh, lang), `${file} ${lang} fences`);
+    }
+    for (const lang of ["yaml", "java"]) {
+      assert.deepEqual(
+        fences(enText, lang).map((body) => stripComments(body, lang)),
+        fences(zh, lang).map((body) => stripComments(body, lang)),
+        `${file} ${lang} code`,
+      );
+    }
+    assert.equal(fences(enText, "mermaid").length, fences(zh, "mermaid").length, `${file} mermaid count`);
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+  }
+});
+
+test("buildSite 英文子站与中文路径并存,语言切换指向对方同章", async () => {
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "site-i18n-"));
+  const bookId = "litellm";
+  for (const dir of [
+    path.join(tmp, "books", bookId, "chapters"),
+    path.join(tmp, "books", bookId, "en", "chapters"),
+    path.join(tmp, "books", bookId, "assets"),
+  ]) fs.mkdirSync(dir, { recursive: true });
+  const zhBody = "---\ntitle: 中文\n---\n\n中文正文。\n";
+  const enBody = "---\ntitle: English\n---\n\nEnglish body.\n";
+  fs.writeFileSync(path.join(tmp, "books", bookId, "chapters", "01-keys-stay-out.md"), zhBody);
+  fs.writeFileSync(path.join(tmp, "books", bookId, "en", "chapters", "01-keys-stay-out.md"), enBody);
+  const { book: litellm } = await import("./books/litellm.mjs");
+  const zhDir = buildSite(litellm, tmp);
+  const enDir = buildSite(localizedBook(litellm, "en"), tmp);
+  assert.ok(zhDir.endsWith(`${path.sep}litellm`));
+  assert.ok(enDir.endsWith(`${path.sep}en${path.sep}litellm`));
+  const zhChapter = fs.readFileSync(path.join(zhDir, "chapters", "01-keys-stay-out.html"), "utf8");
+  const enChapter = fs.readFileSync(path.join(enDir, "chapters", "01-keys-stay-out.html"), "utf8");
+  assert.ok(zhChapter.includes("中文正文"));
+  assert.ok(zhChapter.includes('lang="zh-CN"'));
+  assert.ok(zhChapter.includes('href="../../en/litellm/chapters/01-keys-stay-out.html"'));
+  assert.ok(enChapter.includes("English body"));
+  assert.ok(enChapter.includes('lang="en"'));
+  assert.ok(enChapter.includes("Next →"));
+  assert.ok(enChapter.includes('href="../../../litellm/chapters/01-keys-stay-out.html"'));
+  assert.ok(enChapter.includes('action="../../search.html"'));
+  assert.ok(fs.existsSync(path.join(zhDir, "index.html")));
+  assert.ok(!zhChapter.includes('href="en/litellm/'));
+  fs.rmSync(tmp, { recursive: true, force: true });
 });
 

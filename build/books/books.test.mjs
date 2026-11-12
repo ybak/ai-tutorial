@@ -20,6 +20,15 @@ test('resolveBookPaths 推导子站与产物路径', () => {
   assert.equal(norm(p.pdfPath), '/repo/output/x/x.pdf');
 });
 
+test('resolveBookPaths 的 localePrefix 只改站点子目录', () => {
+  const p = resolveBookPaths({ ...FAKE_BOOK, localePrefix: 'en' }, '/repo');
+  assert.equal(norm(p.siteSubdir), 'en/x');
+  assert.equal(norm(p.siteDir), '/repo/output/site/en/x');
+  assert.equal(norm(p.chaptersAbs), '/repo/books/x/chapters');
+  assert.equal(norm(p.htmlPath), '/repo/output/x/book.html');
+  assert.equal(norm(p.pdfPath), '/repo/output/x/x.pdf');
+});
+
 test('registry:legacy 所有权唯一且 published 书显式声明 legacyRootChapters', () => {
   // 旧站点根 chapters/ 路径只属于 agentscope-java;其余 published 书必须显式 false
   const legacyOwners = BUILDABLE_BOOKS.filter((b) => b.legacyRootChapters === true);
