@@ -47,8 +47,44 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: 'part-1', title: 'Part 1 Why the platform needs a gateway', chapters: [
+    { file: '01-keys-stay-out.md', chapter: 1, title: 'Business services should not hold model keys', sources: ['docs/proxy/quick_start.md', 'docs/proxy/virtual_keys.md'] },
+    { file: '02-run-the-proxy.md', chapter: 2, title: 'Run the LiteLLM Proxy', sources: ['docs/proxy/quick_start.md', 'docs/proxy/docker_quick_start.md'] },
+  ]},
+  { id: 'part-2', title: 'Part 2 Keys, quotas, and tenants', chapters: [
+    { file: '03-virtual-keys.md', chapter: 3, title: 'Virtual keys', sources: ['docs/proxy/virtual_keys.md'] },
+    { file: '04-budgets-and-limits.md', chapter: 4, title: 'Team budgets and rate limits', sources: ['docs/proxy/team_budgets.md', 'docs/proxy/config_settings.md'] },
+    { file: '05-tenant-on-the-gateway.md', chapter: 5, title: 'Where tenant isolation stops at the gateway', sources: ['docs/proxy/virtual_keys.md'] },
+  ]},
+  { id: 'part-3', title: 'Part 3 Routing and resilience', chapters: [
+    { file: '06-model-alias.md', chapter: 6, title: 'Aliases, deployments, and the model name the business sees', sources: ['docs/proxy/configs.md', 'docs/proxy/load_balancing.md'] },
+    { file: '07-fallback.md', chapter: 7, title: 'Fallback, retries, and load', sources: ['docs/proxy/reliability.md', 'docs/proxy/load_balancing.md', 'docs/routing.md'] },
+  ]},
+  { id: 'part-4', title: 'Part 4 Wiring it into the platform you already have', chapters: [
+    { file: '08-java-clients.md', chapter: 8, title: 'Point AgentScope and Spring AI at the same entry', sources: ['原创（对齐书架 AgentScope 第 6 章与 Spring AI OpenAI 参考文档）'] },
+    { file: '09-langfuse.md', chapter: 9, title: 'Send call traces to Langfuse', sources: ['docs/proxy/logging.md', 'docs/observability/langfuse_integration.md'] },
+    { file: '10-boundaries.md', chapter: 10, title: 'Production boundaries', sources: ['LICENSE', 'enterprise/LICENSE.md', 'docs/enterprise.md'] },
+  ]},
+];
+
 function buildLinkMap() {
   return new Map();
 }
 
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'LiteLLM: Multi-Model Gateway, Quotas, and Fallback',
+      subtitle: 'Virtual keys, tenant quotas, and fallback, with existing Java clients on one gateway',
+      tagline: 'Multi-model routing, virtual keys, and tenant quotas, with AgentScope, Spring AI, and Langfuse on one gateway',
+      sourceNote: 'Written from the LiteLLM docs and a local 1.109.0 proxy (mock upstream, PostgreSQL). Places without a vendor key are marked as not tested',
+      date: '2026-11-11',
+      chaptersDir: 'books/litellm/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});

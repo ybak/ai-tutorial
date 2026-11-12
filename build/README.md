@@ -45,6 +45,7 @@ agentscope-java 的上游文档在只读仓库 `../agentscope-java/docs/v2/zh`�
 - **图片**：章节统一写 `../assets/images/…`——单书产物落在 `output/<bookId>/`、站点章节页落在 `output/site/<bookId>/chapters/`，构建把书内 `assets/` 整目录镜像到与产物同级，相对引用零改写即可解析；`fetch-images.mjs` 负责把微信图床外链换成本地哈希文件名。
 - **书签**：Edge 打印不生成 PDF outline，`build.mjs` 从 `book.PARTS` 生成大纲写到 `output/<bookId>/.outline.json`，再调 `add_outline.py`（PyMuPDF）按「大字标题」定位各章页码写入书签与元数据；任何一章定位失败即整体构建失败。
 - **站点**：`npm run site` 产出书架首页（`output/site/index.html`）+ 各书子站（`output/site/<bookId>/`）+ 全局搜索；旧章节路径（`/chapters/*.html`）生成 meta-refresh 跳转页指向书内新路径。
+- **语言**：默认中文，URL 不加前缀。译文登记在书配置的 `book.locales.<id>`（章节目录、篇名、章名、封面文案）。`runSite` 只为有该 locale 的书额外产出 `output/site/<id>/<bookId>/`。目前只有 `en`，LiteLLM 的英文稿在 `books/litellm/en/chapters/`，站点路径是 `/en/litellm/`。截图仍用原书 `assets/`。`/en/` 是最小英文首页。顶栏语言切换用相对链接：有译文的书跳到对应章节，没有译文的书跳到 `/en/`。GitHub Pages 工作流上传整个 `output/site`，`/en/` 随站点一起发布，不需要单独的 base 路径。
 
 ## 机器相关常量
 
