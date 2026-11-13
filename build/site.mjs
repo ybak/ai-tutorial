@@ -156,6 +156,123 @@ export function renderSidebar(parts, currentHref) {
   return `<nav class="site-nav">${items}</nav>`;
 }
 
+/**
+ * 学习路径上的下一本。八本已发布书成环，不推荐正在读的这一本。
+ * 顺序按平台搭建往下走：Agent → 工具协议 → 知识库 → 工作流 → 界面 →
+ * 长期助手 → 可观测 → 模型网关，再回到 Agent。
+ */
+const NEXT_BOOK_ID = {
+  'agentscope-java': 'mcp',
+  mcp: 'ragflow',
+  ragflow: 'fastgpt',
+  fastgpt: 'copilotkit',
+  copilotkit: 'super-agent',
+  'super-agent': 'langfuse',
+  langfuse: 'litellm',
+  litellm: 'agentscope-java',
+};
+
+/** 中文推荐理由。书名由卡片标题承担，这里只说明为什么接着读。 */
+const NEXT_BOOK_REASON_ZH = {
+  'agentscope-java': 'Agent 能跑起来之后，外部工具要有统一接法。下一本是 MCP。',
+  mcp: '工具协议接上之后，知识从哪来是下一块。RAGFlow 从知识库讲到检索调优。',
+  ragflow: '检索有了之后，FastGPT 把知识库问答和工作流接到业务里。',
+  fastgpt: '后端流程定了，CopilotKit 负责把 Agent 放进已有的界面。',
+  copilotkit: '界面里的 copilot 再往前，是能连续做事的助手。Super-agent 讨论这个形态。',
+  'super-agent': '助手开始跑长任务之后，调用轨迹和评估看 Langfuse。',
+  langfuse: '轨迹要接得上，模型入口先收口。LiteLLM 管密钥、配额和降级，也能把调用送到 Langfuse。',
+  litellm: '网关接好之后，回到 AgentScope Java，把业务 Agent 指到同一入口。',
+};
+
+/**
+ * 章节页回到「当前语言的站点根」再进另一本书。
+ * 中文章节在 site/<bookId>/chapters/，../../<id>/index.html 是中文书首页。
+ * 英文章节在 site/en/<bookId>/chapters/，同样的 ../../<id>/index.html 落在 /en/ 下；
+ * ../../index.html 是英文首页，../../../index.html 才是中文书架。
+ * 用相对路径，避免部署在 /ai-tutorial/ 子路径时绝对路径指到域名根。
+ */
+function chapterLocaleHref(bookId) {
+  return bookId ? `../../${bookId}/index.html` : '../../index.html';
+}
+
+function shelfRecommendation(locale) {
+  const ui = UI[locale];
+  return {
+    kind: 'shelf',
+    bookId: null,
+    href: chapterLocaleHref(null),
+    title: ui.shelfTitle,
+    blurb: ui.nextBookShelfNote,
+    shelfHref: null,
+  };
+}
+
+/**
+ * 解析章末「下一本」。
+ * 中文页只链到另一本中文书的首页。
+ * 英文页：下一本已有英文分册则链到 /en/<bookId>/；否则链到英文首页，并注明英文版范围。
+ * 不指向当前书，也不指向没有子站的规划中书。
+ */
+export function resolveNextBook(book, books = BUILDABLE_BOOKS) {
+  const locale = book.locale === 'en' ? 'en' : 'zh';
+  const nextId = NEXT_BOOK_ID[book.bookId];
+  const next = books.find((b) => b.bookId === nextId && b.status === 'published');
+  if (!next || next.bookId === book.bookId) return shelfRecommendation(locale);
+
+  if (locale === 'en') {
+    const en = localizedBook(next, 'en');
+    if (en) {
+      return {
+        kind: 'book',
+        bookId: en.bookId,
+        href: chapterLocaleHref(en.bookId),
+        title: en.title,
+        blurb: en.tagline ?? '',
+        shelfHref: null,
+      };
+    }
+    return {
+      kind: 'en-home',
+      bookId: null,
+      href: chapterLocaleHref(null),
+      title: UI.en.shelfTitle,
+      blurb: UI.en.nextBookScope,
+      shelfHref: '../../../index.html',
+    };
+  }
+
+  const zh = localizedBook(next, 'zh');
+  return {
+    kind: 'book',
+    bookId: zh.bookId,
+    href: chapterLocaleHref(zh.bookId),
+    title: zh.title,
+    blurb: NEXT_BOOK_REASON_ZH[book.bookId] ?? zh.tagline ?? '',
+    shelfHref: null,
+  };
+}
+
+/**
+ * 章末组件：下一本推荐 + 仓库链接。放在上下篇导航之后，不改翻页条。
+ * 仓库链接只指向源码与反馈，不写 Star 号召。
+ */
+export function renderNextBookFooter(book, books = BUILDABLE_BOOKS) {
+  const locale = book.locale === 'en' ? 'en' : 'zh';
+  const ui = UI[locale];
+  const rec = resolveNextBook(book, books);
+  const shelf = rec.shelfHref
+    ? `<p class="next-book-scope"><a href="${escapeHtml(rec.shelfHref)}">${escapeHtml(ui.chineseShelf)}</a></p>`
+    : '';
+  return `<aside class="next-book" aria-label="${escapeHtml(ui.nextBookKicker)}">
+<p class="next-book-kicker">${escapeHtml(ui.nextBookKicker)}</p>
+<a class="next-book-link" href="${escapeHtml(rec.href)}">
+<span class="next-book-title">${escapeHtml(rec.title)}</span>
+<span class="next-book-blurb">${escapeHtml(rec.blurb)}</span>
+</a>
+${shelf}<p class="next-book-repo">${escapeHtml(ui.repoLead)} <a href="${REPO_URL}" target="_blank" rel="noopener noreferrer">${escapeHtml(ui.repoLinkLabel)}</a>${escapeHtml(ui.repoTail)}</p>
+</aside>`;
+}
+
 /** 上一篇/下一篇;链接带 ../ 前缀(仅章节页使用)。ui 缺省中文。 */
 export function renderPager(flat, idx, ui = UI.zh) {
   const link = (p, label) => `<a class="pager-link" href="../${p.href}"><span class="pager-label">${label}</span><span class="pager-title">${escapeHtml(p.title)}</span></a>`;
@@ -321,7 +438,7 @@ export function renderRedirectPage(toHref) {
 // ---------- 总装 ----------
 
 /**
- * 章节页渲染:正文(含链接重写,demo 链接按书配置降级 GitHub) + 侧边栏 + 翻页 + mermaid。
+ * 章节页渲染:正文(含链接重写,demo 链接按书配置降级 GitHub) + 侧边栏 + 翻页 + 下一本推荐 + mermaid。
  * body 由调用方按 flattenPages 顺序对齐(flat[idx] 与 currentHref 同页);
  * githubBase 为该书 demo/ 目录上级的 GitHub blob 前缀;
  * 整页以 `书: <book.title>` 作为 pagefind filter,供全局搜索按书过滤。
@@ -330,7 +447,7 @@ function renderChapterPage(body, currentHref, flat, idx, githubBase, book, ui, l
   return renderShell({
     title: flat[idx].title,
     bookTitle: book.title,
-    content: rewriteMarkdownLinks(md.render(body), githubBase) + renderPager(flat, idx, ui),
+    content: rewriteMarkdownLinks(md.render(body), githubBase) + renderPager(flat, idx, ui) + renderNextBookFooter(book),
     rootPrefix: '../',
     sidebar: renderSidebar(book.PARTS, currentHref),
     needMermaid: true,

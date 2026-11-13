@@ -28,6 +28,11 @@ export const UI = {
     shelfSubtitle: '多本“从入门到进阶”完整教程,按需取阅',
     searchTitle: '搜索',
     filterPrefix: '书: ',
+    nextBookKicker: '下一本推荐',
+    nextBookShelfNote: '这本还没有排进推荐顺序，可以回书架另选。',
+    repoLead: '本章源码在',
+    repoLinkLabel: 'ybak/ai-tutorial',
+    repoTail: '。发现错误或想补充，可以提 Issue。',
   },
   en: {
     lang: 'en',
@@ -45,6 +50,13 @@ export const UI = {
     shelfSubtitle: 'Hands-on tutorials. Read the one you need.',
     searchTitle: 'Search',
     filterPrefix: 'Book: ',
+    nextBookKicker: 'Next book',
+    nextBookShelfNote: 'This book is not in the recommendation order. The English shelf lists what has been translated.',
+    nextBookScope: 'The English edition currently includes LiteLLM. Other books on this path are on the Chinese shelf.',
+    chineseShelf: 'Chinese shelf',
+    repoLead: 'Source for this chapter is in',
+    repoLinkLabel: 'ybak/ai-tutorial',
+    repoTail: '. Open an issue if something is wrong or missing.',
   },
 };
 
