@@ -1,9 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildSite, flattenPages, renderEnglishHome, renderIndexPage, renderPager, renderRedirectPage, renderSearchPage, renderShelfPage, renderShell, renderSidebar, rewriteMarkdownLinks, runSite } from "./site.mjs";
+import { buildSite, flattenPages, renderEnglishHome, renderIndexPage, renderNextBookFooter, renderPager, renderRedirectPage, renderSearchPage, renderShelfPage, renderShell, renderSidebar, resolveNextBook, rewriteMarkdownLinks, runSite } from "./site.mjs";
 import { book } from "./books/agentscope-java.mjs";
+import { BUILDABLE_BOOKS } from "./books/registry.mjs";
 import { localeSwitchHrefs, localizedBook, UI } from "./i18n.mjs";
+
+const HARD_SELL = /点\s*Star|求\s*Star|一键三连|给个\s*Star|点个\s*Star|请\s*Star|Star if this helps/i;
 
 // 与 buildSite 内的推导一致:rewriteMarkdownLinks 的第二参数是「demo/ 目录的上级」blob 前缀
 const demoBase = book.demoGithubBase.replace(/demo\/$/, "");
@@ -259,6 +262,11 @@ test("buildSite 假书全链路:header/title/封面零 agentscope 字样", async
   assert.ok(chapter.includes('<body data-pagefind-filter="书: 测试书">'));
   assert.ok(chapter.includes("源码仓库 · 有用请 Star"));
   assert.ok(home.includes('href="https://github.com/ybak/ai-tutorial"'));
+  assert.ok(chapter.includes('class="next-book"'));
+  assert.ok(chapter.indexOf('class="pager"') < chapter.indexOf('class="next-book"'));
+  assert.ok(chapter.includes('href="../../index.html"'));
+  assert.ok(!chapter.includes('href="../../fake-book/'));
+  assert.ok(!home.includes('class="next-book"'));
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
@@ -399,6 +407,108 @@ test("buildSite 英文子站与中文路径并存,语言切换指向对方同章
   assert.ok(enChapter.includes('action="../../search.html"'));
   assert.ok(fs.existsSync(path.join(zhDir, "index.html")));
   assert.ok(!zhChapter.includes('href="en/litellm/'));
+  const aside = (html) => html.match(/<aside class="next-book"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  const zhAside = aside(zhChapter);
+  const enAside = aside(enChapter);
+  assert.ok(zhAside.includes("下一本推荐"));
+  assert.ok(zhAside.includes('href="../../agentscope-java/index.html"'));
+  assert.ok(zhChapter.indexOf('class="pager"') < zhChapter.indexOf('class="next-book"'));
+  assert.ok(zhChapter.includes('href="../chapters/'));
+  assert.ok(!HARD_SELL.test(zhAside));
+  assert.ok(enAside.includes("Next book"));
+  assert.ok(enAside.includes('href="../../index.html"'));
+  assert.ok(enAside.includes('href="../../../index.html"'));
+  assert.ok(!enAside.includes('href="../../agentscope-java/'));
+  assert.ok(!enAside.includes("下一本"));
+  assert.ok(!HARD_SELL.test(enAside));
+  const zhHome = fs.readFileSync(path.join(zhDir, "index.html"), "utf8");
+  assert.ok(!zhHome.includes('class="next-book"'));
   fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+const NEXT_BOOK = {
+  "agentscope-java": "mcp",
+  mcp: "ragflow",
+  ragflow: "fastgpt",
+  fastgpt: "copilotkit",
+  copilotkit: "super-agent",
+  "super-agent": "langfuse",
+  langfuse: "litellm",
+  litellm: "agentscope-java",
+};
+
+test("下一本推荐成环：中文链到另一本已发布书，不指向自己", () => {
+  const ids = new Set(BUILDABLE_BOOKS.map((b) => b.bookId));
+  assert.equal(ids.size, 8);
+  const targets = [];
+  for (const [from, to] of Object.entries(NEXT_BOOK)) {
+    const current = BUILDABLE_BOOKS.find((b) => b.bookId === from);
+    const target = BUILDABLE_BOOKS.find((b) => b.bookId === to);
+    const rec = resolveNextBook({ ...current, locale: "zh" });
+    assert.equal(rec.kind, "book");
+    assert.equal(rec.bookId, to);
+    assert.notEqual(rec.bookId, from);
+    assert.ok(ids.has(rec.bookId));
+    assert.equal(target.status, "published");
+    assert.equal(rec.href, `../../${to}/index.html`);
+    assert.equal(rec.shelfHref, null);
+    assert.ok(!rec.href.startsWith("/"));
+    assert.ok(rec.blurb.length > 0);
+    const html = renderNextBookFooter({ ...current, locale: "zh" });
+    assert.ok(html.includes('class="next-book"'));
+    assert.ok(html.includes("下一本推荐"));
+    assert.ok(html.includes(`href="../../${to}/index.html"`));
+    assert.ok(html.includes(target.title));
+    assert.ok(html.includes('href="https://github.com/ybak/ai-tutorial"'));
+    assert.ok(html.includes("ybak/ai-tutorial"));
+    assert.ok(html.includes("提 Issue"));
+    assert.ok(!html.includes("Next book"));
+    assert.ok(!html.includes(`href="../../${from}/`));
+    assert.ok(!html.includes("cli/"));
+    assert.ok(!HARD_SELL.test(html));
+    targets.push(to);
+  }
+  assert.deepEqual([...targets].sort(), [...ids].sort());
+  assert.ok(!renderShelfPage(BUILDABLE_BOOKS).includes('class="next-book"'));
+  assert.ok(!renderSearchPage().includes('class="next-book"'));
+  assert.ok(!renderIndexPage(book, flattenPages(book.PARTS)).includes('class="next-book"'));
+});
+
+test("英文下一本只链到已有英文页：LiteLLM 落到英文首页并注明范围", async () => {
+  const { book: litellm } = await import("./books/litellm.mjs");
+  const en = localizedBook(litellm, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "en-home");
+  assert.equal(rec.bookId, null);
+  assert.equal(rec.href, "../../index.html");
+  assert.equal(rec.shelfHref, "../../../index.html");
+  assert.ok(rec.blurb.includes("LiteLLM"));
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes("AI Tutorial Shelf"));
+  assert.ok(html.includes("The English edition currently includes LiteLLM"));
+  assert.ok(html.includes('href="../../index.html"'));
+  assert.ok(html.includes('href="../../../index.html"'));
+  assert.ok(html.includes(">Chinese shelf</a>"));
+  assert.ok(html.includes('href="https://github.com/ybak/ai-tutorial"'));
+  assert.ok(html.includes("Open an issue"));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!html.includes('href="../../agentscope-java/'));
+  assert.ok(!html.includes('href="../../litellm/'));
+  assert.ok(!html.includes("/en/agentscope-java"));
+  assert.ok(!HARD_SELL.test(html));
+
+  const withEnglishNext = BUILDABLE_BOOKS.map((b) => b.bookId === "agentscope-java"
+    ? { ...b, locales: { en: { title: "AgentScope Java", tagline: "From the first agent to a platform", chaptersDir: b.chaptersDir, PARTS: b.PARTS } } }
+    : b);
+  const translated = resolveNextBook(en, withEnglishNext);
+  assert.equal(translated.kind, "book");
+  assert.equal(translated.bookId, "agentscope-java");
+  assert.equal(translated.href, "../../agentscope-java/index.html");
+  assert.equal(translated.title, "AgentScope Java");
+  const translatedHtml = renderNextBookFooter(en, withEnglishNext);
+  assert.ok(translatedHtml.includes('href="../../agentscope-java/index.html"'));
+  assert.ok(!translatedHtml.includes('href="../../../index.html"'));
+  assert.ok(!translatedHtml.includes("currently includes LiteLLM"));
 });
 

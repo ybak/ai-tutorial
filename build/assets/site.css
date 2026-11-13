@@ -48,6 +48,22 @@
 .pager-label { font-size: 0.75rem; color: var(--site-muted); }
 .pager-title { font-size: 0.9rem; color: var(--site-accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* 章末：下一本推荐 + 仓库链接。跟在 .pager 后面，配色与首页卡片、翻页条一致 */
+.next-book { margin-top: 1.25rem; padding: 0.9rem 1.1rem; border: 1px solid var(--site-border);
+  border-radius: 10px; background: #f8fafc; }
+.next-book-kicker { margin: 0 0 0.35rem; font-size: 0.75rem; font-weight: 600; color: var(--site-muted); }
+.next-book-link { display: block; text-decoration: none; color: inherit; border-radius: 6px; }
+.next-book-link:hover .next-book-title { text-decoration: underline; }
+.next-book-link:focus-visible { outline: 2px solid var(--site-accent); outline-offset: 2px; }
+.next-book-title { display: block; font-size: 1rem; font-weight: 600; color: var(--site-accent); line-height: 1.45; }
+.next-book-blurb { display: block; margin-top: 0.3rem; font-size: 0.85rem; line-height: 1.55; color: #374151; }
+.next-book-scope { margin: 0.55rem 0 0; font-size: 0.82rem; }
+.next-book-scope a { color: var(--site-accent); }
+.next-book-repo { margin: 0.75rem 0 0; padding-top: 0.75rem; border-top: 1px solid var(--site-border);
+  font-size: 0.82rem; line-height: 1.55; color: #374151; }
+.next-book-repo a { color: var(--site-accent); }
+.next-book-repo a:hover { text-decoration: underline; }
+
 /* 首页卡片 */
 .home-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr)); gap: 1rem; }
 .home-card { border: 1px solid var(--site-border); border-radius: 10px; padding: 0.9rem 1.1rem; }
@@ -63,4 +79,5 @@
     width: 17rem; background: #fff; border-right: 1px solid var(--site-border); }
   .site-aside.open { display: block; }
   .site-main { padding: 1rem; }
+  .next-book { padding: 0.8rem 0.9rem; }
 }
