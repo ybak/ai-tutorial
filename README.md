@@ -2,11 +2,20 @@
 
 # ai-tutorial
 
+[![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=flat&logo=github)](https://github.com/ybak/ai-tutorial/stargazers)
+[![License](https://img.shields.io/github/license/ybak/ai-tutorial)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-ybak.github.io-0969da)](https://ybak.github.io/ai-tutorial/)
+[![English](https://img.shields.io/badge/English-README-2ea44f)](README.en.md)
+
 中文 AI 应用实战教程，每本都在本机实测过，覆盖 MCP、RAG、RAGFlow、FastGPT、Langfuse、LiteLLM、CopilotKit、AgentScope Java 等。面向想动手搭 AI 应用的中文开发者。在线阅读与源码在同一仓库。
 
-[![在线阅读](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E9%98%85%E8%AF%BB-%E6%96%87%E6%A1%A3%E7%AB%99-0969da?style=for-the-badge)](https://ybak.github.io/ai-tutorial/)
+**[打开文档站](https://ybak.github.io/ai-tutorial/)** · **[English docs](https://ybak.github.io/ai-tutorial/en/)** · [English README](README.en.md)
 
-**[打开文档站](https://ybak.github.io/ai-tutorial/)** · 书架首页，各书在下表的子路径。
+<p align="center">
+  <a href="https://ybak.github.io/ai-tutorial/litellm/">
+    <img src="books/litellm/assets/images/02-home.png" alt="LiteLLM 本机实测：控制台首页" width="800">
+  </a>
+</p>
 
 ## 书目
 
@@ -19,7 +28,13 @@
 | [FastGPT:从入门到进阶](books/fastgpt/README.md) | 知识库与工作流,从搭建到生产运营 | 4 篇 13 章 | [/fastgpt/](https://ybak.github.io/ai-tutorial/fastgpt/) |
 | [Super-agent 设计探索——以 Grok Bot 为例深度探索](books/super-agent/README.md) | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | 3 篇 3 章 | [/super-agent/](https://ybak.github.io/ai-tutorial/super-agent/) |
 | [Langfuse:LLM 可观测与评估](books/langfuse/README.md) | LLM 应用的追踪、评估与 Prompt 管理,从自托管部署到质量工程(本机实测配图) | 4 篇 13 章 | [/langfuse/](https://ybak.github.io/ai-tutorial/langfuse/) |
-| [LiteLLM：多模型网关、配额与降级](books/litellm/README.md) | 虚拟密钥、租户配额与降级；AgentScope / Spring AI / Langfuse 接到同一开源网关（模拟上游实测，无厂商密钥） | 4 篇 10 章 | [/litellm/](https://ybak.github.io/ai-tutorial/litellm/) |
+| [LiteLLM：多模型网关、配额与降级](books/litellm/README.md) | 虚拟密钥、租户配额与降级；AgentScope / Spring AI / Langfuse 接到同一开源网关（模拟上游实测，无厂商密钥） | 4 篇 10 章 | [/litellm/](https://ybak.github.io/ai-tutorial/litellm/) · [English](https://ybak.github.io/ai-tutorial/en/litellm/) |
+
+## 快速开始
+
+1. 打开文档站 [ybak.github.io/ai-tutorial](https://ybak.github.io/ai-tutorial/)，按书目选一本即可读。
+2. 若先看多模型网关：中文版 [/litellm/](https://ybak.github.io/ai-tutorial/litellm/)，英文版 [/en/litellm/](https://ybak.github.io/ai-tutorial/en/litellm/)。本地演示在 [books/litellm/demo/](books/litellm/demo/README.md)，该目录执行 `docker compose up` 即可（官方镜像 + Postgres + 模拟上游，不需要厂商密钥；口令以 demo README 为准）。
+3. 本地构建站点见 [build/README.md](build/README.md)。
 
 如果这些书对你有帮助，欢迎点一个 ⭐ [Star](https://github.com/ybak/ai-tutorial)，或分享给身边正在做 Agent 开发的同学——这是我持续整理更新的最大动力。
 

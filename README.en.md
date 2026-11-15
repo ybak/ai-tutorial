@@ -1,10 +1,23 @@
+[中文](README.md) | English
+
 # ai-tutorial — a hands-on AI tutorial shelf
 
-[中文](README.md) | English
+[![GitHub stars](https://img.shields.io/github/stars/ybak/ai-tutorial?style=flat&logo=github)](https://github.com/ybak/ai-tutorial/stargazers)
+[![License](https://img.shields.io/github/license/ybak/ai-tutorial)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-ybak.github.io-0969da)](https://ybak.github.io/ai-tutorial/)
+[![中文](https://img.shields.io/badge/%E4%B8%AD%E6%96%87-README-2ea44f)](README.md)
 
 Hands-on, Chinese-first AI application tutorials. Every book is tested locally, covering MCP, RAG, RAGFlow, FastGPT, Langfuse, LiteLLM, CopilotKit, and AgentScope Java.
 
 The Chinese shelf is the source of record. This page is the English entry. Most books are Chinese only today. LiteLLM has an English edition.
+
+**[Chinese docs](https://ybak.github.io/ai-tutorial/)** · **[English docs](https://ybak.github.io/ai-tutorial/en/)** · [Chinese README](README.md)
+
+<p align="center">
+  <a href="https://ybak.github.io/ai-tutorial/en/litellm/">
+    <img src="books/litellm/assets/images/02-home.png" alt="LiteLLM, tested locally: proxy console home" width="800">
+  </a>
+</p>
 
 ## Books
 
@@ -17,7 +30,7 @@ The Chinese shelf is the source of record. This page is the English entry. Most 
 | CopilotKit: Bringing an AI Agent into the Frontend | Four parts on a copilot inside a React app, from components to an autonomous agent, with a runnable demo and screenshots from local runs | 8 | [copilotkit](https://ybak.github.io/ai-tutorial/copilotkit/) | Chinese only |
 | Langfuse: LLM Observability and Evaluation | Four parts on tracing, evaluation, and prompt management, from self-hosting to quality engineering, with screenshots from a local run | 13 | [langfuse](https://ybak.github.io/ai-tutorial/langfuse/) | Chinese only |
 | Super-agent Design, Explored through Grok Bot | The four traits and five modules, with Grok Bot as the comparison for a continuous, efficient, proactive, persistent assistant | 3 | [super-agent](https://ybak.github.io/ai-tutorial/super-agent/) | Chinese only |
-| LiteLLM: Multi-Model Gateway, Quotas, and Fallback | Four parts on virtual keys, tenant quotas, and fallback. AgentScope, Spring AI, and Langfuse on one open-source gateway, tested against a mock upstream with no vendor keys | 10 | [English](https://ybak.github.io/ai-tutorial/en/litellm/) · [Chinese](https://ybak.github.io/ai-tutorial/litellm/) | English edition available |
+| LiteLLM: Multi-Model Gateway, Quotas, and Fallback | Four parts on virtual keys, tenant quotas, and fallback. AgentScope, Spring AI, and Langfuse on one open-source gateway, tested against a mock upstream with no vendor keys | 10 | [/en/litellm/](https://ybak.github.io/ai-tutorial/en/litellm/) · [中文](https://ybak.github.io/ai-tutorial/litellm/) | English edition available |
 
 Most books are currently available only in Chinese. LiteLLM has an English edition at [/en/litellm/](https://ybak.github.io/ai-tutorial/en/litellm/).
 
