@@ -22,11 +22,13 @@ flowchart LR
 
 ## Instrument on the gateway, not once in each Java process
 
-Support is on AgentScope. The order API is on Spring AI. If each side connects the Langfuse SDK on its own, one customer question about OD-2049 becomes two trace habits: different field names, and one writes the alias as the model name while the other writes `mock-qwen-turbo` from the response. The gateway is the common point of both sides. `success_callback` and `failure_callback` each record one entry here. The Java process keeps only the business span (look up the order, write the ticket). The model span follows the gateway.
+Support is on AgentScope. The order API is on Spring AI. If each side connects the Langfuse SDK on its own, one customer question about OD-2049 becomes two trace habits: different field names, and one writes the alias as the model name while the other writes the upstream model string from the response (`mock-qwen-turbo` in the 2026-11-11 pip run). The gateway is the common point of both sides. `success_callback` and `failure_callback` each record one entry here. The Java process keeps only the business span (look up the order, write the ticket). The model span follows the gateway.
 
 The cost is: a call the gateway does not cover does not appear. If someone bypasses `llm.example.com` and calls the vendor directly, Langfuse is simply quiet. The key discipline of chapter 1 is the premise of that. The upstream key is not in the business process, so a direct call is harder. You still have to forbid the Dataplane from reaching the vendor network in network policy, or the discipline is only a config review.
 
 Do not copy the organization name or project name from the Langfuse book. That book's sample organization does not apply to Xingfan. Xingfan's traces are split by merchant: one project for Seashore, one project for Aurora. How to create a project, and what the UI looks like, is in the Langfuse book's deploy and tracing chapters. This book does not repeat those screenshots, and it has no new screenshots.
+
+The gateway's own ledger for 2026-11-12 is in chapter 4: Usage and the three-row Request Logs, which are not Langfuse traces. In the chapter 2 sidebar screenshot, Telemetry → Proxy requests is Off, so nothing was sent to LiteLLM's remote endpoint either. This chapter's callback is also off, so there is no trace screenshot.
 
 ## The wiring in the docs
 
@@ -106,12 +108,12 @@ The following is not an exported sample. It is the correspondence to look for at
 
 | Already on the gateway side | What you want to be able to point at in the generation record |
 | --- | --- |
-| Request model `seashore-cs` | Do not be left with only the post-fallback `mock-qwen-turbo` and lose the alias |
+| Request model `seashore-cs` | Do not be left with only the post-fallback upstream id (`mock-qwen-turbo` in the 2026-11-11 pip run) and lose the alias |
 | `x-litellm-model-id: seashore-cs-fast` | You can see that this call took the standby |
 | `x-litellm-attempted-fallbacks: 1` | It can corroborate the model id |
 | Cost `2.48e-05` | Matches the gateway response header, not another unit price |
 | Order id `OD-2049` | Comes from business metadata, and can filter every model call of this ticket |
-| `key_alias` `seashore-cs-agent`, or the order API's key | Support and the Spring API can be told apart |
+| `key_alias` (alice in the demo, `seashore-cs-agent` in the 2026-11-11 run), or the order API's key | Support and the Spring API can be told apart |
 | The virtual key plaintext | Must be absent |
 
 UI field names in the Langfuse book follow what that book tested. This chapter does not invent "what a button is called". If the alias is lost after mapping and only the upstream id remains, go back to the warning in chapter 6: do not write the upstream id into the next request. The trace can keep the upstream id as the model that actually ran, but there has to be another column for the business alias. Without that column, an evaluation set treats the same fallback as a change of product.

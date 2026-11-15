@@ -375,6 +375,53 @@ test("litellm 中英文章节文件名一一对应,命令与输出围栏保持�
   }
 });
 
+test("litellm 英文章节引用的实拍图与中文那 13 张相同", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (dir) => {
+    const byFile = {};
+    const all = new Set();
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md")).sort()) {
+      const text = fs.readFileSync(path.join(dir, file), "utf8");
+      const refs = [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+      assert.equal(text.includes("../../assets/"), false, `${file} must not use ../../assets/`);
+      byFile[file] = refs;
+      for (const ref of refs) all.add(ref);
+    }
+    return { byFile, all };
+  };
+  const zh = imageRefs(path.join(root, "books/litellm/chapters"));
+  const en = imageRefs(path.join(root, "books/litellm/en/chapters"));
+  const expected = [
+    "../assets/images/01-login.png",
+    "../assets/images/02-home.png",
+    "../assets/images/02-home-2.png",
+    "../assets/images/03-models.png",
+    "../assets/images/03-models-detail.png",
+    "../assets/images/04-virtual-keys.png",
+    "../assets/images/05-teams.png",
+    "../assets/images/06-playground.png",
+    "../assets/images/07-logs.png",
+    "../assets/images/08-usage.png",
+    "../assets/images/08-usage-2.png",
+    "../assets/images/09-router.png",
+    "../assets/images/10-nav.png",
+  ];
+  assert.deepEqual([...zh.all].sort(), [...expected].sort());
+  assert.deepEqual([...en.all].sort(), [...zh.all].sort());
+  assert.equal(en.all.size, 13);
+  for (const file of Object.keys(zh.byFile)) {
+    assert.deepEqual(en.byFile[file], zh.byFile[file], `${file} image order`);
+  }
+  const logs = fs.readFileSync(path.join(root, "books/litellm/en/chapters/04-budgets-and-limits.md"), "utf8");
+  assert.match(logs, /07-logs\.png/);
+  assert.match(logs, /only three rows/i);
+  assert.match(logs, /bob's success/);
+  assert.match(logs, /Playground success/);
+  assert.match(logs, /Usage later showed more requests/);
+});
+
 test("buildSite 英文子站与中文路径并存,语言切换指向对方同章", async () => {
   const fs = await import("node:fs");
   const os = await import("node:os");

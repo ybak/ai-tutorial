@@ -1,133 +1,145 @@
 ---
 chapter: 2
 title: Run the LiteLLM Proxy
-source: docs.litellm.ai/docs/proxy/quick_start, docs/proxy/docker_quick_start; local pip litellm 1.109.0 and a mock upstream, 2026-11-11
+source: docs.litellm.ai/docs/proxy/quick_start, docs/proxy/docker_quick_start; Admin UI of the official image ghcr.io/berriai/litellm:main-stable on 2026-11-12 (sidebar v1.169.0, success header x-litellm-version: 1.109.0); pip 1.109.0 health checks and completion on 2026-11-11
 ---
 
 # Chapter 2 Run the LiteLLM Proxy
 
-> Seashore Select's support agent is still waiting for one reply about OD-2049. The key has already been kept out of the repo. The next step is a process that can hear `https://llm.example.com`. This chapter runs the Proxy on a machine with no vendor key and no Docker, uses two mock upstreams in place of vendors, and puts New API in the comparison column instead of in the install steps.
+> Seashore Select's support is still waiting for one reply about OD-2049. The key has already been kept out of the repo. The next step is a process that can hear the request, and that Lin Zhou can log into and see. This chapter brings up the official image, Postgres 16, and two mock upstreams with Docker Compose, logs into the Admin UI, and reads the four cards that were on Home. There is no vendor key. The sidebar version and the response-header version are not the same number. Both are kept.
 
 ```mermaid
 flowchart LR
-    A["Install extra_proxy<br/>and prisma generate"] --> B["Start two mock upstreams<br/>on 18001 / 18002"]
-    B --> C["Write Postgres<br/>DATABASE_URL"]
-    C --> D["litellm --config<br/>listen on 4000"]
-    D --> E["liveliness<br/>I'm alive"]
-    E --> F["/v1/models<br/>three aliases"]
-    F --> G["Completion hits primary<br/>body mentions OD-2049"]
+    A["compose up<br/>official image and Postgres"] --> B["Open /ui<br/>env-credential login"]
+    B --> C["Home: four cards<br/>read the request count first"]
+    C --> D["Sidebar v1.169.0<br/>header recorded separately"]
+    D --> E["Three aliases from<br/>config.yaml"]
+    E --> F["Master key for the API only<br/>never in the login form"]
 ```
 
 *Procedure for this chapter*
 
-## The path this machine actually took
+## Which run produced this UI
 
-The official docs have two getting-started pages. Do not mix them into one command.
+On 2026-11-12 the image was `ghcr.io/berriai/litellm:main-stable`, the database was Postgres 16, and the upstreams were two local OpenAI-compatible mock processes. There was no vendor key, and `LITELLM_LICENSE` was not set. The admin UI is at http://127.0.0.1:4000/ui/ .
 
-| Doc | Getting-started path as read on 2026-11-11 | Does this book use it |
+Read the versions apart. Do not merge them into one:
+
+| Where it was read | Value | Which run |
 | --- | --- | --- |
-| CLI Quick Start | `uv tool install 'litellm[proxy]'`, then `litellm --model ...` or `--config` | This machine has no uv. Use a venv and pip instead. The database extras, which the doc mentions only in a later sentence, were installed as well |
-| Docker Quickstart | `docker-compose.quickstart.yml` brings up the gateway and Postgres, and the browser opens `/ui` | This environment has no Docker. Postgres was started from the system package |
+| Admin UI sidebar, next to the logo | LiteLLM v1.169.0 | The 2026-11-12 UI |
+| `x-litellm-version` on a successful Chat Completions response | 1.109.0 | The same run |
+| PyPI and `importlib.metadata.version("litellm")` | 1.109.0 | The 2026-11-11 pip install, not this image |
 
-On PyPI, the `litellm` version on 2026-11-11 is **1.109.0**. The same day, `importlib.metadata.version("litellm")` was also 1.109.0. Errors and responses below come from this version. They are not extrapolated to other patch versions.
+The `main-stable` tag floats. This book did not pin a digest. Release notes record the sidebar string and the response header, both of them. The errors and status codes from the pip run on the 11th still come from 1.109.0. Do not extrapolate them onto the sidebar's 1.169.0.
 
-The CLI Quick Start says: from 1.84.0, Python 3.10 or newer is required. On an older interpreter, `pip install 'litellm[proxy]'` does not error. It silently resolves to a version that still allows that interpreter (the doc's example is 1.83.9). This machine is Python 3.12.3 and did not hit that. If the installed version suddenly stops at 1.83.x, look at `python --version` first. Do not suspect the package mirror first.
+The CLI Quick Start states that 1.84.0 and later require Python 3.10 or newer. On an older interpreter, `pip install 'litellm[proxy]'` does not error. It silently resolves to a version that still allows that interpreter. This affects only people who are not using the image. The reader's default path is the Compose setup in the next section.
 
-The Quick Start also gives a load-test number: "1.5k+ requests/second". This book did not reproduce that load test and does not treat it as Xingfan's capacity promise.
+The Quick Start also gives a load-test figure: "1.5k+ requests/second". This book did not reproduce that benchmark, and it is not a capacity promise for Xingfan (星帆, "Starsail" in the demo credentials).
 
-## Mock upstream
+## How the reader opens the UI
 
-With no vendor key, do not invent a vendor's UI or response text. `demo/mock_upstream.py` is an HTTP service that listens only on this machine: any POST returns one OpenAI-shaped completion. The body starts with the process name and mentions order OD-2049. `MOCK_MODE=fail` returns HTTP 500. GET returns `{"status":"ok",...}`, used to confirm the port.
+From `books/litellm/demo`:
 
 ```bash
-MOCK_NAME=primary MOCK_MODE=ok python3 mock_upstream.py 18001
-MOCK_NAME=backup  MOCK_MODE=ok python3 mock_upstream.py 18002
+docker compose up
 ```
 
-After both processes are up:
+Compose does four things: Postgres 16, two mock upstreams that use only the standard library, and the official image. `config.yaml` and `mock_upstream.py` are mounted on read-only volumes. Do not start by writing a Dockerfile that bakes those two files into the image. Baking files into the image is a workaround for when the host bind mount is broken. It is not this book's startup step.
 
-```text
-{"status": "ok", "name": "primary", "mode": "ok"}
-{"status": "ok", "name": "backup", "mode": "ok"}
-```
+The process inside the container listens on `0.0.0.0`. Otherwise the host's port mapping cannot reach it. The addresses published on the host are limited to `127.0.0.1` on 4000, 5432, 18001, and 18002. `api_base` in the config is `http://mock-primary:18001/v1` and `http://mock-backup:18002/v1`. Those are service names on the container network. Written as `127.0.0.1`, the gateway connects to itself, and the mock upstreams never see the request. The mock script must also bind `0.0.0.0`, for the same reason.
 
-This is not Tongyi, and it is not OpenAI. `openai/mock-qwen-plus` in the config only tells LiteLLM "talk to this `api_base` with the OpenAI-compatible protocol". The model id `mock-qwen-plus` is an experiment name. It must not appear in business code. Business code writes only `seashore-cs`, `seashore-cs-fast`, and `aurora-cs`.
+Open http://127.0.0.1:4000/ui/ in a browser.
 
-## What each block of the config file is for
+![Login page: title Login, subtitle Access your LiteLLM Admin UI. The form is Username and Password, then Login, then Login with SSO. This run filled in UI_USERNAME and UI_PASSWORD. SSO was not clicked](../assets/images/01-login.png)
 
-The full file is `books/litellm/demo/config.yaml`. The blocks below are explained so you do not copy the experiment unit price into a production quote.
+Login uses environment variables, not the master key:
 
-One entry in `model_list` is one deployment, not one business name. Several entries with the same `model_name` become load balancing in chapters 6 and 7. In this book's config, each `model_name` has one entry. Fallback uses another name.
+| What you are doing | Which value | This run |
+| --- | --- | --- |
+| Open the Admin UI | `UI_USERNAME` / `UI_PASSWORD` | `admin` / `StarsailDemo#2026` |
+| Call `/key/generate`, `/v1/chat/completions`, and `smoke.sh` | `LITELLM_MASTER_KEY` | `sk-starsail-master` |
+| The mock upstream's `api_key` | `MOCK_UPSTREAM_KEY` | `sk-mock-upstream`. The mock does not check it |
+
+The password contains a `#`. Quote it in a shell. Type it literally in the browser. Do not type the master key into the login form. Do not use the password from the login form as `Authorization: Bearer`.
+
+After login, the top of the page has a pink banner. The text is Environment-credential login is enabled, with Review beside it. This is "an admin who logged in with environment variables", not a person's account. The banner is at the top of every later screenshot. The Login with SSO button is on the login page. It was not clicked, and this run does not know where it would go.
+
+The official docs call this login a shared bootstrap password: it is written in the environment, it cannot be rotated down to a person, and it cannot tell which admin clicked. Xingfan's demo stops on this bootstrap path. The later part of the docs says that, once personal accounts exist, you turn on `disable_env_credential_login` in the config and restart. This book did not do that step. Until it is done, the banner should stay.
+
+## Look at Home first after login
+
+Home is the first page after login. The four cards are counts from the database at that moment. The config file cannot tell you them.
+
+![Home: Spend $0.00, with No budget set underneath; Total Requests 4, of which 3 ok and 1 failed; Total Tokens 120, 0 cache read; Avg cost / request $0.0000; Avg latency 12ms; 75.0% success rate. The Leaderboard below shows aurora-cs 66.7% (80) and seashore-cs 33.3% (40). The right side is the product's own Updates](../assets/images/02-home.png)
+
+![Home, scrolled further: the four summary cards, three product cards under What's new in LiteLLM, and the Leaderboard still showing aurora-cs and seashore-cs. That product news is not Xingfan's bill](../assets/images/02-home-2.png)
+
+Read the four cards by the words on them. Do not round a number the card has not already rounded:
+
+| Card | Words on the screenshot | How it relates to later chapters |
+| --- | --- | --- |
+| Spend | $0.00, No budget set | There is no global budget. The $50 and $30 on the Teams page are another bucket. Chapters 4 and 5 come back to them |
+| Total Requests | 4, of which 3 ok and 1 failed | The 75.0% success rate is 3/4. Later Usage became 6 requests. This card is not wrong |
+| Total Tokens | 120, 0 cache read | The Leaderboard's 80 and 40 also add up to 120. aurora-cs was 66.7% at the time, seashore-cs 33.3% |
+| Avg cost / request | $0.0000 | A single call is about $0.000062. The card rounds the small amount to 0. Reconcile from the Playground and from the successful log row |
+
+Gemini 4 Carbon, Claude Fable 5.2, and GPT-6.1 Terra under What's new, and the Updates on the right, are the product's own news. Xingfan did not call those models. The experiment unit prices are not on these cards either.
+
+The Leaderboard's caption is the change over the past 7 days, comparing the two halves. Neither row in the screenshot draws an up or down number. There is only the share and the token count. Read only the 66.7% / 80 and 33.3% / 40 that you can see.
+
+## The lower half of the sidebar, and Telemetry left off
+
+The features are not in Home's cards. They are on the left. Scrolled down to where Settings is expanded, the screen looks like this.
+
+![The lower half of the left navigation, with Settings expanded: Settings, Router Settings, Logging & Alerts, Admin Settings, Cost Tracking, UI Theme, Telemetry. The current page is Telemetry. The Proxy requests switch is Off. Heartbeat, Request success, Token info, and the other items are unchecked. No Destination is selected. The caption says there is no destination, so nothing is recorded](../assets/images/10-nav.png)
+
+This shot was taken after scrolling. The v1.169.0 next to the logo is not in the frame. The version string follows the screenshots that still show the logo, such as Home and Models.
+
+Inside the Settings group, the page that connects directly to chapter 7 is Router Settings. Telemetry stayed off this time: proxy requests were not sent to LiteLLM's remote endpoint, and `LITELLM_TELEMETRY_ENDPOINT` was not filled in. The text on the page says the default is not to record, and `LITELLM_TELEMETRY_DISABLED=true` turns all of it off. We did not even turn the first item on. Langfuse is not connected either. That is chapter 9.
+
+Home, Virtual Keys, Playground, Models + Endpoints, Usage, Logs, and Teams, in the upper half of the sidebar, are opened in chapters 3 through 7. Auto-Routers and Model Group Alias on the Models page are empty. The fallback rule is not on those two tabs.
+
+## What each block of the config file does
+
+The full file is `books/litellm/demo/config.yaml`. The blocks below are so you do not copy an experiment unit price into a production quote.
+
+One entry in `model_list` is one deployment, not one business name. Several entries with the same `model_name` become load balancing in chapters 6 and 7. In this book's config, each `model_name` has only one entry. Fallback uses another name.
 
 | Field | Experiment value | Role |
 | --- | --- | --- |
-| `model_name` | `seashore-cs` and the others | The `model` in the client request body |
-| `litellm_params.model` | `openai/mock-qwen-plus` | Protocol prefix plus the upstream model id |
-| `api_base` | `http://127.0.0.1:18001/v1` | The mock upstream. In production, replace it with the vendor address, and still do not write that into the business repo |
-| `api_key` | `os.environ/MOCK_UPSTREAM_KEY` | The literal `os.environ/...` is LiteLLM's way of reading an environment variable, not a shell |
-| `input_cost_per_token` | `0.000001` | Experiment unit price, so spend is not 0 |
-| `model_info.id` | `seashore-cs-primary` | The response header `x-litellm-model-id` uses it to tell deployments apart |
+| `model_name` | `seashore-cs` and the others | The `model` in the client request body. The UI's Public Model Name uses it |
+| `litellm_params.model` | `openai/mock-qwen-plus` | All three aliases use this one string. A protocol prefix plus the experiment upstream model id |
+| `api_base` | `http://mock-primary:18001/v1` or `mock-backup` | In-container addresses. Seashore's fast deployment uses backup. The other two use primary |
+| `api_key` | `os.environ/MOCK_UPSTREAM_KEY` | The literal `os.environ/...` is LiteLLM's way of reading an environment variable. It is not the shell |
+| `input_cost_per_token` | `0.000001` for `seashore-cs` and `aurora-cs`, `0.0000004` for fast | Experiment unit prices. The UI shows them per million tokens as $1.00 / $0.40 |
+| `model_info.id` | `seashore-cs-primary` and the others | The response header `x-litellm-model-id` uses it to tell deployments apart |
 
-`routing_strategy: simple-shuffle` in `router_settings` is the default strategy the docs record. `num_retries: 0` is an experiment choice: a primary-upstream failure goes straight into fallback, so it is not stacked with retries and hard to read. Whether production should retry is decided in chapter 7. `fallbacks` says that after `seashore-cs` fails, try `seashore-cs-fast`. `aurora-cs` has no fallback. Aurora Digital's support agent does not get Seashore's fallback in this experiment config. That is intentional, so chapter 5 can show that model lists are not shared automatically.
+The 2026-11-11 pip config had `seashore-cs-fast` on `openai/mock-qwen-turbo`, and `api_base` was the host's `127.0.0.1`. That was a different file. Now the upstream model string is the same for all three aliases. Primary and backup are told apart by `api_base`, the deployment id, and the `[primary]` / `[backup]` prefix in the mock body.
 
-`general_settings.master_key` and `database_url` are both read from the environment. The master key is also the password for the admin API. The Docker Quickstart says it is also the Admin UI password by default, and the username is `admin`. This machine did not log into the UI. It only confirmed that the page returns HTML.
+In `router_settings`, `routing_strategy` is `simple-shuffle` and `num_retries` is `0`. Both were visible on the Loadbalancing page on 2026-11-12. `fallbacks` points `seashore-cs` at `seashore-cs-fast`. The UI is Settings → Router Settings → Fallbacks. Chapter 7 has that screen. `aurora-cs` has no fallback. Aurora Digital's support does not borrow Seashore's fallback in this experiment config.
 
-`litellm_settings.drop_params: true` drops parameters the upstream does not know, instead of returning 400 immediately. The mock upstream ignores extra fields. This switch was not separately verified in this experiment as "turn it off and the call fails". It stays because Java clients will later send temperature, tool choice, and similar fields, and the simulator should not be the only client that can get through.
+`general_settings.master_key` and `database_url` are both read from the environment. The master key is the credential for the admin API and for model calls. It is not the UI password from the previous section. The UI login uses `UI_USERNAME` / `UI_PASSWORD`.
 
-## Database
+`litellm_settings.drop_params: true` drops parameters the upstream does not recognize, instead of returning 400 immediately. The mock upstream ignores extra fields, so this switch was not separately verified as "turn it off and the call fails". It stays because the Java clients will later send temperature, tool choice, and similar fields.
 
-The Virtual Keys page says: you need Postgres, you need `DATABASE_URL`, and you need a master key. The Docker Quickstart brings the database and the gateway up together. This machine uses PostgreSQL 16, database name `litellm`. The password stays only on that machine. `.env.example` in the repo is `replace-me`.
+Compose also sets `STORE_MODEL_IN_DB=True`. The three rows on the Models page are still marked Defined in config. This environment variable did not turn them into models created in the UI.
 
-```bash
-export DATABASE_URL='postgresql://litellm:replace-me@127.0.0.1:5432/litellm'
-export LITELLM_MASTER_KEY='sk-replace-me'
-export LITELLM_SALT_KEY='sk-replace-me'
-export MOCK_UPSTREAM_KEY='sk-replace-me'
-```
+## Database and salt
 
-In the Docker Quickstart, `LITELLM_SALT_KEY` encrypts "vendor keys written into the database from the UI". If you change it, vendor keys already stored cannot be decrypted, and there is no in-place rotation. This experiment's upstream key comes from an environment variable in the config and does not pass through this salt. Still set it from day one: once someone pastes a vendor key into the UI, a database without the salt becomes unreadable when the salt is added later. This book did not run the comparison "set no salt, then add a salt".
+Virtual keys, teams, and spend need Postgres. Compose brings the database up with the gateway. The database name is `litellm`, the user is `llmproxy`, and the password is `dbpassword9090`. That password is written in the demo compose for this machine. It is not a production password.
 
-## Two failed starts
-
-The first:
-
-```text
-LiteLLM Proxy: a database URL is set but the prisma CLI is neither on PATH nor importable as a package, so the database cannot be set up. Install it with `pip install 'litellm[extra_proxy]'` or run a shipped LiteLLM image.
-```
-
-`litellm[proxy]` is not enough. After installing `litellm[extra_proxy]`, the `prisma` command appears in the venv `bin`, version 5.17.0. The process still does not start:
-
-```text
-Exception: Unable to find Prisma binaries. Please run 'prisma generate' first.
-```
-
-`from prisma import Prisma` inside Python makes the original message clearer: the client has not been generated. Run this in the `litellm/proxy` directory:
-
-```bash
-prisma generate --schema schema.prisma
-```
-
-The generator prints Prisma Client Python v0.15.0 and warns that `binaryTargets` is not an officially supported item of Prisma Client Python. The warning did not stop the later start. The schema has `provider = "postgresql"`, so SQLite is not an option on this path. Do not edit the schema to save a database.
-
-The third start succeeded. The log has one sentence about the connection budget:
-
-```text
-Postgres connection budget per pod = 1 worker(s) x writer connection_limit 10 = up to 10 connections; keep pods x that figure under max_connections minus superuser_reserved_connections
-```
-
-A single-process experiment cannot show whether several replicas would fill `max_connections`. Before adding replicas, count this sentence into Postgres's connection cap. The same log also warns that `trusted_proxy_ranges` is unset, so the admin UI's failed-login limit is only source address plus username. The local client connects directly. There is no reverse proxy. If a reverse proxy is placed in front of `llm.example.com`, set this from that warning, or the limit collapses into one bucket at the proxy address. This book did not configure this item and did not run a failed-login experiment.
-
-There is also a warning about price: `openai/mock-qwen-plus` has a custom unit price but is not in the built-in price table, so the cached-token unit price defaults to 0. Input and output unit prices are unaffected. The experiment did not send a cache field. This is recorded only. It is not "fixed" into "you must fill a cache price".
+In the Docker Quickstart, `LITELLM_SALT_KEY` encrypts vendor keys written into the database from the UI. Change it, and vendor keys already stored cannot be decrypted. This compose does not set the salt: the upstream key comes from an environment variable in the config, and nobody pasted a vendor key into the UI. If a real key is going to be saved from the UI, set the salt before pasting. This book did not run the comparison of "no salt first, then add the salt later".
 
 ## Health check and the first completion
 
-`/health/liveliness` takes no key, returns HTTP 200, and the body is:
+`/health/liveliness` takes no key. HTTP 200, and the body is:
 
 ```text
 "I'm alive!"
 ```
 
-Note the path spelling is liveliness, not liveness. When writing a probe, copy the official path. Do not "correct" the spelling.
+The path is spelled liveliness, not liveness. Copy the official path when you write a probe.
 
 `/health/readiness` with the master key:
 
@@ -135,18 +147,9 @@ Note the path spelling is liveliness, not liveness. When writing a probe, copy t
 {"status":"healthy","db":"connected"}
 ```
 
-`/v1/models` returns three ids: `seashore-cs`, `seashore-cs-fast`, and `aurora-cs`. The `owned_by` field is `openai`. That is the response shape. It does not mean the request went to OpenAI.
+`/v1/models` returns three ids: `seashore-cs`, `seashore-cs-fast`, and `aurora-cs`. The `owned_by` field is `openai`. That is the response shape. The Usage page later also draws the Provider as openai. Both come from the `openai/` prefix in the config. They do not mean the request went to OpenAI.
 
-The completion request:
-
-```bash
-curl -sS http://127.0.0.1:4000/v1/chat/completions \
-  -H "Authorization: Bearer $LITELLM_MASTER_KEY" \
-  -H 'Content-Type: application/json' \
-  -d '{"model":"seashore-cs","messages":[{"role":"user","content":"订单 OD-2049 为什么还没到？"}]}'
-```
-
-Excerpt of the response on 2026-11-11:
+Excerpt of a completion called with the master key on 2026-11-11:
 
 ```json
 {
@@ -165,129 +168,119 @@ Excerpt of the response on 2026-11-11:
 }
 ```
 
-`[primary]` proves the hit was 18001, not 18002. `model` is still the alias the client requested. When fallback succeeds in chapter 7, this field becomes the upstream's `mock-qwen-turbo`. Do not assume in this chapter that it always equals `model_name`.
+The assistant text means "[primary] Order OD-2049 is still in transit. Please check the waybill before replying to the customer."
 
-`/v1/models` with no key:
+On 2026-11-12, calling `seashore-cs` again with alice's virtual key returned HTTP 200. The body likewise starts with `[primary] 订单 OD-2049 仍在途。` The response headers were `x-litellm-model-id: seashore-cs-primary` and `x-litellm-attempted-fallbacks: 0`, and the cost was about $0.000062. A successful response carries `x-litellm-version: 1.109.0`. The conversation in the Playground was sent by the login session, not by alice's key. Chapter 6 spreads the Trace out.
+
+Calling `/v1/models` with no key, the response on the 11th was:
 
 ```json
 {"error":{"message":"Authentication Error, No api key passed in.","type":"auth_error","code":"401"}}
 ```
 
-The master key can complete a call directly. The Docker Quickstart calls this "the only credential when there is no database". We have a database, and the master key can still hit the model. That is convenient for debugging. It does not belong in `xbd-seashore-cs-agent`. Business processes use the virtual keys issued in chapter 3.
-
-`GET /` and `GET /ui` are both HTTP 200, `Content-Type: text/html`. There was no login, no click on Models or Virtual Keys, and no screenshot. Test Connect, Playground, and "the key is shown only once" in the official Quickstart are all marked as not tested.
+The master key can complete a call directly. That is convenient for debugging. It does not belong in `xbd-seashore-cs-agent`. The business process uses the virtual keys from chapter 3. `seed.sh` creates the alice, bob, and two teams in the screenshots on an empty database. A new database's `team_id` values and the last four characters of the keys will not match the screenshots.
 
 ## Do not expect budgets without a database
 
-The Docker Quickstart has a section "Running without a database". The points of the text as read on 2026-11-11 are:
+The Docker Quickstart has a section, "Running without a database". The points read on 2026-11-11 were:
 
 - You can serve an OpenAI-compatible API from the config file alone.
 - Virtual keys fail, with the message `No connected db.`
-- `litellm_settings.max_budget` is not a spend cap on this path. With no database client, cumulative spend stays unknown, and the global budget check does not fire. Even with `max_budget: 100`, service continues after 100 dollars, with no per-request error and no budget alert.
-- If a budget is configured at startup and there is no database, one warning is printed once. That is the only signal you get.
+- `litellm_settings.max_budget` is not a spend cap on this path. With no database client, cumulative spend stays unknown, and the global budget check does not fire.
 - The master key itself has no budget.
 
-This machine did not start a second process without a database to repeat those sentences. Xingfan wants quotas, so the experiment had Postgres from day one. If you first use the no-database mode on a laptop to see a completion go through, do not write that process's address as `llm.example.com`.
+This machine did not start a separate database-less process to reread those sentences. Xingfan needs quotas, so Compose has included Postgres from the first day. If you use the database-less mode on a laptop just to see a completion go through, do not write that process's address as `llm.example.com`, and do not expect to log into the same Virtual Keys page as chapter 3.
+
+## Teams and keys are not in the config file
+
+The three model aliases appear with the config. The Seashore Select and Aurora Digital teams, and the alice and bob keys, are written into the database through the admin API. After readiness passes, `demo/seed.sh` calls `/team/new` and `/key/generate` with the master key:
+
+| Object | Name | Budget | Models |
+| --- | --- | --- | --- |
+| Team | `seashore-main` | 50 dollars | `seashore-cs`, `seashore-cs-fast` |
+| Team | `aurora-main` | 30 dollars | `aurora-cs` |
+| Key | `alice`, rpm 30 | 10 dollars | both seashore aliases |
+| Key | `bob`, rpm 20 | 8 dollars | `aurora-cs` |
+
+The script does not pass `budget_duration`. The key table in the screenshot shows Budget Reset as Never. The key plaintext appears only in that one run of the script. The screenshots in chapters 3 and 5 are a database that was seeded and then called. Spend is no longer 0. `team_id` values and the last four characters will differ from the screenshots on a new database.
 
 ## New API stays in the comparison column
 
-[QuantumNous/new-api](https://github.com/QuantumNous/new-api) is another gateway aimed at relays and tokens. Its README says it is a further development of One API (MIT). The project itself is AGPL-3.0, and under section 7 it adds UI attribution and a link to the original project. When Xingfan's platform embeds it into a page that merchants can open, whether the modified network service must offer corresponding source, and whether the UI must keep the specified attribution, is a legal question. A feature list cannot answer it.
+[QuantumNous/new-api](https://github.com/QuantumNous/new-api) is another gateway aimed at relays and tokens. Its README says it is a further development of One API (MIT). The project itself is AGPL-3.0, and under section 7 it adds a UI attribution and a link to the original project. When Xingfan's platform embeds it into a page opened to merchants, whether the modified network service must offer the corresponding source, and whether the UI must keep the specified attribution, is a legal question. A feature list cannot answer it.
 
 | Question | LiteLLM Proxy (this book's main line) | New API (comparison only, not installed) |
 | --- | --- | --- |
-| License | Core MIT; `enterprise/` is a commercial license | AGPL-3.0 plus section 7 attribution |
-| Config shape | `config.yaml` can go into Git | The community commonly clicks config in an admin console. This book did not verify whether it has an exportable channel definition |
-| Relation to Java clients | OpenAI-compatible `/v1/chat/completions` | Also leads with compatibility. The range is its own docs. This book did not test it |
-| Why Xingfan does not use it as the base | See chapter 10 | The license duty comes before the features |
+| License | Core MIT; `enterprise/` is a commercial license | AGPL-3.0 plus the section 7 attribution |
+| How this run starts | The official image plus this directory's `config.yaml` | Not installed |
+| Relation to Java clients | OpenAI-compatible `/v1/chat/completions` | Also leads with compatibility. The range is whatever its own docs say. This book did not test it |
+| Why Xingfan does not use it as the base | See chapter 10 | The license duty comes before the feature list |
 
-This chapter does not give install commands for New API. The comparison table exists so that when someone asks in review "why not New API", the answer is the license and config-in-Git, not "never heard of it".
+This chapter does not give install commands for New API. The comparison table exists so that, when someone asks in review "why not New API", the answer is the license and config in Git, rather than "we have not heard of it".
 
 ## Ports and processes
 
 | Port | Process | What happens if it dies |
 | --- | --- | --- |
-| 18001 | Mock upstream primary | The deployments of `seashore-cs` and `aurora-cs` fail. If Seashore allows fast, it can fall back to 18002. Aurora has no standby |
-| 18002 | Mock upstream backup | Affects only `seashore-cs-fast`. The primary path is still on 18001 |
-| 4000 | LiteLLM | Model calls for every merchant fail. AgentScope's namespace isolation is still there. It just cannot answer |
-| 5432 | PostgreSQL | The proxy fails to start, or a readiness check during the run is no longer `db: connected`. This machine did not kill the database in the middle of a run |
+| 18001 | Mock upstream primary | The `seashore-cs` and `aurora-cs` deployments fail. If Seashore allows fast, it can fall back to 18002. Aurora has no standby |
+| 18002 | Mock upstream backup | Affects only `seashore-cs-fast`. The primary path stays on 18001 |
+| 4000 | LiteLLM. The API and the admin UI share this port | Model calls for every merchant fail, and `/ui` does not open |
+| 5432 | PostgreSQL | The proxy fails to start, or readiness is no longer `db: connected` |
 
-All four ports bind only to the loopback address. Experiment commands use `127.0.0.1`, not `0.0.0.0`. Example logs in the Quick Start often write `http://0.0.0.0:4000`. That is the form that listens on every interface. Listening that way on a laptop exposes a misconfiguration with no auth to the LAN. In production a reverse proxy terminates TLS, and the process behind it can listen only on the internal network.
-
-The certificate, DNS, and proxy timeout for `llm.example.com` are not in this machine's experiment. If the reverse proxy's timeout is shorter than the gateway's `timeout: 8`, the client sees 504 first while the gateway is still waiting on the upstream. Write both timeouts into the change note together. This machine has no reverse proxy and no 504 sample.
+The certificate, DNS, and proxy timeout of `llm.example.com` are not in this local experiment. If a reverse proxy's timeout is shorter than the gateway's `timeout: 8`, the client sees 504 first while the gateway is still waiting on the upstream. This machine has no reverse proxy, and it has no 504 sample.
 
 ## Paths that were actually called
 
+The pip process on the 11th and the image on the 12th are not the same run. The table names the date.
+
 | Method and path | Key | Result |
 | --- | --- | --- |
-| `GET /health/liveliness` | none | 200, body `"I'm alive!"` |
-| `GET /health/readiness` | master key | 200, `db` is `connected` |
-| `GET /health` | none | 401, `auth_error` |
-| `GET /health` | master key, and 18001 already stopped | 200, endpoints listed as healthy and unhealthy |
-| `GET /v1/models` | master key | three aliases |
-| `GET /v1/models` | Seashore virtual key | two seashore aliases |
-| `GET /v1/models` | none | 401, `No api key passed in.` |
-| `POST /v1/chat/completions` | master key | 200, `model` is `seashore-cs`, body `[primary]` (18001 was still alive then) |
-| `POST /chat/completions` | master key, 18001 already stopped | 200, body `[backup]`, response `model` is `mock-qwen-turbo` |
-| `POST /v1/chat/completions` model `qwen-plus` | master key | 400, `invalid_request_error` |
-| `GET /` and `GET /ui` | none | 200, `text/html` |
+| `GET /health/liveliness` | none | 200, body `"I'm alive!"` (the 11th) |
+| `GET /health/readiness` | master key | 200, `db` is `connected` (the 11th) |
+| `GET /health` | none | 401, `auth_error` (the 11th). Request Logs on the 12th has a separate unauthenticated `/health` failure |
+| `GET /v1/models` | master key | The three aliases (the 11th). The Models page on the 12th is the same three rows |
+| `POST /v1/chat/completions` `seashore-cs` | alice | 200, body starts with `[primary] 订单 OD-2049 仍在途。`, `x-litellm-model-id: seashore-cs-primary`, `x-litellm-attempted-fallbacks: 0`, cost about $0.000062, header version 1.109.0 (the 12th) |
+| `POST /v1/chat/completions` `aurora-cs` | alice | 403, `key_model_access_denied` (the 12th) |
+| `POST /v1/chat/completions` `aurora-cs` | bob | 200 (the 12th) |
+| Playground, model `seashore-cs`, not streaming | the current UI session | 200. The first streaming attempt hung. Chapter 6's screenshot is after Stream response was turned off |
+| `GET /ui` login page | none | The login form. Username and password lead to Home |
 
-On this proxy version, both `/chat/completions` and `/v1/chat/completions` enter the router. Business clients still use `/v1/...` uniformly, matching Step 13's `XBD_MODEL_ENDPOINT_PATH`. A path written as `/chat/completions` in an error message cannot be used to infer the client's URL.
+On the 11th's proxy, both `/chat/completions` and `/v1/chat/completions` entered the router. Business clients still use `/v1/...` uniformly.
 
-## Sentences worth keeping from the startup log
+## Two failures left over from the non-image path (2026-11-11, pip 1.109.0)
 
-On a successful start, the model list is printed as:
+Readers on the default Compose path will not hit these. The official image initializes the database itself when `DATABASE_URL` is set. Starting with pip on 2026-11-11, the first message was:
 
 ```text
-LiteLLM: Proxy initialized with Config, Set models:
-    seashore-cs
-    seashore-cs-fast
-    aurora-cs
+LiteLLM Proxy: a database URL is set but the prisma CLI is neither on PATH nor importable as a package, so the database cannot be set up. Install it with `pip install 'litellm[extra_proxy]'` or run a shipped LiteLLM image.
 ```
 
-If an alias is missing here, look at the yaml indentation first, then at whether the process read this file. On this machine, a Prisma failure never reached this line.
+After `litellm[extra_proxy]` was installed, the process still stopped at `Please run 'prisma generate' first.`. The client has to be generated from `schema.prisma` under `litellm/proxy` in the install directory. That is why the reader's default path is the image. A runbook that only copies `uv tool install 'litellm[proxy]'` stops at the first error.
 
-Then come the price warnings, once per model with a custom unit price. `aurora-cs` and `seashore-cs` both point at `openai/mock-qwen-plus`, so the warning for that model name appears twice. A warning is not a failure.
+That generate printed Prisma Client Python and warned about `binaryTargets`. The warning did not block the later start. The schema has `provider = "postgresql"`, so SQLite is not an option on this path.
 
-After the Prisma connection there is another sentence: `'Prisma' object has no attribute '_Prisma__engine'`. The process still prints `Application startup complete`, and `/key/generate` can write into the database. This sentence did not stop the experiment. Treat it as a record that "this prisma-client-py 0.15.0 does not fully match the proxy's internal check", not as "the database is unavailable". If your version exits after this sentence, do not reuse this book's "it can be ignored".
+On a successful start, the log on the 11th listed the three aliases. Each model with a custom unit price then had a price warning: when it is not in the built-in price table, the cache-token unit price defaults to 0. The experiment did not send cache fields. The 0 cache read on Home agrees with that. It cannot, by itself, prove the warning went away.
 
-The index-build log mentions a concurrent index on `LiteLLM_SpendLogs`. The spend table exists and matches later `/key/info`. The database client was not opened to read the table structure, and column names are not frozen here.
+The same log also warned that `trusted_proxy_ranges` was not set. This machine has no reverse proxy, and it did not run a failed-login experiment. If a reverse proxy sits in front of `llm.example.com`, set the range the warning names.
 
 ## What `smoke.sh` covers
 
-The script requires `LITELLM_MASTER_KEY`, optionally `LITELLM_BASE`, default `http://127.0.0.1:4000`. It requests liveliness, readiness, and the model list, then sends the sentence "订单 OD-2049 为什么还没到？". It uses the master key. So what it proves is "the gateway and the primary upstream are alive", not "the virtual key's model list is correct". The latter is an assertion of chapter 3. Do not stuff it into the smoke test of every deploy, or the smoke script would hold a business key in addition to the right to issue keys, and the master key would stay in a CI variable.
+The script requires `LITELLM_MASTER_KEY` and takes an optional `LITELLM_BASE`, default `http://127.0.0.1:4000`. In another terminal, after Compose is up: `export LITELLM_MASTER_KEY=sk-starsail-master` and `./smoke.sh`. It requests liveliness, readiness, and the model list, then sends one completion about OD-2049. It uses the master key. What it proves is "the gateway and the primary upstream are alive", not "alice's model list is correct". The latter uses the virtual key from chapter 3. The master key does not go into CI.
 
-If CI runs smoke, use a virtual key that contains only `seashore-cs`, with a very small budget and a very short lifetime, and revoke it when the run finishes. The master key does not enter CI.
-
-## How config loading fails
-
-This machine did not deliberately break the yaml. The two Prisma failures are enough to order the debugging, so you do not reinstall first:
-
-| What you see | Look here first |
-| --- | --- |
-| The process exits, and the log says the prisma CLI is missing | Install `litellm[extra_proxy]`, and put the venv `bin` on `PATH` |
-| The log says `prisma generate` | Generate the client for `schema.prisma` in the `litellm/proxy` directory |
-| The generator says `prisma-client-py: not found` | `PATH` has no venv. The generator needs that executable, not only the Python package |
-| Connection refused on the port | The process has already exited. Read the three rows above first. Do not change the business URL first |
-| liveliness 200 but completion 500 | The upstream port. curl 18001 and 18002 first |
-| Completion 401 | The key was not sent, or it is not a key in this database |
-| Completion 400 and it names the model | The alias is not in `model_list`, or the client sent back the upstream id from a response |
-
-The data source in the schema is PostgreSQL. Do not replace `DATABASE_URL` with SQLite and expect the same client to work. The Quickstart chooses Postgres. The experiment is also Postgres 16.
-
-## Differences from the official image belong in the runbook
-
-The official image initializes the database itself when `DATABASE_URL` is set. The pip path on this machine has to generate the Prisma client extra. If the runbook only copies the Quick Start's `uv tool install 'litellm[proxy]'`, it stops at the first error on this machine. Xingfan's production is more likely to use an image than this machine's venv. Pin the image tag. Do not treat a floating `latest` as the same as 1.109.0. This book did not pull `docker.litellm.ai/berriai/litellm` and does not know whether the version inside the image equals PyPI 1.109.0. Before production, print the version inside the image and compare it with this book's baseline. If it differs, rerun the four assertions of chapters 3, 4, and 7: 403, 422, 429, and the fallback response header.
+The reader's entry is `docker compose up`, then `seed.sh` once, to create the teams and keys in the screenshots. `smoke.sh` is not that entry.
 
 ## Review for this chapter
 
-Seen on 1.109.0: the two Prisma failures and the start after the client was generated, the liveliness body, readiness `db: connected`, the three model ids, the completion with `[primary]`, the no-key 401, and HTML 200 from `/ui`.
+Seen on 2026-11-12, on the official image: the login page, environment-variable login, the pink banner, Home's four cards and the Leaderboard, the lower half of the sidebar, Telemetry off, the three Defined-in-config aliases on the Models page (chapter 6), alice's and bob's request results, Playground success after streaming was turned off (chapter 6), and the Fallbacks row (chapter 7). Sidebar v1.169.0 and header 1.109.0 both hold. This book ran `ghcr.io/berriai/litellm:main-stable`. The screenshots are the local files under `books/litellm/assets/images/`. Building the book does not require running this chapter.
 
-Not done: Docker Compose Quickstart, Admin UI login and Test Connect, the original text of the no-database budget warning, `uv tool install`, any real vendor, and running New API.
+Seen on 2026-11-11, pip 1.109.0: the two Prisma failures, the liveliness body, readiness `db: connected`, the three model ids, the completion with `[primary]`, and the no-key 401. There was no UI login that day.
 
-`demo/smoke.sh` only reads the health checks, the model list, and one `seashore-cs` completion. It does not create keys. Keys are the next chapter.
+Not done: clicking Login with SSO, turning off environment-variable login, database-less mode, `uv tool install`, any real vendor, running New API, pinning the image digest, and stopping the primary upstream again on the 12th's compose. Streaming Playground was only confirmed to hang while Stream response was on. It was not waited out until it finished by itself.
+
+For production, pin a digest and, after any image change, rerun the 403, 422, 429, and fallback-header assertions from chapters 3, 4, and 7.
 
 ## Read next
 
-- Chapter 3 uses the master key to issue virtual keys for Seashore Select and Aurora Digital, and explains why a key issued by an admin has no owner.
+- Chapter 3 looks at alice and bob on Virtual Keys, and explains why a key issued by an admin has no owner.
+- Chapter 6 uses the Models page and the Playground Trace to see that `seashore-cs` actually hits `mock-primary:18001`.
+- Chapter 7 looks at the fallback already loaded in Router Settings, and at the switch that really happened on the 11th.
 - The probe in AgentScope Java demo Step 13 is "the terminal calls the gateway directly". The curl in this chapter is the same kind of evidence: it proves the gateway itself is alive. It does not prove the Dataplane has been redirected.
-- Building this book does not depend on this chapter's process. The reader has no remote images embedded.

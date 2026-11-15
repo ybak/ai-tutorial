@@ -1,7 +1,7 @@
 ---
 chapter: 5
 title: Where tenant isolation stops at the gateway
-source: Original. Compared with AgentScope namespaces (demo Step 02 and Step 05) and the local virtual-key model lists, 2026-11-11
+source: Original. Compared with AgentScope namespaces (demo Steps 02 and 05), the Admin UI Teams page on 2026-11-12, and virtual-key model lists
 ---
 
 # Chapter 5 Where tenant isolation stops at the gateway
@@ -19,6 +19,28 @@ flowchart LR
 ```
 
 *Overview for this chapter*
+
+## The two merchants on the Teams page
+
+The merchants inside the gateway are two rows on the UI from the 12th.
+
+![Teams / Your Teams: aurora-main, id 5d1e432d-fbb1-4496-8a51-bea176084366, Organization a dash, Members 1, Models 1, Keys 1, Team spend under $0.01 of $30.00, My Spend $0.00 / Unlimited, created Nov 12, 2026. seashore-main, id fbc26c00-fd5e-4e75-af6b-43c91ed76712, Members 1, Models 2, Keys 1, Team spend under $0.01 of $50.00. The Models column is a count and does not list aliases](../assets/images/05-teams.png)
+
+| Column | aurora-main | seashore-main |
+| --- | --- | --- |
+| id in this database | `5d1e432d-fbb1-4496-8a51-bea176084366` | `fbc26c00-fd5e-4e75-af6b-43c91ed76712` |
+| Organization | `-` | `-` |
+| Members / Models / Keys | 1 / 1 / 1 | 1 / 2 / 1 |
+| Team spend | under $0.01, cap $30.00 | under $0.01, cap $50.00 |
+| My Spend | $0.00 / Unlimited | $0.00 / Unlimited |
+
+Models is 1 and 2, not the words `aurora-cs`. Seashore's 2 is `seashore-cs` and `seashore-cs-fast`. Aurora's 1 is `aurora-cs`. That correspondence is in the config and on the keys page. It is not in the text of this column. Keys is 1 each: bob and alice. Members is 1 each: the proxy's default user attached at issue time, not shop-owner alice and not shop-owner bob. Chapter 3 already said: do not write the `default_user_id` inside `members_with_roles` into the merchant member table.
+
+Organization is empty. This book did not create an organization. Unlimited under My Spend is the spend cap of the admin who is logged in now. It is not the same bucket as the team's $30 and $50. Team spend uses `< $0.01` to say both merchants already have spend, and it has not reached one cent. The $0.0001 on the keys page and the $0.000062 on the log are finer readings. The team column folds them into "under one cent".
+
+The Available Teams and Default Team Settings tabs were not opened. The two rows under Your Teams are the whole of what was seeded.
+
+`xbd-seashore-cs-team` is still the people inside AgentScope who handle the OD-2049 ticket. It does not appear on this table. `seashore-main` on the table is a budget bucket.
 
 ## The two sets of names are not the same layer
 

@@ -1,12 +1,12 @@
 ---
 chapter: 3
 title: Virtual keys
-source: docs.litellm.ai/docs/proxy/virtual_keys; local 1.109.0 calls to /team/new, /key/generate, /key/info, and /key/list, 2026-11-11
+source: docs.litellm.ai/docs/proxy/virtual_keys; Admin UI Virtual Keys page, 2026-11-12; calls to /team/new, /key/generate, /key/info, and /key/list on 2026-11-11 (pip 1.109.0)
 ---
 
 # Chapter 3 Virtual keys
 
-> The master key lets curl ask, on behalf of OD-2049, for one sentence that says "still in transit". Writing it into `xbd-seashore-cs-agent` hands the right to issue keys to the support process. This chapter issues two virtual keys and separates which fields in the response body actually constrain anything, and which are only echoed back.
+> The master key lets curl get a "still in transit" answer for OD-2049. Writing it into `xbd-seashore-cs-agent` hands the right to issue keys to the support process. This chapter first looks at alice and bob, already seeded in the Admin UI, then returns to the issuing API to separate the fields in the response that actually constrain anything from those that are only echoed back.
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,31 @@ flowchart LR
 
 *Procedure for this chapter*
 
+## alice and bob in the UI
+
+On 2026-11-12 the Virtual Keys page had two rows. The key plaintext is masked. The team, the budget, and the models are still visible.
+
+![Virtual Keys: bob, last four g1Rg, status Active, team aurora-main, user column a dash, created and last active on November 12, Spend $0.0001 of $8, Lifetime Spend $0.0001, Budget Reset Never, model aurora-cs. alice, last four DX5Q, team name truncated to seashore-m..., Spend $0.0001 of $10, models seashore-cs and seashore-cs-fast. The default columns do not include RPM](../assets/images/04-virtual-keys.png)
+
+What this table can answer, and what it cannot, stay separate:
+
+| What you can read off this table | Not on the table. Do not fill it in |
+| --- | --- |
+| Both keys are Active. The user column is `-` | The last four characters `g1Rg` and `DX5Q` belong only to this database. Rerunning `seed.sh` replaces them |
+| bob belongs to `aurora-main`, budget $8. alice's budget is $10, and the team name is truncated to `seashore-m...` | Truncation does not mean the team failed to be created. The full name on the Teams page is `seashore-main` |
+| The model column shows aliases: bob has only `aurora-cs`. alice has `seashore-cs` and `seashore-cs-fast` | The default columns do not include RPM. alice's rpm 30 and bob's rpm 20 were set when the keys were issued. This table does not show them |
+| Spend shows $0.0001 for both. Budget Reset is Never | $0.0001 is coarser than the $0.000062 on the success log and in the Playground. Do not reconcile against the four decimal places in this column |
+| Created At and Last Active are both Nov 12, 2026 | The table has no 403. alice calling `aurora-cs` was refused. That row is in the Request Logs in chapter 4 |
+
+Calls made the same day with these two keys: alice calling `seashore-cs` returned HTTP 200, the body starting with `[primary] 订单 OD-2049 仍在途。` ("[primary] Order OD-2049 is still in transit."), response headers `x-litellm-model-id: seashore-cs-primary` and `x-litellm-attempted-fallbacks: 0`, cost about $0.000062. alice calling `aurora-cs` returned HTTP 403, type `key_model_access_denied`. bob calling `aurora-cs` returned HTTP 200. The full 403 JSON was recorded on the 11th and appears in a later section. What the 12th confirmed is the status code and the type. Do not present the 11th's message text as if it were copied again on the 12th.
+
+The dash in the user column is the same fact as "a key issued by an admin has no owner", later in this chapter. alice is not the shop-owner account at Seashore Select, and bob is not Aurora's shop owner. The shop owners are still alice and bob inside AgentScope. The gateway keys only borrow those names, so the screenshots line up with the merchants.
+
+`demo/seed.sh` creates the four objects above with the master key: two teams and two keys. Run it once on an empty database. The key plaintext appears only in that output. After that the page shows only the mask. If it is lost, revoke and reissue. Do not expect this table to hand the `sk-` string back.
+
 ## A team first, then a key
+
+The two rows in the UI are the seeded state. The issuing order is still `/team/new`, then `/key/generate`. The 2026-11-11 calls below record the full field shapes, with different numbers: that day the Seashore key's `key_alias` was `seashore-cs-agent` and `max_budget` was `0.01`. The screenshot's alice is 10 dollars, with rpm 30. Read the response body from the 11th's sample. Read the page from the previous section.
 
 The order on the Virtual Keys page is: create a team, then issue a key for the team. Xingfan's two merchants correspond to two `team_alias` values, using the namespace names, so there is not a second naming scheme.
 
@@ -183,7 +207,7 @@ After injection into the process environment, the process still holds the virtua
 
 ## The other fields in the generate response
 
-The generate response for the Seashore key is long. Besides the fields used above, these were empty or default in this 1.109.0 response. Empty means "not enabled". It does not mean "the feature does not exist".
+The generate response for the Seashore key is long. Besides the fields used above, these were empty or default in this 2026-11-11 (pip 1.109.0) response. Empty means "not enabled". It does not mean "the feature does not exist".
 
 | Field | This time | Does Xingfan depend on it |
 | --- | --- | --- |

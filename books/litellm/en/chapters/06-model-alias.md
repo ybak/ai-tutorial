@@ -1,12 +1,12 @@
 ---
 chapter: 6
 title: Aliases, deployments, and the model name the business sees
-source: docs.litellm.ai/docs/proxy/configs and docs/proxy/load_balancing; local /v1/models and completion responses, 2026-11-11
+source: docs.litellm.ai/docs/proxy/configs and docs/proxy/load_balancing; Admin UI Models page and Playground Trace, 2026-11-12; /v1/models and completion responses, 2026-11-11
 ---
 
 # Chapter 6 Aliases, deployments, and the model name the business sees
 
-> If Xiaofan's config writes `qwen-plus`, the gateway returns 400: that name is not in `/v1/models`. The business should know only `seashore-cs`. The upstream is a simulator today and can be another compatible endpoint tomorrow, and the Agent definition does not have to change with it. This chapter splits the three names, and records that the `model` field in the response changes face after fallback.
+> If Xiaofan's config writes `qwen-plus`, the gateway returns 400: that name is not in `/v1/models`. The business should know only `seashore-cs`. The upstream is a simulator today and can be another compatible endpoint tomorrow, and the Agent definition does not have to change with it. This chapter reads the three names on the Models page and in the Playground Trace, and records that the response `model` field changed after the 2026-11-11 fallback.
 
 ```mermaid
 flowchart LR
@@ -16,10 +16,49 @@ flowchart LR
     D --> E["Upstream api_base<br/>18001/v1"]
     E --> F{"Upstream reachable?"}
     F -->|"yes"| G["Response model<br/>may still be the alias"]
-    F -->|"no"| H["Switch to seashore-cs-fast<br/>response model becomes the upstream id"]
+    F -->|"no"| H["Switch to seashore-cs-fast<br/>check the model-id header"]
 ```
 
 *Overview for this chapter*
+
+## Three aliases on the Models page
+
+After login, open Models + Endpoints. Deployed Models has three rows, all marked Defined in config. Add Model was not clicked.
+
+![Model Management, Deployed Models: three rows, seashore-cs, seashore-cs-fast, and aurora-cs. Credentials are Manual. Created by is Defined in config. The cost column shows IN $1.00 / OUT $2.00 for seashore-cs and aurora-cs, and IN $0.40 / OUT $0.80 for seashore-cs-fast. The filters sit on Team Personal and View Current Team Models. The footer says: to access these models, go to the Virtual Keys page and create a virtual key with no team selected](../assets/images/03-models.png)
+
+The price per million tokens is the unit price in the config times one million: `0.000001` displays as $1.00, and `0.0000004` displays as $0.40. Output is twice the input, so OUT is $2.00 and $0.80. These are experiment unit prices, not the official prices of Tongyi or OpenAI. The Model ID column is truncated. The third row shows the prefix `aurora-cs-p`, which matches the start of `aurora-cs-primary` in the config. The full id follows the config and the response header.
+
+Clicking the `seashore-cs` row does not open a routing diagram.
+
+![Popover on the seashore-cs row: Public Model Name is seashore-cs, and below it LiteLLM Model Name. The config writes openai/mock-qwen-plus; in the screenshot that string is truncated, and in places it looks like openai1/. The popover does not draw api_base, and it does not draw a line to mock-primary](../assets/images/03-models-detail.png)
+
+The popover splits "the business alias" and "the upstream model string" onto two lines. In this config the upstream model string of all three aliases is `openai/mock-qwen-plus`, so the popover cannot tell you whether this row uses 18001 or 18002. `api_base` is in the Trace. See the next section.
+
+Auto-Routers and Model Group Alias on the same page are empty. Fallback is not on those two tabs. Settings → Router Settings → Fallbacks is where the row from `seashore-cs` to `seashore-cs-fast` lives. Chapter 7 opens it. The Decision models hint at the top of the page was not used.
+
+## Playground sends OD-2049 to mock-primary
+
+The Models page proves the aliases are loaded. Which machine a request lands on is the Playground Trace. This run used the Current UI session after login, with the model set to `seashore-cs`. It was not alice's virtual key.
+
+The sentence sent was 「查询订单 OD-2049 的物流状态」 ("Check the shipping status of order OD-2049"). With Stream response on, the first attempt hung. The screen below is what came back after it was turned off. The picture is the success after streaming was turned off. It is not a stream that finished by itself.
+
+![Playground Chat: the user sentence is 「查询订单 OD-2049 的物流状态」 ("Check the shipping status of order OD-2049"). seashore-cs replies 「[primary] 订单 OD-2049 仍在途。请核对运单后再答复客户。」 ("[primary] Order OD-2049 is still in transit. Please check the waybill before replying to the customer."). 0.11s, 18 in, 22 out, $0.000062. The Trace on the right: Requested and Served by are both seashore-cs, Provider model is openai/mock-qwen-plus, API base is http://mock-primary:18001/v1, Fallbacks 0, Retries 0, Overhead 60ms. Guardrails says no policy ran this time. Speed and cost shows Gateway time 75ms](../assets/images/06-playground.png)
+
+Rows on the Trace that line up:
+
+| Words on the Trace | Value | What it means |
+| --- | --- | --- |
+| Requested / Served by | `seashore-cs` | The alias requested and the alias that served are the same. There was no fallback this time |
+| Provider model | `openai/mock-qwen-plus` | The same layer as LiteLLM Model Name in the popover. All three aliases look like this |
+| API base | `http://mock-primary:18001/v1` | This row is what says "it hit primary". fast's config is `mock-backup:18002` |
+| Fallbacks / Retries | 0 / 0 | Matches `num_retries: 0` and the fact that this call did not fail |
+| Body prefix | `[primary]` | The process name the simulator adds. A production upstream will not have this prefix |
+| Cost | $0.000062 | 18 × 0.000001 + 22 × 0.000002. The Usage card shows the same kind of small amount as $0.00 |
+
+Guardrails and policies says no guardrails or policies ran on this request. None were configured. The input at the bottom of the page is still on `seashore-cs` and `chat/completions`.
+
+The Trace has a Call ID row. This book does not copy that string. It is the id of this one call, and a replay changes it.
 
 ## Three layers of names
 
@@ -27,7 +66,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Business alias | `model_name`, also the request body `model` | `seashore-cs`, `seashore-cs-fast`, `aurora-cs` | Rarely. A change means changing the Agent definition and the key list |
 | Deployment id | `model_info.id` | `seashore-cs-primary`, `seashore-cs-fast`, `aurora-cs-primary` | Added when machines or regions are added. The business alias does not change |
-| Upstream model | `litellm_params.model` | `openai/mock-qwen-plus`, `openai/mock-qwen-turbo` | When the vendor changes, only this, `api_base`, and `api_key` change |
+| Upstream model | `litellm_params.model` | All three rows are now `openai/mock-qwen-plus`. On 2026-11-11 the fast row was `openai/mock-qwen-turbo` | When the vendor changes, only this, `api_base`, and `api_key` change |
 
 The `openai/` prefix means "call with the OpenAI-compatible protocol". It does not name the vendor. The simulator does not check the key, but the config still goes through `os.environ/MOCK_UPSTREAM_KEY`, so nobody writes a real key into the yaml.
 
@@ -45,9 +84,9 @@ Multiple deployments of the same name are left for later: Seashore's primary mod
 
 ## `model` in the response cannot be used as the alias
 
-While the primary upstream is alive, a request for `seashore-cs` has response JSON `model` of `seashore-cs`, and response header `x-litellm-model-id` of `seashore-cs-primary`.
+While the primary upstream is alive and the request is `seashore-cs`, the 2026-11-11 response JSON `model` was `seashore-cs`, and the response header `x-litellm-model-id` was `seashore-cs-primary`. In the 2026-11-12 Playground, with the primary alive, Trace Served by was also `seashore-cs` and API base pointed at `mock-primary`.
 
-When the primary upstream process is stopped and fallback succeeds (the run in chapter 7):
+The successful fallback, with the primary process stopped, is the 2026-11-11 run. That day fast's upstream model was still `openai/mock-qwen-turbo`:
 
 | Place | Value |
 | --- | --- |
@@ -57,7 +96,7 @@ When the primary upstream process is stopped and fallback succeeds (the run in c
 | `x-litellm-attempted-fallbacks` | `1` |
 | Body prefix | `[backup]` |
 
-Response `model` changed from the alias to the upstream id. If Xiaofan writes the `model` from the response back into the session, and the next turn sends it unchanged, the gateway receives `mock-qwen-turbo`. That name is not in `/v1/models`. The result is 400, the same class as requesting `qwen-plus` directly:
+In that run the response `model` changed from the alias to the upstream id. The 2026-11-12 compose sets fast to `openai/mock-qwen-plus` as well and did not stop the primary again, so do not look for `mock-qwen-turbo` in the current UI. If Xiaofan writes the upstream id from the response back into the session, and the next turn sends it unchanged, the gateway receives a name that is not in `/v1/models`. The result is 400, the same class as requesting `qwen-plus` directly:
 
 ```json
 {
@@ -99,8 +138,8 @@ Agent definitions, Spring config, and "which model was used" in a ticket all wri
 
 | String | Why |
 | --- | --- |
-| `openai/mock-qwen-plus` | Experiment upstream id |
-| `mock-qwen-turbo` | It appears in the response after fallback. Copying it back causes 400 |
+| `openai/mock-qwen-plus` | Experiment upstream id. All three aliases use it now |
+| `mock-qwen-turbo` | Appeared only in the 2026-11-11 fallback response. Copying it back causes 400. The current config no longer produces it |
 | `seashore-cs-primary` | Deployment id, only in logs and response headers |
 | `http://127.0.0.1:18001` | The simulator |
 | Any vendor's real model name | It will be missed when the vendor changes |

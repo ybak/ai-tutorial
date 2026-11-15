@@ -6,7 +6,7 @@ source: The root LICENSE of github.com/BerriAI/litellm, enterprise/LICENSE.md, e
 
 # Chapter 10 Production boundaries
 
-> The local experiment can already complete a call for OD-2049, rate-limit it, refuse a cross-model call, and fall back when the primary upstream disconnects. Before putting it on `llm.example.com`, three kinds of boundary cannot be papered over by writing more config: LiteLLM's own two licenses, why New API is still only a comparison, and the blast radius of logs and the master key. This chapter adds no required feature.
+> The local experiment can already complete a call for OD-2049, rate-limit it, refuse a cross-model call, and fall back when the primary upstream disconnects. On 2026-11-12 the Admin UI was also logged into, showing models, keys, teams, the Playground, logs, and the fallback row. Before putting it on `llm.example.com`, three kinds of boundary cannot be papered over by writing more config: LiteLLM's own two licenses, why New API is still only a comparison, and the blast radius of logs and the master key. This chapter adds no required feature.
 
 ```mermaid
 flowchart LR
@@ -25,7 +25,7 @@ The root `LICENSE` read on 2026-11-11 explains the split license first, then giv
 
 The same day, `enterprise/LICENSE.md` exists. It is not MIT. The points are: production use needs a valid BerriAI Enterprise subscription and the corresponding seats; you may modify and publish patches, but the rights stay with BerriAI or its licensors; development and testing may copy and modify without buying a subscription; beyond that, copying, merging, publishing, distributing, sublicensing, and selling the software in that directory are prohibited. `enterprise/README.md` says this directory is commercially licensed and points at the enterprise feature docs.
 
-Xingfan's required path does not compile, import, or copy code under `enterprise/`, and it does not set `LITELLM_LICENSE`. Virtual keys, team budgets, rate limits, aliases, fallback, and the existence of the admin UI were all seen in the open-source proxy docs and on local 1.109.0 (the UI was seen only as HTML, with no login). These capabilities sit on the MIT side of the root license, as long as the implementation code is not in `enterprise/`. If you find in the dependency tree that some feature's implementation exists only in that directory, stop using it and use an API this book has already tested.
+Xingfan's required path does not compile, import, or copy code under `enterprise/`, and it does not set `LITELLM_LICENSE`. The 2026-11-12 compose ran without `LITELLM_LICENSE`. Virtual keys, team budgets, rate limits, aliases, and fallback were called on a proxy with no license set, and the Admin UI pages for them were opened and screenshotted: models, virtual keys, teams, the Playground, Usage, Request Logs, and Fallbacks under Router Settings. These capabilities sit on the MIT side of the root license, as long as the implementation code is not in `enterprise/`. Whether the official image contains an `enterprise/` directory was not checked by entering the container. If you find in the dependency tree that some feature's implementation exists only in that directory, stop using it and use an API this book has already tested.
 
 ## Two ways of speaking on the enterprise page
 
@@ -39,7 +39,7 @@ How this book treats them:
 | --- | --- | --- |
 | Virtual keys, teams, `max_budget`, rpm/tpm | Yes | The open-source docs have their own pages, and this machine called them successfully without setting a license |
 | `fallbacks`, `simple-shuffle`, health checks | Yes | Same as above |
-| Clicking models in the admin UI | No | Only confirmed that `/ui` returns HTML |
+| Browsing models, keys, teams, logs, and fallbacks in the Admin UI | Not required, but seen | Logged in with `UI_USERNAME` / `UI_PASSWORD` on 2026-11-12. Nothing was created from the UI |
 | SSO, SCIM, audit logs, the IP allow list, key custody | No | The enterprise page puts them on the license layer. SSO has another sentence: free for up to 5 users, and above that an enterprise license is required. Xingfan's support agents are not five people logging into this UI. Do not use that sentence to treat SSO as already free to use |
 | Organizations, projects, tag budgets | No | The list puts them in the license-enabled items. This machine can use teams with `organization_id` empty |
 | Custom guardrails and Presidio | Not required | The docs say the open-source guardrail framework includes custom guardrails and Presidio. `llmguard_moderations`, `llamaguard_moderations`, `hide_secrets`, `openai_moderations`, `google_text_moderation`, `lakera_prompt_injection`, and `aporia_prompt_injection` need an enterprise license |
@@ -47,7 +47,7 @@ How this book treats them:
 
 Soft-limit email and automatic virtual-key rotation appear on the enterprise list, and they also appear as fields on the open-source API (`soft_budget`, `auto_rotate`). A field existing does not mean email is sent or rotation really happens without a license. Chapters 3 and 4 mark them as not tested. Do not write "at 80% a letter arrives" in the production runbook.
 
-The enterprise page also says the same image and the same version number, and the license is only a key. The SOC 2 Type II report is requested from the other party. This book does not repeat an audit conclusion. The pricing page has no public numbers. This book does not invent a quote. The support window and the policy of the four most recent stable patch versions follow that page. The experiment pins only 1.109.0.
+The enterprise page also says the same image and the same version number, and the license is only a key. The SOC 2 Type II report is requested from the other party. This book does not repeat an audit conclusion. The pricing page has no public numbers. This book does not invent a quote. The support window and the policy covering the four most recent stable minor versions follow that page. The experiment is not pinned to a single version: the pip install on 2026-11-11 was 1.109.0; on 2026-11-12 the UI sidebar showed v1.169.0 while the success header was `x-litellm-version: 1.109.0`. Record both in the release notes.
 
 ## New API is still only a comparison
 
@@ -68,7 +68,7 @@ One API is MIT. The New API README marks it as the upstream. Xingfan also does n
 
 In the experiment, the master key, the salt, the database password, and the mock upstream key are all in that machine's environment. They did not enter Git. Production replaces them with independent random values. The Docker Quickstart's note on the two keys is:
 
-- `LITELLM_MASTER_KEY` is the root credential. It authorizes the admin API, and by default it is also the admin UI password, username `admin`. A leak equals admin permission. The `sk-` prefix is described as a convention on this page. The Virtual Keys page requires the master key to start with `sk-`. Production generates it by the stricter page. When the two pages conflict, use the form that can pass `/key/generate`, and write the version into the change record.
+- `LITELLM_MASTER_KEY` is the root credential. It authorizes the admin API. The 2026-11-12 login used a separate `UI_USERNAME` / `UI_PASSWORD`. The master key was never typed into that form. The docs still say that, when no UI password is set, the master key is also the Admin UI password and the username is `admin`. Do not rely on that in production. A leaked master key is admin permission. The `sk-` prefix is described as a convention on this page. The Virtual Keys page requires the master key to start with `sk-`. Production generates it by the stricter page. When the two pages conflict, use the form that can pass `/key/generate`, and write the version into the change record. The pink banner after login means environment-credential login is still on. Production should switch to personal accounts and turn that path off. This book's demo did not turn it off.
 - `LITELLM_SALT_KEY` encrypts vendor keys written through the UI. There is no in-place rotation. Changing it makes stored keys impossible to decrypt until they are entered again. Even if the upstream key is injected by yaml and environment variables, set the salt from day one, so that someone pasting a vendor key into the UI does not leave it unprotected.
 
 Postgres accepts only the gateway's network. The connection-budget sentence in the log has to be counted into `max_connections`. Configure Redis before multiple replicas, or rate limits and cooldown multiply by the replica count.
@@ -83,14 +83,16 @@ Merge requests in the business repo continue to reject upstream keys and `127.0.
 
 | Item | Reason |
 | --- | --- |
-| A real vendor's latency, tool calls, and streaming fallback | No vendor key, so no response is invented |
-| Click paths in the Admin UI | Only HTML 200 |
-| The official Docker Quickstart compose | The environment has no Docker |
+| A real vendor's latency, tool calls, and streaming fallback | No vendor key, so no response is invented. With Stream response on, the first Playground attempt hung. The screenshot is after it was turned off |
+| Login with SSO, and creating models or fallbacks in the UI | Login used username and password. The models and the Fallbacks row came from `config.yaml`. The Add button was not clicked |
+| Running the official `docker-compose.quickstart.yml` as-is | This book uses `demo/docker-compose.yml`: the official `main-stable` image, Postgres 16, two mock services, config mounted by volume |
+| Request Logs matching Usage row by row | The log list on the 12th had 3 rows. Usage later showed 6 requests. The gap stays |
+| Stopping the primary again on the 2026-11-12 compose | The fallback-success and pre-check-skip headers are from the 11th. The 12th only showed the config row on the Fallbacks page |
 | The original text of the no-database budget warning | The docs were read. A separate process was not started |
-| One trace appearing in Langfuse | The callback was not turned on |
+| One trace appearing in Langfuse | The callback was not turned on. Telemetry is Off too |
 | The final URL of the Spring and AgentScope processes | Chapter 8 lists the review |
 | Rate limits no longer amplified after a second proxy replica plus Redis | Only one process |
-| Any feature inside `enterprise/` | Deliberately not tested |
+| Any feature inside `enterprise/` | Deliberately not tested, and `LITELLM_LICENSE` was not set |
 | New API's UI and channels | Deliberately not installed |
 
 These gaps stay in each chapter's review list. When an experiment is added, change that chapter's "already seen" table. Do not change only this chapter's summary.
@@ -109,9 +111,9 @@ Going to production is not changing the experiment config's host name. The relea
 | Seashore's key requests `seashore-cs` | 200, and the cost header is non-zero (unless the contract price really is 0) |
 | A test key with a tiny `rpm_limit`, called twice in a row | The second is 429 `throttling_error`, then revoked |
 | The second call of a test key with a tiny budget | 422 `budget_exceeded`, then revoked |
-| Stop the test upstream other than the standby | The large-budget key's `x-litellm-attempted-fallbacks` is 1 |
+| Stop the primary test upstream (keep the standby running) | The large-budget key's `x-litellm-attempted-fallbacks` is 1 |
 | The environment has no `LITELLM_LICENSE` | Empty |
-| The `litellm` version in the image or the venv | Matches the release note. This book's baseline is 1.109.0 |
+| Sidebar string and `x-litellm-version` | Record both. On 2026-11-12 the sidebar was v1.169.0 and the success header was 1.109.0 |
 
 A test key's tiny budget hits chapter 4's "the first call is still allowed". Use the second call as the evidence. A first-call 200 does not prove the budget works.
 

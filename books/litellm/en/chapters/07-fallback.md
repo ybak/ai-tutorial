@@ -1,12 +1,12 @@
 ---
 chapter: 7
 title: Fallback, retries, and load
-source: docs.litellm.ai/docs/proxy/reliability, docs/proxy/load_balancing, docs/routing; two local requests after 18001 was stopped, 2026-11-11
+source: docs.litellm.ai/docs/proxy/reliability, docs/proxy/load_balancing, docs/routing; Admin UI Settings → Router Settings → Fallbacks, 2026-11-12; two requests after stopping 18001, 2026-11-11
 ---
 
 # Chapter 7 Fallback, retries, and load
 
-> The primary simulator process stops, and the question about OD-2049 is still there. One key with enough budget got an answer from the standby model. Another key, whose budget looked unused, was refused by the pre-check, and the primary model's connection error was returned as-is. Fallback is not finished by writing one `fallbacks` line in the config. This chapter is written from those two real responses, and it places retries, cooldown, and the load strategy on the layer where they actually happen.
+> The primary simulator process stops, and the question about OD-2049 is still there. One key with enough budget got an answer from the standby model. Another key, whose budget looked unused, was refused by the pre-check, and the primary model's connection error was returned as-is. Fallback is not finished by writing one `fallbacks` line in the config. This chapter first looks at the row already loaded in Router Settings, then writes from the two real responses on the 11th, and places retries, cooldown, and the load strategy on the layer where they actually happen. The UI on the 12th did not stop the primary upstream again.
 
 ```mermaid
 flowchart LR
@@ -20,6 +20,18 @@ flowchart LR
 
 *Procedure for this chapter*
 
+## The rule in the UI comes from config.yaml
+
+Settings → Router Settings → Fallbacks. On the left is `seashore-cs`. The arrow points at `seashore-cs-fast`. The row is tagged config.yaml.
+
+![Router Settings, Fallbacks tab: one rule, seashore-cs pointing at seashore-cs-fast, source tagged config.yaml. Add Fallbacks is beside it. The other tabs on the same page are Loadbalancing, Routing Groups, Prompt Caching, and General](../assets/images/09-router.png)
+
+Add Fallbacks was not clicked. The rule was mounted from the config file. It was not created with that button. Auto-Routers and Model Group Alias on the Models page are empty. Looking for this arrow there finds nothing.
+
+On the Loadbalancing page in the same settings group, this run showed routing strategy `simple-shuffle` and retries 0. That page was not screenshotted on its own. retries 0 is `num_retries: 0`: when the primary upstream fails, the request enters fallback immediately, without spinning on the same deployment first.
+
+This screenshot proves the rule is loaded. It does not prove a switch happened. On the 12th's Playground, Fallbacks is 0 and the request hit `mock-primary`. The response headers that really switched to backup are from the 11th. See the next sections. That day's config still had fast's upstream model name as `openai/mock-qwen-turbo` (the 2026-11-11 pip config), and `api_base` was the host's `127.0.0.1:18002`. The current compose writes fast as `openai/mock-qwen-plus` too, at `http://mock-backup:18002/v1`. Read the 11th's `model` field with that difference in mind.
+
 ## The experiment config turned retries off
 
 `router_settings.num_retries` is 0, `timeout` is 8 seconds, `allowed_fails` is 1, and `cooldown_time` is 15 seconds. `fallbacks` has one entry: `seashore-cs` to `seashore-cs-fast`.
@@ -32,18 +44,18 @@ In production, a support answer can tolerate one short retry. If a logistics che
 
 ## The time fallback succeeded
 
-18001 was stopped. 18002 still returned `{"name":"backup"}`. A new key was issued on the Seashore team. `models` contains both seashore aliases, `max_budget` is 100, and `rpm_limit` is 60. The request `model` is `seashore-cs`.
+The run below is the 2026-11-11 pip process, not the 2026-11-12 UI. 18001 was stopped. 18002 still returned `{"name":"backup"}`. A new key was issued on the Seashore team. `models` contains both seashore aliases, `max_budget` is 100, and `rpm_limit` is 60. The request `model` is `seashore-cs`. That day fast's upstream model name was `openai/mock-qwen-turbo`.
 
 | Item | Value |
 | --- | --- |
 | HTTP | 200 |
-| Body | `[backup] 订单 OD-2049 仍在途。请核对运单后再答复客户。` |
-| Response `model` | `mock-qwen-turbo` |
+| Body | `[backup] 订单 OD-2049 仍在途。请核对运单后再答复客户。` ("[backup] Order OD-2049 is still in transit. Please check the waybill before replying to the customer.") |
+| Response `model` | `mock-qwen-turbo` (2026-11-11 pip config; the current config would show the fast deployment's `openai/mock-qwen-plus` string) |
 | `x-litellm-model-id` | `seashore-cs-fast` |
 | `x-litellm-attempted-fallbacks` | `1` |
 | `x-litellm-response-cost` | `2.48e-05` |
 
-`/health` requires a key. The response at the time put `http://127.0.0.1:18002/v1` in `healthy_endpoints` and `18001` in `unhealthy_endpoints`. The model strings were `openai/mock-qwen-turbo` and the primary model name, which was truncated in the log. `/health/liveliness` is still `"I'm alive!"` when the primary upstream is already dead. The liveness probe only means the process is up. It does not mean the primary model is up. The readiness probe looks at the database: `{"status":"healthy","db":"connected"}`. Model health is the endpoint list of `/health`, or the business request's `x-litellm-model-id`.
+`/health` requires a key. The response at the time put `http://127.0.0.1:18002/v1` in `healthy_endpoints` and `18001` in `unhealthy_endpoints`. That `127.0.0.1` address is the 2026-11-11 pip config. The current compose uses `http://mock-backup:18002/v1`. The model strings were `openai/mock-qwen-turbo` (2026-11-11 pip config) and the primary model name, which was truncated in the log. `/health/liveliness` is still `"I'm alive!"` when the primary upstream is already dead. The liveness probe only means the process is up. It does not mean the primary model is up. The readiness probe looks at the database: `{"status":"healthy","db":"connected"}`. Model health is the endpoint list of `/health`, or the business request's `x-litellm-model-id`.
 
 If Kubernetes uses only liveliness, a dead primary upstream will not restart the gateway. That is correct: the gateway is not broken. The upstream is. Alerts should subscribe to unhealthy endpoints, not to process restarts.
 
@@ -125,7 +137,7 @@ The body prefixes `[primary]` / `[backup]` exist only on the simulator. A produc
 
 ## The time scale of cooldown
 
-With `allowed_fails: 1` and `cooldown_time: 15`, one failure may cool a deployment down for a quarter of an hour. In the experiment the primary process was stopped. It was not one occasional 500, so you cannot see "cooldown only on the Nth time". If an occasional timeout is also counted into `allowed_fails`, support will all go to fast for fifteen seconds after one jitter, and both the unit price and the answer quality change. Before raising `allowed_fails` in production, use one hand-made single 500 and see whether cooldown is immediate. This machine did not do a single 500. The simulator's fail mode was also not turned on in front of the proxy. Only the whole process was stopped. Connection refused and an upstream HTTP 500 are both errors `fallbacks` can take in the fallback docs, but whether they increment the failure count the same way has no separate sample.
+With `allowed_fails: 1` and `cooldown_time: 15`, one failure may put a deployment into cooldown for 15 seconds. In the experiment the primary process was stopped. It was not one occasional 500, so you cannot see "cooldown only on the Nth time". If an occasional timeout is also counted into `allowed_fails`, support will all go to fast for fifteen seconds after one jitter, and both the unit price and the answer quality change. Before raising `allowed_fails` in production, use one hand-made single 500 and see whether cooldown is immediate. This machine did not do a single 500. The simulator's fail mode was also not turned on in front of the proxy. Only the whole process was stopped. Connection refused and an upstream HTTP 500 are both errors `fallbacks` can take in the fallback docs, but whether they increment the failure count the same way has no separate sample.
 
 `num_retries: 0` means there is no "try the same deployment once more". If production changes it to 2, the latency of one failure is about the timeout times the number of attempts, plus one more attempt on the standby. With `timeout: 8` and 2 retries, the customer may wait more than twenty seconds before seeing fast's answer. The ticket UI needs its own timeout, shorter than this chain, or the user refreshes first, and the refresh makes another call.
 
@@ -140,7 +152,7 @@ The order of this sample is fixed, so someone else can replay it. Do not change 
 1. `MOCK_NAME=primary` listens on 18001, `MOCK_NAME=backup` listens on 18002, both `MOCK_MODE=ok`.
 2. The proxy uses `demo/config.yaml`, `num_retries` is 0, and `fallbacks` points `seashore-cs` at `seashore-cs-fast`.
 3. Request `seashore-cs` with a Seashore key of budget 100. Confirm the body is `[primary]`, the header is `seashore-cs-primary`, and `attempted-fallbacks` is 0. On this machine, before this large-budget key was issued, primary had already been stopped, so the evidence of "seeing primary first" comes from an earlier Seashore key call, not from a before-and-after of the same key. On replay, add this call, so the same key succeeds first and then fails.
-4. Stop 18001. `curl http://127.0.0.1:18001/` should fail to connect. 18002 still returns `backup`.
+4. Stop 18001. `curl http://127.0.0.1:18001/` should fail to connect. 18002 still returns `backup`. On the Compose demo, from `books/litellm/demo`, the same stop is `docker compose stop mock-primary`, then `curl -sS http://127.0.0.1:18002/`, then `docker compose start mock-primary`. The 2026-11-12 compose run did not repeat this stop. On the current config the fallback response `model` is the fast deployment's `openai/mock-qwen-plus` string, not `mock-qwen-turbo`.
 5. Request `seashore-cs` again with the same large-budget key. Expect 200, `[backup]`, `x-litellm-model-id: seashore-cs-fast`, `attempted-fallbacks: 1`, and cost `2.48e-05`.
 6. Use a key whose `max_budget` is 0.01 and which already has spend, as the control. This machine got 500, and the message contains `Fallback to seashore-cs-fast was skipped because the caller is over budget for it.`
 7. Bring 18001 back up and request once more. Expect a return to primary. After writing the sample, this machine did not bring 18001 back up to recheck "recovery". Add that on replay. If you do not recover, later smoke keeps hitting backup, the unit price and the body prefix both change, and it is easy to misread that as a wrong config.

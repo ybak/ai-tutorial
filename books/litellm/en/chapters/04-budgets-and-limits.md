@@ -1,12 +1,12 @@
 ---
 chapter: 4
 title: Team budgets and rate limits
-source: docs.litellm.ai/docs/proxy/team_budgets and budget_exceeded_status_code in config_settings; tested locally on 1.109.0, 2026-11-11
+source: docs.litellm.ai/docs/proxy/team_budgets and budget_exceeded_status_code in config_settings; Admin UI Usage and Request Logs, 2026-11-12; 422 and 429 on pip 1.109.0, 2026-11-11
 ---
 
 # Chapter 4 Team budgets and rate limits
 
-> If OD-2049's third chase becomes a retry loop, Seashore Select's support will empty the shared quota before the vendor has an alert. Budget and rate limit are two different doors on the gateway: one counts money, one counts attempts. This chapter slams both doors with numbers that are deliberately absurdly small, and records the time the amount in the error text did not match the amount in the database.
+> If OD-2049's third chase becomes a retry loop, Seashore Select's support will empty the shared quota before the vendor has an alert. Budget and rate limit are two different doors on the gateway: one counts money, one counts attempts. This chapter first reads Usage and Request Logs after the demo has run, then slams both doors with deliberately tiny numbers, and records a case where the amount in the error text did not match the amount in the database.
 
 ```mermaid
 flowchart LR
@@ -21,7 +21,43 @@ flowchart LR
 
 *Procedure for this chapter*
 
+## The UI rounds spend down to zero
+
+The key table in chapter 3 shows alice's and bob's Spend as $0.0001. The Spend card on the Usage page is coarser still: it is $0.00. A single call, worked by hand, is $0.000062. The three precisions differ. Take $0.000062 from the response header and from the successful log row as the price of that call. Do not take the 0 on the card as "no money was spent".
+
+![Usage / Global Usage, range 5 Nov 02:04 to 12 Nov 02:04. Spend $0.00, No budget set; Total Requests 6, 5 ok and 1 failed; Total Tokens 160, 0 cache read; Avg cost / request $0.0000; Avg latency 15ms; 83.33% success rate. The daily bar is on Nov 11, and the vertical axis is still $0.00](../assets/images/08-usage.png)
+
+![Lower half of Usage: Top models shows aurora-cs and seashore-cs at 50% each and $0.00. Top agents shows curl at 120 tokens ($0.00, 75%) and Mozilla at 40 tokens ($0.00, 25%). Spend by Provider's openai row is Successful 4, Failed 1, 160 tokens, total spend $0.00](../assets/images/08-usage-2.png)
+
+Read them next to Home. The two screenshots are not the same moment:
+
+| Page | Requests | Tokens | Success rate | Spend |
+| --- | --- | --- | --- | --- |
+| Home (chapter 2) | 4, 3 ok, 1 failed | 120 | 75.0%, latency 12ms | $0.00, No budget set |
+| Upper half of Usage | 6, 5 ok, 1 failed | 160 | 83.33%, latency 15ms | $0.00, No budget set |
+| Usage's Provider row | Successful 4, Failed 1 | 160 | This row does not add up to 6 | $0.00 |
+
+The 6 requests in the upper half, and the Provider row's 4 successes plus 1 failure, sit side by side on the same Usage page and were not collapsed into one number. This book does not add an explanation of the form "one more call was not drawn". Top models shows the two aliases at half each, $0.00 each. Top agents' 120 plus 40 equals 160: curl 75%, Mozilla 25%. Mozilla's 40 tokens are the same size as one Playground turn of 18+22. The 120 tokens on curl are the size of three 40-token calls. These are numbers on the page that add up. They are not a row-by-row list.
+
+Provider is written as openai because the model strings in the config start with `openai/`. The mock upstream never left this machine.
+
+No budget set is written under the global Spend. Team budgets are on the Teams page in chapter 5: Seashore $50, Aurora $30. They are not shown on this global card.
+
+## Request Logs had only three rows
+
+Logs → Request Logs, Last 24 Hours, listed 3 rows at the time. Live Tail was on.
+
+![Request Logs, Last 24 Hours, Live Tail on. Only three rows were listed: one Failure with the team and the model empty and 0 tokens; one Failure by alice on seashore-main, the model column starting with openai/mock-q, 0 tokens; one Success by alice, cost $0.000062, 40 tokens (18+22). bob's success and the later Playground success were not in these three rows. Usage later showed more requests. Do not read the log and the usage page as the same list](../assets/images/07-logs.png)
+
+By the record of this run, the three rows are: one unauthenticated `/health` failure, alice's 403, and one success by alice. The success row's cost of $0.000062, 40 tokens (18+22), team `seashore-main`, and key alias alice line up with alice's call to `seashore-cs`. The list itself does not print the path `/health` in a visible column. The unauthenticated row is identified from the notes taken at the time, not from a cell you can point at in the picture.
+
+bob's HTTP 200, and the later Playground success, were not in this list. Usage afterwards showed more requests. So this Request Logs view is not a row-by-row breakdown of Usage. Someone on call who only pages through these three rows will miss bob and the question asked in the browser. Do not rewrite the gap as "the logs and the usage match exactly", and do not edit the picture to close it.
+
+The model column on the success row is likewise truncated around `openai/mock-q`. It cannot tell `seashore-cs` from `aurora-cs`. In this config both aliases' upstream model string is `openai/mock-qwen-plus`. Read the alias from the key and the team. Read the deployment from the response header.
+
 ## The team takes a slice first
+
+The team budgets in the screenshots are Seashore $50 and Aurora $30, and the keys are alice $10 and bob $8. Those are the numbers seeded into the UI on the 12th. They are far too large to be hit by two calls of $0.000062. The experiment below, on 2026-11-11, used different numbers: the Seashore team `max_budget` was 1.0 dollars, and Aurora's was 0.5 dollars. The key used to hit the door was smaller still. Do not match the $50 on the Teams page against the 422.
 
 At `/team/new`, Seashore Select's `max_budget` is 1.0 dollars, `budget_duration` is `1d`, `rpm_limit` is 30, and `tpm_limit` is 20000. Aurora is 0.5 dollars and `rpm_limit` 20, with no `tpm_limit`.
 
@@ -163,7 +199,7 @@ Around 15:49 UTC on 2026-11-11, the Seashore key made one `seashore-cs` call. Th
 | Aurora's second-call error text `Current cost` | `0.032777001` | Cannot be the ledger |
 | Aurora key's later `spend` | `6.2e-05` | Matches the primary unit price |
 
-The reconciliation job compares only the first three rows. The fourth row reminds the collector to wait. If the fifth row is taken as a metric by a log platform, Seashore's 0.01 dollar cap looks more than thirty times over after one call. The sixth row says Aurora's call was finally posted at the configured unit price. The large number in the refusal text was not written into `spend`.
+The reconciliation job compares only the first three rows. The fourth row reminds the collector to wait. If the fifth row is taken as a metric by a log platform, a 0.01-dollar cap would look more than three times over after a single call (0.032777 / 0.01 ≈ 3.3). The sixth row says Aurora's call was finally posted at the configured unit price. The large number in the refusal text was not written into `spend`.
 
 `model_spend` is still an empty object. Do not chart it. Team spend is read from `team_info.spend`. After these calls, Seashore's team on this machine is `6.2e-05`. That includes the Seashore key's call and does not include Aurora's key. Aurora is another `team_id`. The collector filters by team_id. Do not add every key's spend and then compare it with one team, unless you are sure nothing is missing and nothing is double-counted.
 
