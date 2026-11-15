@@ -6,7 +6,7 @@ source: Original. Gateway duties checked against the LiteLLM Proxy Quickstart an
 
 # Chapter 1 Business services should not hold model keys
 
-> When Lin Zhou pushed a change for Seashore Select's support agent, the diff gained a line `DASHSCOPE_API_KEY`. That line can answer "why hasn't order OD-2049 arrived", and if the key leaks it can also punch through the model bill for both of Xingfan's merchants. This chapter takes the key out of the business repo first, then decides where the gateway stands.
+> When Lin Zhou pushed a change for Seashore Select's support agent, the diff gained a line `DASHSCOPE_API_KEY`. That line can answer "why hasn't order OD-2049 arrived", and, if it leaks, can also run up the model bill for both of Xingfan's merchants. This chapter takes the key out of the business repo first, then decides where the gateway stands.
 
 ```mermaid
 flowchart LR
@@ -153,7 +153,7 @@ New API can also relay traffic and issue tokens. Its license is not MIT. When Xi
 Once a key is in Git, deleting it in the next commit does nothing. It is still in history. Lin Zhou handles it in this order, not in the order "write the postmortem first".
 
 1. Revoke that upstream key in the vendor console and issue a new one, handed only to the gateway's deploy system. Until the old key is revoked, assume it can still create charges.
-2. Replace the gateway's `MOCK_UPSTREAM_KEY`, or the matching environment variable in production, restart the gateway process, and send one test sentence that contains only the order id through `seashore-cs`. Confirm a marker such as `[primary]`, or a real upstream 200. This machine has no real vendor. In the experiment this step replaces the simulator's environment variable. It does not prove the vendor side has revoked the key.
+2. Replace the gateway's `MOCK_UPSTREAM_KEY`, or the matching environment variable in production, and restart the gateway process (in the demo: edit `docker-compose.yml`, then `docker compose up -d litellm`). Send one test sentence that contains only the order id through `seashore-cs`. Confirm a marker such as `[primary]`, or a real upstream 200. This machine has no real vendor. In the experiment this step replaces the simulator's environment variable. It does not prove the vendor side has revoked the key.
 3. Business processes do not have to restart, as long as they do not hold the old upstream key. If they do, remove it first, then talk about virtual keys. Reversing the order hangs support during the window when the upstream key is removed.
 4. Scan CI logs, image history, and ticket comments. If a curl was pasted under the ticket title "After-sales escalation: order OD-2049, customer complaint about shipping delay", delete the comment too. Deleting Git is not enough.
 5. Tell the owners of Seashore and Aurora: the model bill may have had abnormal calls before revocation. The note to alice and bob does not include a fragment of the key.
@@ -224,7 +224,7 @@ Whether the daily budget is 1 dollar or 100 dollars, and whether rpm is 10 or 30
 
 ## Read next
 
-- Chapter 2 runs the Proxy on a machine with no vendor key, and says why New API is only a comparison.
+- Chapter 2 runs the Proxy with Docker Compose on a machine with no vendor key, logs into the Admin UI, and explains why New API is only a comparison.
 - AgentScope Java chapter 6 writes `baseUrl` and the model extension. Reading the key from an environment variable is a discipline that chapter already has. This book changes the variable's value from an upstream key to a virtual key.
 - AgentScope Java chapter 43 and demo Step 13 are the upstream of this business path. Step 13 notes that the real Dataplane-to-gateway request was not tested then. This book fills in the gateway itself. It does not go back and claim that Dataplane request was tested.
 - The demo's `.env.example` leaves `XBD_MODEL_API_KEY` empty. Empty is correct. What gets filled in later should be a virtual key, not a vendor key.

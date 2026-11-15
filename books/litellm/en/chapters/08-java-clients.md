@@ -47,7 +47,7 @@ OpenAIChatModel model = OpenAIChatModel.builder()
         .build();
 ```
 
-`baseUrl` includes `/v1`, consistent with the example in chapter 6 that points at a compatible gateway (that example uses the placeholder host `your-gateway.example.com`). Here the host is replaced with `llm.example.com`, which is already in use, and the model name is replaced with the gateway alias. Do not write `qwen-plus`, and do not write `mock-qwen-turbo`.
+`baseUrl` includes `/v1`, consistent with the example in chapter 6 that points at a compatible gateway (that example uses the placeholder host `your-gateway.example.com`). Here the host is replaced with `llm.example.com`, which is already in use, and the model name is replaced with the gateway alias. Do not write `qwen-plus`, and do not write `mock-qwen-turbo` (that string appeared only in the 2026-11-11 pip fallback response).
 
 The Spring Boot starter properties in chapter 6 are:
 
@@ -87,7 +87,7 @@ spring:
           model: seashore-cs
 ```
 
-The expected final URL is `https://llm.example.com/v1/chat/completions`. If your version no longer appends `/v1`, change `base-url` to `https://llm.example.com/v1`, or explicitly set `spring.ai.openai.chat.completions-path` if it still exists. There is only one criterion: `/v1` appears once in the path in the access log. Twice is that 1.x pit. None at all, while the gateway only mounts the route that includes `/v1`, and the request 404s.
+The expected final URL is `https://llm.example.com/v1/chat/completions`. If your version no longer appends `/v1`, change `base-url` to `https://llm.example.com/v1`, or explicitly set `spring.ai.openai.chat.completions-path` if it still exists. There is only one criterion: `/v1` appears once in the path in the access log. Twice is that 1.x pit. None at all may still work on LiteLLM, which on the 2026-11-11 proxy routed both `/chat/completions` and `/v1/chat/completions`, but would 404 behind a proxy that only forwards `/v1/*`.
 
 The reference docs also say `spring.ai.openai.chat.base-url` can override the shared `base-url`. Use that when the embedding model and the chat model go to different gateways. If Xingfan's embeddings go through another system, do not reuse this support virtual key.
 
@@ -125,7 +125,7 @@ Writing "the gateway was tested" as "the Java application was tested" is wrong. 
 Seashore's support (AgentScope) and Seashore's order API (Spring AI) use different key variables, the same model name, and different ways of writing the base URL. Open both files when reviewing. Do not review each on its own.
 
 ```yaml
-# AgentScope process. baseUrl includes /v1, consistent with the builder in shelf chapter 6.
+# AgentScope starter properties. The base URL with /v1 is set in the builder below.
 # Not executed in a JVM in this environment.
 agentscope:
   openai:
@@ -167,7 +167,7 @@ Whether `completions-path` may be written explicitly when it repeats the default
 | `merchant-gateway` | Stays inside the Dataplane. After it is resolved, it is not sent outward |
 | `agentscope.example.com` | Not sent. That is the platform's own host |
 
-The user message can still be "订单 OD-2049 为什么还没到？". That sentence was used in the curl in chapter 2. The simulator's answer does not read the second half and always returns fixed text. A real model will read the sentence. The fixed text cannot be used to accept Xiaofan's wording. It can only be used to accept the route.
+The user message can still be "订单 OD-2049 为什么还没到？" ("Why hasn't order OD-2049 arrived?"), the sentence used in chapter 2. The simulator ignores the message and always returns fixed text. A real model will read the sentence. The fixed text cannot be used to accept Xiaofan's wording. It can only be used to accept the route.
 
 ## What the Java side does on failure
 
@@ -197,4 +197,4 @@ This table is this chapter's client contract. It does not add gateway behavior. 
 
 - AgentScope Java chapters 6 and 21 are the source of the client extension. This book does not repeat the provider table.
 - Demo Step 13 is how "the company gateway" is attached to a hosted Agent. This chapter names that gateway as LiteLLM and splits the two merchants' keys.
-- Chapter 9 sends the trace of this hop to Langfuse. Java does not have to each write its own instrumentation, provided you accept that the trace is from the gateway's point of view.
+- Chapter 9 sends the trace of this hop to Langfuse. The Java services do not each need their own instrumentation, as long as you accept a gateway-side view of the trace.

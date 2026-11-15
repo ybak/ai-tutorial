@@ -39,7 +39,7 @@ Enterprise 文档用一张分层图把「虚拟密钥、预算和限流、花费
 | --- | --- | --- |
 | 虚拟密钥、团队、`max_budget`、rpm/tpm | 是 | 开源文档有独立页面，本机未设置许可证也调用成功 |
 | `fallbacks`、`simple-shuffle`、健康检查 | 是 | 同上 |
-| 管理界面点选模型 | 否 | 只确认了 `/ui` 返回 HTML |
+| 在管理界面里浏览模型、钥匙、团队、日志和降级 | 不是必做，但 2026-11-12 看过 | 用 `UI_USERNAME` / `UI_PASSWORD` 登录。没有在界面里新建模型或降级 |
 | SSO、SCIM、审计日志、IP 允许列表、密钥托管 | 否 | 企业页明确放在许可证层。SSO 另有一句：5 个用户以内免费，超过需要企业许可。星帆的客服不是去登录这个 UI 的五个人，不要靠这句把 SSO 当成已经免费可用 |
 | 组织、项目、标签预算 | 否 | 列表把它们放在许可证开启项。本机 `organization_id` 为空也能用团队 |
 | 自定义防护与 Presidio | 不在必做 | 文档说开源防护框架包含自定义防护和 Presidio。`llmguard_moderations`、`llamaguard_moderations`、`hide_secrets`、`openai_moderations`、`google_text_moderation`、`lakera_prompt_injection`、`aporia_prompt_injection` 需要企业许可 |
