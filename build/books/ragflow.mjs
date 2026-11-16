@@ -54,6 +54,30 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: "part-1", title: "Part 1 Getting Started and Going Live", chapters: [
+    { file: "01-overview.md", chapter: 1, title: "Getting to know RAGFlow", sources: ["docs/basics/rag.md", "docs/quickstart.mdx", "docs/references/glossary.mdx"] },
+    { file: "02-deploy-models.md", chapter: 2, title: "Deployment and model channels", sources: ["docs/quickstart.mdx", "docs/administrator/setup/configuration.md", "docs/guides/models/llm_api_key_setup.md", "docs/guides/models/deploy_local_llm.mdx", "docs/develop/launch_ragflow_from_source.md"] },
+  ]},
+  { id: "part-2", title: "Part 2 Building the knowledge base", chapters: [
+    { file: "03-dataset-basics.md", chapter: 3, title: "Datasets: the carrier of a knowledge base", sources: ["docs/guides/dataset/dataset_overview.md", "docs/guides/dataset/dataset_list_and_creation.md", "docs/guides/dataset/files_dataset_document_management.md", "docs/guides/dataset/metadata_management.md", "docs/guides/file/file.md", "docs/guides/data_source/overview_and_page_management.md", "docs/guides/data_source/add_to_knowledge_base_and_sync.md"] },
+    { file: "04-parsing-chunking.md", chapter: 4, title: "Parsing and chunking: from documents to Chunk", sources: ["docs/guides/dataset/configuration.md", "docs/guides/dataset/chunk_parsing_results_and_knowledge_fragment_management.md", "docs/guides/dataset/notes_and_faqs.md"] },
+    { file: "05-enrichment-indexing.md", chapter: 5, title: "Retrieval enrichment and indexing", sources: ["docs/guides/dataset/configuration.md", "docs/guides/dataset/retrieval_testing.md"] },
+    { file: "06-knowledge-compilation.md", chapter: 6, title: "Knowledge compilation and knowledge artifacts", sources: ["docs/guides/knowledge_compilation/overview.md", "docs/guides/knowledge_compilation/built_in_templates_and_dedicated_configuration.md", "docs/guides/knowledge_compilation/apply_knowledge_compilation_template.md", "docs/guides/knowledge_compilation/basic_information_configuration.md", "docs/guides/knowledge_compilation/faq.md", "docs/guides/dataset/artifacts_knowledge_artifact_generation_and_management.md", "docs/basics/agent_context_engine.md"] },
+    { file: "07-retrieval-tuning.md", chapter: 7, title: "Retrieval testing and tuning", sources: ["docs/guides/dataset/retrieval_testing.md", "docs/guides/search/search_settings.md", "docs/guides/dataset/configuration.md"] },
+  ]},
+  { id: "part-3", title: "Part 3 Using and Integrating", chapters: [
+    { file: "08-chat-assistant.md", chapter: 8, title: "Chat assistants and sessions", sources: ["docs/guides/chat/feature_overview_and_creation.md", "docs/guides/chat/chat_configuration.md", "docs/guides/chat/using_chat_sessions.md"] },
+    { file: "09-search-channels.md", chapter: 9, title: "Search apps and access channels", sources: ["docs/guides/search/create_search.md", "docs/guides/chatchannel/chat_channels_overview.md", "docs/guides/chatchannel/connect_chat.md", "docs/guides/chatchannel/channel_access_and_configuration.md", "docs/guides/agent/embed_into_web_pages.md"] },
+    { file: "10-agent-workflow.md", chapter: 10, title: "Agents and workflows", sources: ["docs/guides/agent/agent_overview.md", "docs/guides/agent/understand_the_canvas.md", "docs/guides/agent/creation_and_management.md", "docs/guides/agent/agent_workflow/basic_component.md", "docs/guides/agent/agent_workflow/tool_components.md", "docs/guides/agent/ingestion_pipeline/create_ingestion_pipeline.md", "docs/guides/memory/create_memory.md", "docs/guides/memory/connect_to_an_agent.md", "docs/guides/agent/quickstarts/build_customer_support_agent.md"] },
+    { file: "11-api-mcp.md", chapter: 11, title: "External integration: API and MCP", sources: ["docs/references/http_api_reference.md", "docs/references/python_api_reference.md", "docs/develop/acquire_ragflow_api_key.md", "docs/develop/mcp/overview.md", "docs/develop/mcp/use_ragflow_as_mcp_server.md", "docs/develop/mcp/connect_external_mcp_servers.md"] },
+  ]},
+  { id: "part-4", title: "Part 4 Production and operations", chapters: [
+    { file: "12-operations.md", chapter: 12, title: "Production operations", sources: ["docs/administrator/setup/configuration.md", "docs/administrator/monitoring/tracing.mdx", "docs/administrator/upgrade_and_migration/start_here.md", "docs/administrator/upgrade_and_migration/upgrade_from_v0_to_v1.md", "docs/administrator/upgrade_and_migration/backup_and_restore_v1.md", "docs/administrator/management/ragflow_cli.md", "docs/administrator/management/admin_ui/before_you_begin.md", "docs/administrator/sandbox/overview.md", "docs/administrator/setup/configure_ssl_certificates.md"] },
+    { file: "13-team-governance.md", chapter: 13, title: "Team collaboration and knowledge-base operations", sources: ["docs/guides/team/permission_system_overview/index.md", "docs/guides/team/permission_system_overview/permission_effective_rules.md", "docs/guides/team/permission_system_overview/team_and_resource_permissions.md", "docs/guides/team/sharing_scope_configuration/open_source_edition_sharing_scope_configuration.md", "docs/guides/team/sharing_scope_configuration/share_knowledge_bases.md", "docs/guides/dataset/logs.md", "docs/faq.mdx"] },
+  ]},
+];
+
 /**
  * 无源文档链接映射,返回空 Map(接口与 agentscope-java.book.buildLinkMap 对齐)。
  * @returns {Map<string, string>} 空 Map
@@ -63,4 +87,22 @@ function buildLinkMap() {
 }
 
 // 构建映射类字段收敛为 book 字段(与 agentscope-java.mjs / mcp.mjs 同款,所有消费方从 book 出发)
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'RAGFlow: From First Steps to Production',
+      subtitle: 'From standing up a knowledge base to production retrieval tuning',
+      tagline: 'Hands-on RAG, from standing up a knowledge base to production retrieval tuning',
+      sourceNote: 'Written from the RAGFlow official repository docs (v1.0.0-rc2, 2026-10-16), with an operations-practice angle; code samples were not run',
+      sourceDescription: 'The docs/ directory of the official RAGFlow repository infiniflow/ragflow (v1.0.0-rc2)',
+      licenseNote: 'RAGFlow docs are published under the Apache-2.0 license. This book is study notes, distributed under this repository\'s license.',
+      trademarkNote: 'RAGFlow and related trademarks belong to their owners. This book is not affiliated with the RAGFlow project or InfiniFlow.',
+      date: '2026-10-27',
+      chaptersDir: 'books/ragflow/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});

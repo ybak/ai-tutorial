@@ -310,15 +310,19 @@ test("localeSwitchHrefs:中文书架、章节与无译文的书", () => {
   assert.equal(localeSwitchHrefs({ locale: "en", page: "shelf" }).zhHref, "../index.html");
 });
 
-test("renderEnglishHome 链到 LiteLLM 英文版和 README.en", () => {
+test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => {
   const html = renderEnglishHome();
   assert.ok(html.includes('lang="en"'));
   assert.ok(html.includes('href="litellm/index.html"'));
+  assert.ok(html.includes('href="ragflow/index.html"'));
+  assert.ok(html.includes("RAGFlow: From First Steps to Production"));
   assert.ok(html.includes("README.en.md"));
   assert.ok(html.includes('href="../index.html"'));
   assert.ok(html.includes('aria-current="page"'));
   assert.ok(html.includes(">English</span>"));
   assert.ok(html.includes('href="../index.html" hreflang="zh-CN"'));
+  assert.ok(!html.includes('href="fastgpt/'));
+  assert.ok(!html.includes('href="mcp/'));
 });
 
 test("中文渲染缺省文案不变,英文 pager 用英文", () => {
@@ -420,6 +424,82 @@ test("litellm 英文章节引用的实拍图与中文那 13 张相同", async ()
   assert.match(logs, /bob's success/);
   assert.match(logs, /Playground success/);
   assert.match(logs, /Usage later showed more requests/);
+});
+
+test("ragflow 中英文章节文件名一一对应,命令与配置一致,图和注释可译", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: ragflow } = await import("./books/ragflow.mjs");
+  const en = localizedBook(ragflow, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "ragflow");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/ragflow/en/chapters");
+  assert.equal(en.assetsDir, ragflow.assetsDir);
+  const zhFiles = ragflow.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 13);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fenceTags = (text) => [...text.matchAll(/```([^\n]*)\n/g)].map((m) => m[1]);
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  // 英文图、text 示意、以及 bash/python/yaml 注释允许翻译。命令、代码和配置去掉注释后仍须与中文一致。
+  const stripComments = (body, lang) => body.split("\n").map((line) => {
+    if ((lang === "yaml" || lang === "bash" || lang === "python") && /^\s*#/.test(line)) return "";
+    if (lang === "java" && /^\s*\/\//.test(line)) return "";
+    if (lang === "yaml" || lang === "bash" || lang === "python") return line.replace(/\s+#.*$/, "");
+    if (lang === "java") return line.replace(/\s+\/\/.*$/, "");
+    return line;
+  }).filter((line) => line !== "").join("\n");
+
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, ragflow.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    assert.deepEqual(fenceTags(enText), fenceTags(zh), `${file} fence tags`);
+    for (const lang of ["bash", "json", "python", "yaml"]) {
+      assert.deepEqual(
+        fences(enText, lang).map((body) => stripComments(body, lang)),
+        fences(zh, lang).map((body) => stripComments(body, lang)),
+        `${file} ${lang} code`,
+      );
+    }
+    for (const lang of ["text", "mermaid"]) {
+      assert.equal(fences(enText, lang).length, fences(zh, lang).length, `${file} ${lang} count`);
+    }
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+  }
+});
+
+test("ragflow 英文章节引用的实拍图与中文相同,且都能解析到中文 assets", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (dir) => {
+    const byFile = {};
+    const all = new Set();
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md")).sort()) {
+      const text = fs.readFileSync(path.join(dir, file), "utf8");
+      const refs = [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+      assert.equal(text.includes("../../assets/"), false, `${file} must not use ../../assets/`);
+      assert.equal(text.includes("/en/assets/"), false, `${file} must not point at /en/assets/`);
+      byFile[file] = refs;
+      for (const ref of refs) all.add(ref);
+    }
+    return { byFile, all };
+  };
+  const zh = imageRefs(path.join(root, "books/ragflow/chapters"));
+  const en = imageRefs(path.join(root, "books/ragflow/en/chapters"));
+  assert.deepEqual([...en.all].sort(), [...zh.all].sort());
+  assert.ok(en.all.size > 0);
+  for (const file of Object.keys(zh.byFile)) {
+    assert.deepEqual(en.byFile[file], zh.byFile[file], `${file} image order`);
+  }
+  for (const ref of en.all) {
+    assert.ok(ref.startsWith("../assets/images/"), ref);
+    const abs = path.join(root, "books/ragflow", ref.replace(/^\.\.\//, ""));
+    assert.equal(fs.existsSync(abs), true, `${ref} resolves under books/ragflow/assets`);
+  }
 });
 
 test("buildSite 英文子站与中文路径并存,语言切换指向对方同章", async () => {
@@ -557,5 +637,33 @@ test("英文下一本只链到已有英文页：LiteLLM 落到英文首页并注
   assert.ok(translatedHtml.includes('href="../../agentscope-java/index.html"'));
   assert.ok(!translatedHtml.includes('href="../../../index.html"'));
   assert.ok(!translatedHtml.includes("currently includes LiteLLM"));
+});
+
+test("英文下一本：RAGFlow 的下一本没有英文版，只链到英文首页和中文书架", async () => {
+  const { book: ragflow } = await import("./books/ragflow.mjs");
+  const en = localizedBook(ragflow, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "en-home");
+  assert.equal(rec.bookId, null);
+  assert.equal(rec.href, "../../index.html");
+  assert.equal(rec.shelfHref, "../../../index.html");
+  assert.ok(rec.blurb.includes("LiteLLM"));
+  assert.ok(rec.blurb.includes("RAGFlow"));
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes('href="../../index.html"'));
+  assert.ok(html.includes('href="../../../index.html"'));
+  assert.ok(html.includes(">Chinese shelf</a>"));
+  assert.ok(!html.includes('href="../../fastgpt/'));
+  assert.ok(!html.includes("/en/fastgpt"));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!HARD_SELL.test(html));
+
+  const fromMcp = resolveNextBook({ bookId: "mcp", locale: "en", title: "MCP", tagline: "tools" });
+  assert.equal(fromMcp.kind, "book");
+  assert.equal(fromMcp.bookId, "ragflow");
+  assert.equal(fromMcp.href, "../../ragflow/index.html");
+  assert.equal(fromMcp.title, "RAGFlow: From First Steps to Production");
+  assert.equal(fromMcp.shelfHref, null);
 });
 
