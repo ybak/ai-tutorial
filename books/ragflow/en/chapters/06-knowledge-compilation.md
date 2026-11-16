@@ -6,18 +6,18 @@ source: docs/guides/knowledge_compilation/overview.md
 
 # Chapter 6 Knowledge compilation and knowledge artifacts
 
-> Chapter guide: Chapter 4 cut the After-sales Policy Manual (after-sales-policy.pdf) into chunks, and Chapter 5 fitted those chunks with retrieval enrichment, so when support asks "what is the compensation standard for shipping damage" it can already be recalled steadily. But support will ask next: "how many parts does the manual have? which chapter is the return process in? which clauses did this revision change?" Chunks cannot answer those questions. A chunk is a "point", and a structural question is a "surface". This chapter covers RAGFlow's answer: knowledge compilation (Knowledge Compilation). Above the chunks, an LLM processes the document again into a structured knowledge artifact (Artifact): a navigation index, a graph, a tree, a mind map, a timeline, a Wiki page. This chapter covers: how to choose among the six built-in templates, how to tune the dedicated configuration surface, how a template is applied through an Ingestion Pipeline, how to view and update an artifact on the Artifacts page, the common pitfalls, and the running case, generating a navigation artifact for the after-sales manual so the support Agent looks at the table of contents before it drills into retrieval. By the end of this chapter, you can: choose the right compilation template for any document; walk the full flow from template to artifact; and set up an operations rhythm in which artifacts stay in step with document revisions.
+> Chapter guide: Chapter 4 cut the After-sales Policy Manual (after-sales-policy.pdf) into chunks, and Chapter 5 fitted those chunks with retrieval enrichment, so when support asks "what is the compensation standard for shipping damage" it can already be recalled steadily. But support will ask next: "how many parts does the manual have? which chapter is the return process in? which clauses did this revision change?" Chunks cannot answer those questions. A chunk is a "point", and a structural question is a "surface". This chapter covers RAGFlow's answer: knowledge compilation. Above the chunks, an LLM processes the document again into a structured knowledge artifact: a navigation index, a graph, a tree, a mind map, a timeline, a Wiki page. This chapter covers: how to choose among the six built-in templates, how to tune the dedicated configuration surface, how a template is applied through an Ingestion Pipeline, how to view and update an artifact on the Artifacts page, the common pitfalls, and our running example, generating a navigation artifact for the after-sales manual so the support Agent looks at the table of contents before it drills into retrieval. By the end of this chapter, you can: choose the right compilation template for any document; walk the full flow from template to artifact; and set up an operations rhythm in which artifacts stay in step with document revisions.
 
 ```mermaid
 flowchart LR
-    A["在 Agent 页创建编译模板（6.2 · 6.4）<br/>Compilation Operator 入口<br/>六项基础信息与全局规则"] --> B{"模板怎么选（6.3）<br/>组织方式与文档结构同构"}
-    B -->|"手册/规范 · 保章节结构"| C["PageIndex（6.3 · 6.7）<br/>title/fact/conclusion 三字段<br/>表格多开 Re-chunk"]
-    B -->|"实体关系 · 互链知识页"| D["Graph 建关系网 · Wiki 建互链页（6.3）<br/>实体/关系规格按业务裁剪"]
-    C --> E["Pipeline 挂 Compiler 引用模板（6.4）<br/>Dataset 选文档应用 Pipeline<br/>Parser→Chunker→Compiler→Indexer 依次完成"]
+    A["Create a compilation template on the Agent page (6.2 and 6.4)<br/>Compilation Operator entry<br/>Six basic-information items and the global rules"] --> B{"How to choose a template (6.3)<br/>The organization should match the document structure"}
+    B -->|"A manual or a spec, keep the chapter structure"| C["PageIndex (6.3 and 6.7)<br/>Three fields: title / fact / conclusion<br/>Turn Re-chunk on when there are many tables"]
+    B -->|"Entities and relations, cross-linked pages"| D["Graph builds the relation net. Wiki builds the cross-linked pages (6.3)<br/>Trim the entity and relation spec to the business"]
+    C --> E["The pipeline hangs a Compiler that cites the template (6.4)<br/>The dataset picks documents and applies the pipeline<br/>Parser, Chunker, Compiler, Indexer, in that order"]
     D --> E
-    E --> F{"工件分两级（6.5）<br/>文档级还是知识库级"}
-    F -->|"文档级 · 编译即得"| H["Artifacts 页下拉查看（6.5）<br/>对照六类检查表验收<br/>检索效果第 7 章过堂"]
-    F -->|"知识库级 Wiki"| G["Artifacts 页手动 generate（6.5）<br/>库级任务有独立日志"]
+    E --> F{"Artifacts come in two levels (6.5)<br/>Document level, or knowledge-base level"}
+    F -->|"Document level, compilation produces it"| H["View it from the Artifacts page dropdown (6.5)<br/>Check it against the six-type checklist<br/>Retrieval effect is reviewed in Chapter 7"]
+    F -->|"Knowledge-base-level Wiki"| G["Generate it by hand on the Artifacts page (6.5)<br/>The knowledge-base task has its own log"]
     G --> H
 ```
 
@@ -27,13 +27,13 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**The document structure is clear (a manual, a report, a specification), and what the user asks is "which chapter talks about what" rather than a specific point of knowledge**: see 6.3 and choose a PageIndex or Tree template, then see the running case in 6.7. A navigation artifact lets question answering give the table of contents first, then drill into retrieval.
+**The document structure is clear (a manual, a report, a specification), and what the user asks is "which chapter talks about what" rather than a specific point of knowledge**: see Section 6.3 and choose a PageIndex or Tree template, then see our running example in Section 6.7. A navigation artifact lets question answering give the table of contents first, then drill into retrieval.
 
-**You want to pull the entity relations in a document (people, organizations, products, clauses) out for associative queries, or settle scattered documents into Wiki pages that link to each other**: see the Graph and Wiki template configuration surfaces in 6.3. Both are driven by entity / relation specifications.
+**You want to pull the entity relations in a document (people, organizations, products, clauses) out for associative queries, or settle scattered documents into Wiki pages that link to each other**: see the Graph and Wiki template configuration surfaces in Section 6.3. Both are driven by entity / relation specifications.
 
-**Compilation finished, but you cannot see the artifact, the result is not what you expected, or you changed the template and it did not take effect**: go straight to 6.6. Wiki has to be generated manually on the Artifacts page, and changing a template does not recompile on its own. The entries whose behavior runs against intuition are all gathered there.
+**Compilation finished, but you cannot see the artifact, the result is not what you expected, or you changed the template and it did not take effect**: go straight to Section 6.6. Wiki has to be generated manually on the Artifacts page, and changing a template does not recompile on its own. The entries whose behavior runs against intuition are all gathered there.
 
-Prerequisites: the dataset from Chapter 3 is ready (the running case is after-sales-kb); parsing and chunking from Chapter 4, and indexing and enrichment from Chapter 5, are already tuned. Knowledge compilation processes exactly those products.
+Prerequisites: the dataset from Chapter 3 is ready (our running example is after-sales-kb); parsing and chunking from Chapter 4, and indexing and enrichment from Chapter 5, are already tuned. Knowledge compilation processes exactly those products.
 
 ## 6.1 Overview: another pass above the chunks
 
@@ -42,9 +42,9 @@ The official definition, in one sentence (docs/guides/knowledge_compilation/over
 Chapter 4 said that chunks solve the retrieval-grain problem of "semantic matching wants something small and focused". Knowledge compilation solves another dimension: **reorganize chunks and parse results into "knowledge that has structure"**. The division of work can be remembered like this:
 
 ```text
-切片（Chunk）管「点」：运输破损的赔偿标准是多少？→ 召回赔偿条款切片
-工件（Artifact）管「面」：手册分几部分？退货流程涉及哪些章节？
-                          → 层级索引先给目录，再下钻定位
+A chunk covers a point: "运输破损的赔偿标准是多少？" ("What is the compensation standard for damage in transit?") → recall the compensation-clause chunk
+An artifact covers the shape: How many parts does the manual have? Which chapters does the return flow touch?
+                          → The hierarchy index gives the contents first, then you drill in
 ```
 
 Six kinds of knowledge artifacts are supported now (the overview original; template names stay exactly as the half-width strings on the interface):
@@ -60,7 +60,7 @@ Six kinds of knowledge artifacts are supported now (the overview original; templ
 
 **The relation to a dataset**: an artifact is not a new object floating outside the dataset. Knowledge compilation generates it by processing again, based on **the documents in the dataset and the parse results**, and you view and browse it on the dataset's **Artifacts** page. But creating and maintaining an artifact (template configuration, generation, update, regeneration) is not done on the Artifacts page. It is done on the compilation-template and Pipeline side (the original dataset Artifacts document). By generation scope, artifacts also split into two levels: document level and knowledge-base level. That dividing line is the most important behavioral difference in this chapter. Section 6.5 develops it.
 
-One sentence of background is enough. The official docs position the direction RAG is evolving as the base of an **agent context engine (Agent Context Engine)**: the bottleneck of an LLM's performance is not the model's intelligence, but the quality of the context it receives. The knowledge core (Knowledge Core) of a context engine relies on structured retrieval such as TreeRAG and GraphRAG to close the semantic gap (docs/basics/agent_context_engine.md). A knowledge artifact is where that positioning lands in the product: **chunks are raw material for the retriever, and artifacts are structured context for the Agent**. What the Agent receives is not only several related fragments. It also receives a skeleton of "what the knowledge looks like". The glossary in Chapter 1 mentioned that knowledge compilation was reworked starting in v0.27.0, replacing the separate GraphRAG and RAPTOR entries. Looking back from Chapter 6: the Graph template takes over graph-style needs, and the Tree template takes over hierarchical-summary needs.
+One sentence of background is enough. The official docs position the direction RAG is evolving as the base of an **agent context engine**: the bottleneck of an LLM's performance is not the model's intelligence, but the quality of the context it receives. The knowledge core of a context engine relies on structured retrieval such as TreeRAG and GraphRAG to close the semantic gap (docs/basics/agent_context_engine.md). A knowledge artifact is where that positioning lands in the product: **chunks are raw material for the retriever, and artifacts are structured context for the Agent**. What the Agent receives is not only several related fragments. It also receives a skeleton of "what the knowledge looks like". The glossary in Chapter 1 mentioned that knowledge compilation was reworked starting in v0.27.0, replacing the separate GraphRAG and RAPTOR entries. Looking back from Chapter 6: the Graph template takes over graph-style needs, and the Tree template takes over hierarchical-summary needs.
 
 ## 6.2 Knowledge compilation at a glance: a five-step pipeline
 
@@ -78,11 +78,11 @@ The three are a "rules → product → execution slot" relation: the template de
 
 ```mermaid
 flowchart LR
-    T["① 创建编译模板<br/>Agent 页 · Compilation Operator"] --> P["② 配置 Pipeline<br/>挂 Compiler · 选模板"]
-    P --> D["③ Dataset 应用<br/>选文档 · 应用 Pipeline"]
-    D --> X["④ 执行编译<br/>Parser → Chunker<br/>→ Compiler → Indexer"]
-    X --> V["⑤ 查看工件<br/>Artifacts 页<br/>文档级 / 知识库级"]
-    V -.文档增删.-> U["Update 提示<br/>手动同步（6.5）"]
+    T["1. Create a compilation template<br/>Agent page, Compilation Operator"] --> P["2. Configure the pipeline<br/>Hang a Compiler and choose the template"]
+    P --> D["3. Apply it on the dataset<br/>Pick documents and apply the pipeline"]
+    D --> X["4. Run compilation<br/>Parser, then Chunker<br/>then Compiler, then Indexer"]
+    X --> V["5. View the artifacts<br/>Artifacts page<br/>Document level / knowledge-base level"]
+    V -.Documents added or removed.-> U["Update prompt<br/>Sync by hand (6.5)"]
 ```
 
 Step by step, corresponding to the official documentation (the Standard Workflow in the overview):
@@ -105,7 +105,7 @@ Gather the behavior the official docs scatter across documents, by lifecycle:
 | Generation | Document-level artifacts (Graph/Tree/PageIndex/MindMap/Timeline) are produced directly as the document is compiled; a knowledge-base-level artifact (Wiki), after compilation finishes, still has to be manually generated on the Artifacts page | the original apply document |
 | Update | The system keeps detecting document changes inside the dataset, but **it does not automatically regenerate artifacts**. After documents are added or removed, an update prompt is shown, and a person has to click Update to sync | the original apply document |
 
-Two of the three say "will not do it automatically". That is where the mental model of knowledge compilation differs from "change the configuration, reparse, and it takes effect" in Chapters 4 and 5, and it is also the source of the most questions in 6.6.
+Two of the three say "will not do it automatically". That is where the mental model of knowledge compilation differs from "change the configuration, reparse, and it takes effect" in Chapters 4 and 5, and it is also the source of the most questions in Section 6.6.
 
 ### Preparation before you start
 
@@ -126,7 +126,7 @@ The essence of choosing a template is a mapping from "document form → way of o
 | Timeline | Documents that contain clear time information and events, organized and shown in time order |
 | Wiki | Documents with a large amount of content and relations among topics, organized as Wiki pages that link to each other |
 
-This book's position: read this table as one judgment. **What you want is not "the most advanced artifact". It is "a way of organizing that is isomorphic to the document's natural structure".** A manual has a natural chapter tree, and forcing a graph out of it takes the long way around. Support notes are full of "who looked up whom, and because of what", and forcing a timeline throws the relations away. Choosing the wrong template is the first cause of poor artifact quality, and this mistake happens before compilation. Tuning parameters cannot save it.
+Our recommendation: read this table as one judgment. **What you want is not "the most advanced artifact". It is "a way of organizing that is isomorphic to the document's natural structure".** A manual has a natural chapter tree, and forcing a graph out of it takes the long way around. Support notes are full of "who looked up whom, and because of what", and forcing a timeline throws the relations away. Choosing the wrong template is the first cause of poor artifact quality, and this mistake happens before compilation. Tuning parameters cannot save it.
 
 ### Dedicated configuration surfaces at a glance
 
@@ -141,7 +141,7 @@ After you choose a template, you can adjust at two levels, global rules and temp
 | Timeline | Global rules; EntitySpecification (timestamp/event); RelationSpecification (ordered) |
 | Wiki | Global rules; Wiki mode; EntitySpecification; RelationSpecification; ClaimSpecification; ConceptSpecification; Blueprint (including Instruction) |
 
-Of these, Graph, Tree, and PageIndex are closest to the running case, and they are developed below. The MindMap and Timeline configuration surfaces are thinner (four node types, CentralTopic/Branch/Sub-branch/Keyword; entities of only the two types timestamp/event, and only the one relation ordered). Take them from the table as they stand.
+Of these, Graph, Tree, and PageIndex are closest to our running example, and they are developed below. The MindMap and Timeline configuration surfaces are thinner (four node types, CentralTopic/Branch/Sub-branch/Keyword; entities of only the two types timestamp/event, and only the one relation ordered). Take them from the table as they stand.
 
 ### Entity and relation specifications: Graph and Wiki
 
@@ -155,7 +155,7 @@ EntitySpecification and RelationSpecification are the core of graph-style templa
 |---------------|------------------------------|
 | owns, part_of, caused_by, regulates, located_in, other | Also uses (a use relation), 7 types in all |
 
-The official configuration advice (the built_in_templates document), condensed into four items: **keep only the types the business needs**, and delete default configuration that has no actual use, so invalid extraction is reduced; keep type names and descriptions clear, and do not use several types to express similar concepts; relation semantics have to be explicit, and avoid a definition that is too wide; in a complex scene, use the Rule field to add domain constraints. For example, a global rule can be written as 「只抽取文档中的核心人员、组织、产品与关键事件，实体名保持完整，无法确认的不生成实体」 ("extract only the core people, organizations, products, and key events in the document, keep entity names complete, and do not generate an entity that cannot be confirmed").
+The official configuration advice (the built_in_templates document), condensed into four items: **keep only the types the business needs**, and delete default configuration that has no actual use, so invalid extraction is reduced; keep type names and descriptions clear, and do not use several types to express similar concepts; relation semantics have to be explicit, and avoid a definition that is too wide; in a complex scene, use the Rule field to add domain constraints. For example, a global rule can be written as "只抽取文档中的核心人员、组织、产品与关键事件，实体名保持完整，无法确认的不生成实体" ("Extract only the core people, organizations, products, and key events. Keep entity names intact. Do not emit an entity you cannot confirm.") ("extract only the core people, organizations, products, and key events in the document, keep entity names complete, and do not generate an entity that cannot be confirmed").
 
 Wiki has three further layers. **Wiki mode** decides how pages are organized: Entity mode (entity mode, one page per entity / concept) or Topic mode (topic mode, where the LLM groups related entities onto the same page by relations and context). **ClaimSpecification** extracts complete factual statements (it requires the associated entities to come from information already extracted, and it avoids speculative content that cannot be verified from the document), and it fits scenes that need the knowledge checked. **Blueprint** defines the page-structure template. Six are preset, Brand/Engineering/General/Market/Product/Interview, plus Custom. After you select one, you can preview the page structure in the Example area and then decide to generate. The official suggestion: for structurally complex content such as an enterprise knowledge base or product documentation, enabling Plan is suggested.
 
@@ -169,7 +169,7 @@ The final shape of a Tree template is controlled by four parameters, and it is t
 | Clustering Threshold | The match degree of content clustering | The division is stricter, and topic nodes are finer | More related content is merged, and the structure is more concentrated |
 | Clustering Ratio | The clustering ratio in the Tree structure | The levels are richer | Fewer nodes, and the whole is simpler |
 
-Two details that are easy to step on: **Claim Extraction Prompt** controls the prompt that extracts atomic claims from the leaf chunks before clustering. The extraction result carries source-chunk evidence, and it is used for clustering so the effect of layout noise is reduced. Leave it empty to use the built-in rules, and customize it only when there is a domain-specific need. After **Re-chunk by Tree Leaves** is turned on, RAGFlow merges the source chunks of each leaf cluster into one new retrieval chunk (the original chunks are kept but marked not retrievable), so the final retrieval boundary follows the Tree's semantic boundary rather than the original chunk boundary. **Only one Tree template in the same template group can enable this option** (the built_in_templates original).
+Two details that often trip people up: **Claim Extraction Prompt** controls the prompt that extracts atomic claims from the leaf chunks before clustering. The extraction result carries source-chunk evidence, and it is used for clustering so the effect of layout noise is reduced. Leave it empty to use the built-in rules, and customize it only when there is a domain-specific need. After **Re-chunk by Tree Leaves** is turned on, RAGFlow merges the source chunks of each leaf cluster into one new retrieval chunk (the original chunks are kept but marked not retrievable), so the final retrieval boundary follows the Tree's semantic boundary rather than the original chunk boundary. **Only one Tree template in the same template group can enable this option** (the built_in_templates original).
 
 ### PageIndex fields and relations
 
@@ -211,7 +211,7 @@ Stress the weight of the official Note once more: **a CompilationTemplate only d
 
 ### Applying it in a Dataset
 
-1. Enter the Dataset page, and create a dataset or open an existing one (the running case is after-sales-kb);
+1. Enter the Dataset page, and create a dataset or open an existing one (our running example is after-sales-kb);
 2. Upload the documents to process;
 3. In the file list, choose **Configure Ingestion Pipeline**;
 4. Choose the Ingestion Pipeline that contains CompilerOperator;
@@ -232,11 +232,11 @@ The behavioral difference of the two levels is the weight of this section:
 | Document level | Graph, Tree, PageIndex, MindMap, Timeline | Produced directly as the document is compiled; click the file name in the file list to view the corresponding result |
 | Knowledge-base level | Wiki (some artifacts can be promoted to knowledge-base level) | After the related documents finish compiling, go to the Artifacts page and click **generate**. The system generates from the compilation results currently in the base. A knowledge-base-level task has its own log |
 
-Look at the two-level behavior in the table above from the Artifacts page itself first. Screenshot measured on 2026-11-04 in the same environment: the Artifacts page of after-sales-kb, with the type dropdown at the top right open. Compilation has not been executed yet, and the center of the page is the empty state.
+Look at the two-level behavior in the table above from the Artifacts page itself first. Screenshot taken on 2026-11-04 in the same environment: the Artifacts page of after-sales-kb, with the type dropdown at the top right open. Compilation has not been executed yet, and the center of the page is the empty state.
 
 ![The type dropdown at the top right of the Artifacts page is open, five items: Wiki, Tree/PageIndex, Graph, Mind map, and Timeline; the center of the page is the empty-state copy No wiki yet](../assets/images/demo/ragflow-06-artifacts-dropdown.png)
 
-The dropdown is in fact five items: Wiki, Tree/PageIndex, Graph, Mind map, and Timeline. Of the six items listed in the body, **To Skills** is not among them. It is an operation entry inside the artifact content page, and it does not occupy the type dropdown. The interface spells the hierarchical-index kind as Tree/PageIndex, and there is no separate "Navigation" item. The body says "naming follows the dropdown items on the interface", and the measured result lands here. The empty-state copy in the center of the page, "No wiki yet——Compiled automatically when documents are parsed", writes the timing of compilation onto the interface: compilation hangs on the document-parsing flow. Compilation has not been executed, so the artifact area is empty, as a matter of course. Record one discrepancy honestly: this empty-state sentence says Wiki is compiled automatically along with parsing, while the apply document (6.6) says that after Wiki compilation finishes you still have to generate manually on the Artifacts page. The interface copy and the documentation wording do not agree. Leave it to be checked after the compilation flow is measured.
+The dropdown is in fact five items: Wiki, Tree/PageIndex, Graph, Mind map, and Timeline. Of the six items listed in the body, **To Skills** is not among them. It is an operation entry inside the artifact content page, and it does not occupy the type dropdown. The interface spells the hierarchical-index kind as Tree/PageIndex, and there is no separate "Navigation" item. The body says "naming follows the dropdown items on the interface", and the result confirmed in testing lands here. The empty-state copy in the center of the page, "No wiki yet——Compiled automatically when documents are parsed", writes the timing of compilation onto the interface: compilation hangs on the document-parsing flow. Compilation has not been executed, so the artifact area is empty, as a matter of course. Record one discrepancy honestly: this empty-state sentence says Wiki is compiled automatically along with parsing, while the apply document (Section 6.6) says that after Wiki compilation finishes you still have to generate manually on the Artifacts page. The interface copy and the documentation wording do not agree. Leave it to be checked after the compilation flow is verified hands-on.
 
 ### Quality checks: what to inspect for each of the six artifact types
 
@@ -264,10 +264,10 @@ The system keeps detecting document changes in the dataset, but artifacts are **
 The official positioning of what an artifact is for (the overview original): knowledge retrieval, intelligent question answering, and Agent applications. Landed on this book's chapter map:
 
 - **The chat assistant** (see Chapter 8): after a dataset is configured with compilation artifacts, how retrieval and citation on the question-answering side benefit is developed in the configuration context of the chat assistant;
-- **The canvas Agent** (see Chapter 10): the entry for creating a compilation template is on the Agent page (Compilation Operator in 6.2). How artifacts and Skills enter the orchestration of the support Agent is one of the inputs of the support-Agent instance in Chapter 10;
+- **The canvas Agent** (see Chapter 10): the entry for creating a compilation template is on the Agent page (Compilation Operator in Section 6.2). How artifacts and Skills enter the orchestration of the support Agent is one of the inputs of the support-Agent instance in Chapter 10;
 - **Retrieval testing** (see Chapter 7): whether an artifact was built well has to come back, in the end, to verifying the recall effect. Whether a navigation path of "table of contents first, then drill down" really improves location is for the retrieval test to say.
 
-This book's position: do not treat an artifact as another vase feature that you "glance at after it is generated". **An artifact is a second asset of the dataset**. Chunks serve single-point recall, and artifacts serve structural navigation and the settling of methodology. In one knowledge chain, both are present.
+Our recommendation: do not treat an artifact as another vase feature that you "glance at after it is generated". **An artifact is a second asset of the dataset**. Chunks serve single-point recall, and artifacts serve structural navigation and the settling of methodology. In one knowledge chain, both are present.
 
 ## 6.6 Common questions and pitfalls
 
@@ -291,17 +291,17 @@ The official FAQ (knowledge_compilation/faq.md) has eight items, gathered into f
 
 **Group 4: telling concepts apart**
 
-- *What is the difference between Re-Split Parser Output and Chunker?* See 6.4: different processing stages. The former serves reorganization of the compilation input, and it does not replace Chunker.
+- *What is the difference between Re-Split Parser Output and Chunker?* See Section 6.4: different processing stages. The former serves reorganization of the compilation input, and it does not replace Chunker.
 
-This book's position adds one pit outside the FAQ: **do not take "compilation succeeded" for "the artifact is usable"**. A green light in the task log only says the flow finished. The six-type checklist (6.5) is the acceptance line. In particular, a Graph node with no basis, and a Timeline misreading of a relative time, are both typical of "it ran through, and it is wrong".
+Our recommendation adds one pitfall outside the FAQ: **do not take "compilation succeeded" for "the artifact is usable"**. A green light in the task log only says the flow finished. The six-type checklist (Section 6.5) is the acceptance line. In particular, a Graph node with no basis, and a Timeline misreading of a relative time, are both typical of "it ran through, and it is wrong".
 
 ## 6.7 Running case: give the after-sales manual a navigation artifact
 
-Back to the running case. After Chapters 3-5, the After-sales Policy Manual in after-sales-kb (after-sales-policy.pdf, 50 pages including tables) is already retrieval material with its chunks complete and its index ready. A point question such as "the compensation standard for shipping damage" can already be answered steadily. Now add the "surface": the structural questions support staff ask at high frequency. "How many parts does the manual have? Which chapter is the return process in? Which clauses did this revision change?"
+Back to our running example. After Chapters 3-5, the After-sales Policy Manual in after-sales-kb (after-sales-policy.pdf, 50 pages including tables) is already retrieval material with its chunks complete and its index ready. A point question such as "the compensation standard for shipping damage" can already be answered steadily. Now add the "surface": the structural questions support staff ask at high frequency. "How many parts does the manual have? Which chapter is the return process in? Which clauses did this revision change?"
 
-**The choice**: a manual is a typical document whose "chapter titles are clear, and the structure needs to be kept for quick location". Against the selection table in 6.3, the answer is **PageIndex** (the official wording of the applicable scene: books, reports, and specification documents). Do not use Graph: the entity relations in the manual (product-policy-channel) are sparse and not worth building a net for. Do not use Tree: Tree leans toward topic-clustering summaries, and what a manual wants is to keep the original chapter structure faithfully.
+**The choice**: a manual is a typical document whose "chapter titles are clear, and the structure needs to be kept for quick location". Against the selection table in Section 6.3, the answer is **PageIndex** (the official wording of the applicable scene: books, reports, and specification documents). Do not use Graph: the entity relations in the manual (product-policy-channel) are sparse and not worth building a net for. Do not use Tree: Tree leans toward topic-clustering summaries, and what a manual wants is to keep the original chapter structure faithfully.
 
-**The configuration**: keep the default base, and move only two places. Write the global rules, following the official suggestion, as 「保留文档原始章节结构，索引节点名优先采用原文章节标题，只抽取与章节主题相关的关键信息」 ("keep the document's original chapter structure, prefer the original chapter titles as index node names, and extract only the key information related to the chapter topic"). Keep the default three EntitySpecification fields title/fact/conclusion (exactly the "what this chapter is about, what the key clauses are, and what the conclusion is" that support wants). Keep the default relation include. The manual contains a large number of tables (the compensation-standard table). Turn **Re-chunk parser output** on, so the compilation input keeps the tables and the chapter boundaries.
+**The configuration**: keep the default base, and move only two places. Write the global rules, following the official suggestion, as "保留文档原始章节结构，索引节点名优先采用原文章节标题，只抽取与章节主题相关的关键信息" ("Keep the document's original chapter structure. Prefer the original section titles as index node names. Extract only the key information that belongs to the section topic.") ("keep the document's original chapter structure, prefer the original chapter titles as index node names, and extract only the key information related to the chapter topic"). Keep the default three EntitySpecification fields title/fact/conclusion (exactly the "what this chapter is about, what the key clauses are, and what the conclusion is" that support wants). Keep the default relation include. The manual contains a large number of tables (the compensation-standard table). Turn **Re-chunk parser output** on, so the compilation input keeps the tables and the chapter boundaries.
 
 **Generation and acceptance**: hang CompilerOperator on the Pipeline of after-sales-kb and reference the template, and execute compilation on the manual. After the task log confirms that Parser → Chunker → Compiler → Indexer finish in order, enter the Artifacts page and choose **Tree/Page index** in the dropdown to view it (that is, the **navigation artifact** as this book calls it; the official dataset document calls this kind of hierarchical-index form Navigation). Accept it against the checklist: the chapter levels agree with the manual's table of contents; each chapter's fact really comes from the corresponding chapter (spot-check the two chapters "shipping damage" and "customs-clearance delay"); and no node was forced into existence for content that has no title.
 
@@ -311,11 +311,11 @@ Back to the running case. After Chapters 3-5, the After-sales Policy Manual in a
 
 ```mermaid
 flowchart LR
-    R["手册季度改版<br/>新版本上传 after-sales-kb"] --> N["工件页出现 Update 提示<br/>显示待更新文档数"]
-    N --> C["悬停核对变更清单<br/>新增 / 移除文档"]
-    C --> U["点击 Update<br/>按变更重编译"]
-    U --> K["对照检查表抽检<br/>章节层级 · 事实归属"]
-    K --> S["必要时重新 To Skills<br/>Agent 用上新版条款"]
+    R["The manual's quarterly revision<br/>Upload the new version to after-sales-kb"] --> N["The artifact page shows an Update prompt<br/>with the number of documents waiting"]
+    N --> C["Hover and check the change list<br/>Documents added / removed"]
+    C --> U["Click Update<br/>Recompile from the changes"]
+    U --> K["Spot-check against the checklist<br/>Chapter hierarchy and which fact belongs where"]
+    K --> S["Re-run To Skills if you need to<br/>The agent picks up the new clauses"]
 ```
 
 Not one step of this cycle is automatic. **Recompiling on a revision is an operations action, not system behavior**. Write it into the knowledge-base update SOP (who checks, who clicks, who spot-checks, and how often the inspection runs). That is the actual subject of team collaboration and knowledge-base operations in Chapter 13.
@@ -350,8 +350,8 @@ By the time you have read this far, you should be able to:
 
 ## Review checklist (before publication)
 
-- [x] The Artifacts page type dropdown was measured on 2026-11-04 (screenshot in 6.5): five items, Wiki, Tree/PageIndex, Graph, Mind map, and Timeline. The Compilation Operator entry, the Update button, and the To Skills flow are still to be walked through (the compilation flow was not executed, and the artifact area is the empty state)
-- [x] The interface naming of "Navigation" and "Tree/Page index": the measured interface spells it **Tree/PageIndex** (one item, with no separate Navigation item), and the body's "naming follows the dropdown items on the interface" lands from that
+- [x] The Artifacts page type dropdown was confirmed in testing on 2026-11-04 (screenshot in Section 6.5): five items, Wiki, Tree/PageIndex, Graph, Mind map, and Timeline. The Compilation Operator entry, the Update button, and the To Skills flow are still to be walked through (the compilation flow was not executed, and the artifact area is the empty state)
+- [x] The interface naming of "Navigation" and "Tree/Page index": the interface confirmed in testing spells it **Tree/PageIndex** (one item, with no separate Navigation item), and the body's "naming follows the dropdown items on the interface" lands from that
 - [ ] The lists of default entity / relation types for the six templates (Graph 6+6, Wiki 8+7, MindMap 4+4, Timeline 2+1, PageIndex fields 3 + relations 1) have been checked against built_in_templates_and_dedicated_configuration.md (2026-10-27); check them once more before publication
 - [ ] The semantics of Wiki's Plan switch (the official docs have only the one sentence "enabling is suggested") are still to be filled in from a measurement in the environment
-- [ ] The PageIndex configuration decisions of the running case (the global-rules wording, and turning Re-chunk parser output on) are an elaboration of this book's position, and the actual parameter effects are to be filled back in after measurement
+- [ ] The PageIndex configuration decisions of our running example (the global-rules wording, and turning Re-chunk parser output on) are an elaboration of our recommendation, and the actual parameter effects are to be filled back in after measurement

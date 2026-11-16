@@ -382,7 +382,7 @@ export function renderEnglishHome() {
 <p class="cover-subtitle">Hands-on, Chinese-first AI application tutorials. Every book is tested locally.</p>
 <hr class="cover-rule">
 </section>
-<p>Most books are available in Chinese only. The English edition so far is LiteLLM and RAGFlow.</p>
+<p>Most books are available in Chinese only. English editions so far: LiteLLM and RAGFlow.</p>
 <ul>
 <li><a href="litellm/index.html">LiteLLM: Multi-Model Gateway, Quotas, and Fallback</a></li>
 <li><a href="ragflow/index.html">RAGFlow: From First Steps to Production</a></li>

@@ -55,7 +55,7 @@ const PARTS = [
 ];
 
 const EN_PARTS = [
-  { id: "part-1", title: "Part 1 Getting to know it and bringing it up", chapters: [
+  { id: "part-1", title: "Part 1 Getting Started and Going Live", chapters: [
     { file: "01-overview.md", chapter: 1, title: "Getting to know RAGFlow", sources: ["docs/basics/rag.md", "docs/quickstart.mdx", "docs/references/glossary.mdx"] },
     { file: "02-deploy-models.md", chapter: 2, title: "Deployment and model channels", sources: ["docs/quickstart.mdx", "docs/administrator/setup/configuration.md", "docs/guides/models/llm_api_key_setup.md", "docs/guides/models/deploy_local_llm.mdx", "docs/develop/launch_ragflow_from_source.md"] },
   ]},
@@ -66,7 +66,7 @@ const EN_PARTS = [
     { file: "06-knowledge-compilation.md", chapter: 6, title: "Knowledge compilation and knowledge artifacts", sources: ["docs/guides/knowledge_compilation/overview.md", "docs/guides/knowledge_compilation/built_in_templates_and_dedicated_configuration.md", "docs/guides/knowledge_compilation/apply_knowledge_compilation_template.md", "docs/guides/knowledge_compilation/basic_information_configuration.md", "docs/guides/knowledge_compilation/faq.md", "docs/guides/dataset/artifacts_knowledge_artifact_generation_and_management.md", "docs/basics/agent_context_engine.md"] },
     { file: "07-retrieval-tuning.md", chapter: 7, title: "Retrieval testing and tuning", sources: ["docs/guides/dataset/retrieval_testing.md", "docs/guides/search/search_settings.md", "docs/guides/dataset/configuration.md"] },
   ]},
-  { id: "part-3", title: "Part 3 Consumption and integration", chapters: [
+  { id: "part-3", title: "Part 3 Using and Integrating", chapters: [
     { file: "08-chat-assistant.md", chapter: 8, title: "Chat assistants and sessions", sources: ["docs/guides/chat/feature_overview_and_creation.md", "docs/guides/chat/chat_configuration.md", "docs/guides/chat/using_chat_sessions.md"] },
     { file: "09-search-channels.md", chapter: 9, title: "Search apps and access channels", sources: ["docs/guides/search/create_search.md", "docs/guides/chatchannel/chat_channels_overview.md", "docs/guides/chatchannel/connect_chat.md", "docs/guides/chatchannel/channel_access_and_configuration.md", "docs/guides/agent/embed_into_web_pages.md"] },
     { file: "10-agent-workflow.md", chapter: 10, title: "Agents and workflows", sources: ["docs/guides/agent/agent_overview.md", "docs/guides/agent/understand_the_canvas.md", "docs/guides/agent/creation_and_management.md", "docs/guides/agent/agent_workflow/basic_component.md", "docs/guides/agent/agent_workflow/tool_components.md", "docs/guides/agent/ingestion_pipeline/create_ingestion_pipeline.md", "docs/guides/memory/create_memory.md", "docs/guides/memory/connect_to_an_agent.md", "docs/guides/agent/quickstarts/build_customer_support_agent.md"] },

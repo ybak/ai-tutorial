@@ -6,18 +6,18 @@ source: docs/administrator/setup/configuration.md
 
 # Chapter 12 Production operations
 
-> Chapter guide: after-sales-kb finished tuning in Chapter 7, the "After-sales Assistant" was connected to the support desk in Chapter 8, and retrieval quality passed during the trial run. Now the support lead asks three questions: "Everyone goes live next week. What if the data is lost? If the service goes down, who finds out first? How do we move up to the next version?" Those three questions are the distance between a single-machine trial and production. This chapter splits that distance into six things: tune the configuration from "it can run" to "it can take the load" (12.2); tracing sends every question and answer into an observability platform (12.3); a backup and a restore drill make a disk failure no longer an incident (12.4); an upgrade follows checkpoints instead of swapping an image (12.5); the CLI and the Admin UI give an administrator a cockpit (12.6); the code execution sandbox (Code Execution Sandbox) shuts untrusted code in a cage (12.7). By the end of this chapter, you can: list an executable production checklist for after-sales-kb; finish a backup, a restore drill, and v0-to-v1 upgrade preparation on your own; and finish the daily inspection with the CLI and the Admin UI.
+> Chapter guide: after-sales-kb finished tuning in Chapter 7, the "After-sales Assistant" was connected to the support desk in Chapter 8, and retrieval quality passed during the trial run. Now the support lead asks three questions: "Everyone goes live next week. What if the data is lost? If the service goes down, who finds out first? How do we move up to the next version?" Those three questions are the distance between a single-machine trial and production. This chapter splits that distance into six things: tune the configuration from "it can run" to "it can take the load" (Section 12.2); tracing sends every question and answer into an observability platform (Section 12.3); a backup and a restore drill make a disk failure no longer an incident (Section 12.4); an upgrade follows checkpoints instead of swapping an image (Section 12.5); the CLI and the Admin UI give an administrator a cockpit (Section 12.6); the code execution sandbox shuts untrusted code in a cage (Section 12.7). By the end of this chapter, you can: list an executable production checklist for after-sales-kb; finish a backup, a restore drill, and v0-to-v1 upgrade preparation on your own; and finish the daily inspection with the CLI and the Admin UI.
 
 ```mermaid
 flowchart LR
-    A["收紧生产配置（12.2）<br/>关闭注册 · SSL 持久挂载<br/>改模板重启全容器生效"] --> B["tracing 进 Langfuse（12.3）<br/>租户级配好三元组<br/>上线当天产出首批 trace"]
-    B --> C["备份并演练恢复（12.4）<br/>八类持久数据 + 配置证书<br/>独立环境走通登录验证"]
-    C --> D{"当前部署还在 v0.x？"}
-    D -->|"是 · 逐级升"| E["v0→v1 检查点迁移（12.5）<br/>每个检查点启动并验证<br/>v0.27.2→v1.0.0-rc1 不可逆"]
-    D -->|"否 · 已在 v1.x"| F{"画布是否用 Code 组件？"}
+    A["Tighten the production config (12.2)<br/>Close registration. Persist the SSL mount<br/>Edit the template, then restart every container"] --> B["Send tracing to Langfuse (12.3)<br/>Configure the triple at tenant level<br/>The first traces appear on go-live day"]
+    B --> C["Back up, and rehearse a restore (12.4)<br/>Eight kinds of persistent data, plus config and certificates<br/>Walk login and verification in a separate environment"]
+    C --> D{"Is the current deployment still on v0.x?"}
+    D -->|"Yes. Upgrade one step at a time"| E["v0 to v1 checkpoint migration (12.5)<br/>Start and verify at every checkpoint<br/>v0.27.2 to v1.0.0-rc1 is irreversible"]
+    D -->|"No. Already on v1.x"| F{"Does the canvas use a Code component?"}
     E --> F
-    F -->|"是"| G["配置沙箱 provider（12.7）<br/>私有部署选 Self-Managed<br/>Test connection 通过再 Save"]
-    F -->|"否 · 暂不配"| H["过生产化检查表上线（12.6 · 12.8）<br/>CLI 与 Admin UI 每日巡检<br/>八项核销 · 第 13 章运营接棒"]
+    F -->|"Yes"| G["Configure a sandbox provider (12.7)<br/>A private deployment chooses Self-Managed<br/>Save only after Test connection passes"]
+    F -->|"No. Leave it for now"| H["Go live against the production checklist (12.6 and 12.8)<br/>Daily inspection with the CLI and Admin UI<br/>Eight items closed. Chapter 13 takes over operations"]
     G --> H
 ```
 
@@ -27,13 +27,13 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**after-sales-kb goes live for everyone next week**. Go straight to the production checklist in 12.8. Every item in the table is marked with its section. The details of tightening the configuration and encrypting the entry are in 12.2.
+**after-sales-kb goes live for everyone next week**. Go straight to the production checklist in Section 12.8. Every item in the table is marked with its section. The details of tightening the configuration and encrypting the entry are in Section 12.2.
 
-**In production, answers miss the question, or the service is abnormal, and you do not know where to look**. Two lines in parallel: the service status in 12.6 shows whether dependencies and processes are healthy, and the tracing in 12.3 shows what actually happened on the model side for this question and answer.
+**In production, answers miss the question, or the service is abnormal, and you do not know where to look**. Two lines in parallel: the service status in Section 12.6 shows whether dependencies and processes are healthy, and the tracing in Section 12.3 shows what actually happened on the model side for this question and answer.
 
 **You have an old v0 deployment to move up to v1, or you just went through a disk alert**. 12.5 (the checkpoint upgrade route and the irreversible boundary) and 12.4 (the backup scope and the restore drill).
 
-Prerequisites: the Docker deployment and the configuration system from Chapter 2; the building of after-sales-kb in the running case (Chapters 3-10).
+Prerequisites: the Docker deployment and the configuration system from Chapter 2; the building of after-sales-kb in our running example (Chapters 3-10).
 
 ## 12.1 Overview: from a single-machine trial to production
 
@@ -77,13 +77,13 @@ Items in `.env` and `service_conf` that are worth going through one by one at pr
 |--------|--------|-----------|
 | `SVR_WEB_HTTP_PORT` / `SVR_WEB_HTTPS_PORT` | 80 / 443 | The public entry for the browser and the API; 9380 is the internal API port, and business traffic should go through the Nginx public port |
 | `MEM_LIMIT` | about 7.52 GiB | A limit **per container**: it is not the host's memory requirement, it is not a guarantee of the total, and it does not mean each container really uses that much; account container by container |
-| `ENABLE_REGISTER` | 1 (open registration) | Set it to 0 in production, and have accounts created by an administrator (12.6) |
+| `ENABLE_REGISTER` | 1 (open registration) | Set it to 0 in production, and have accounts created by an administrator (Section 12.6) |
 | `MYSQL_MAX_PACKET` | 1 GiB | With an external MySQL, the server's `max_allowed_packet` has to stay compatible |
 | `mysql.max_connections` / `stale_timeout` | 900 / 300 seconds | The connection-pool defaults of a Go deployment; tune them by concurrency |
 | `DB_TYPE` / `METADATA_DB_PROFILE` | mysql | OceanBase can be connected through the MySQL-compatible protocol |
-| `STORAGE_IMPL` + the `s3:` section | MinIO | Switch to an S3-compatible backend (Tigris/AWS S3/OSS and others); **build a restore point before you change the storage layout** (12.4) |
+| `STORAGE_IMPL` + the `s3:` section | MinIO | Switch to an S3-compatible backend (Tigris/AWS S3/OSS and others); **build a restore point before you change the storage layout** (Section 12.4) |
 | `api.trusted_proxies` | loopback only | An explicit list is a **replacement**, not an append: keep the loopback entry and then add the proxy range; if it is emptied, no proxy header is trusted |
-| `TEI_MODEL` | - | A local embedding service; reserve memory/video memory by measured model, precision, and concurrency |
+| `TEI_MODEL` | - | A local embedding service; reserve memory/video memory by the model, precision, and concurrency you measure |
 | `RAGFLOW_IMAGE` | the official image | When pulls are restricted, a Huawei Cloud or Alibaba Cloud image source can be used |
 
 `trusted_proxies` gets a sentence of its own: it decides which proxies the Go API trusts for the `X-Forwarded-For` / `X-Real-IP` headers when restoring the client address. Login audit records and an Agent webhook's `ip_whitelist` both depend on it. If a reverse proxy other than the Nginx in front was put in place and this was forgotten, everything the audit records is the proxy's address.
@@ -93,22 +93,22 @@ Items in `.env` and `service_conf` that are worth going through one by one at pr
 Put HTTPS on the public entry. The official path is to replace the site configuration of Nginx inside the RAGFlow container (taking the container `docker-ragflow-cpu-1` as the example):
 
 ```bash
-# ① 宿主机准备 Nginx 格式证书,拷入容器
+# ① On the host: prepare Nginx-format certificates and copy them into the container
 docker cp ./fullchain.pem docker-ragflow-cpu-1:/tmp/fullchain.pem
 docker cp ./privkey.pem   docker-ragflow-cpu-1:/tmp/privkey.pem
 
-# ② 容器内部署
+# ② Deploy inside the container
 docker exec -it docker-ragflow-cpu-1 /bin/bash
 mkdir -p /etc/nginx/ssl
 mv /tmp/fullchain.pem /etc/nginx/ssl/ && chmod 644 /etc/nginx/ssl/fullchain.pem
 mv /tmp/privkey.pem   /etc/nginx/ssl/ && chmod 600 /etc/nginx/ssl/privkey.pem
 
-# ③ 切换到 HTTPS 配置模板
+# ③ Switch to the HTTPS config template
 cd /etc/nginx/conf.d/
 mv ragflow.conf ragflow.conf.bak
 cp /etc/nginx/ragflow.https.conf ./ragflow.conf
-vi ragflow.conf        # 确认 ssl_certificate 与 ssl_certificate_key 指向 /etc/nginx/ssl/
-nginx -t && nginx -s reload   # 语法校验通过后重载;无效则退出容器重启 ragflow-cpu
+vi ragflow.conf        # Confirm ssl_certificate and ssl_certificate_key point at /etc/nginx/ssl/
+nginx -t && nginx -s reload   # Reload after nginx -t passes; if it is invalid, leave the container and restart ragflow-cpu
 ```
 
 ⚠️ **Persistence warning**: changes made with `docker cp` and `docker exec` are all lost after the container is rebuilt. After the test passes, store the certificates and `ragflow.conf` on the host, and add a persistent volume mount for them on the `ragflow-cpu` service in `docker-compose.yml`. Otherwise, the next upgrade or container rebuild quietly drops HTTPS back to HTTP.
@@ -122,11 +122,11 @@ Credentials are stored per tenant. Two configuration paths:
 - Web UI: the avatar in the upper right, then **API**, then scroll to the bottom **Langfuse Configuration**, fill in Host, Public Key, and Secret Key, and save;
 - HTTP API (see Chapter 11).
 
-The "scroll to the bottom" of the Web UI path looks like the following on a real instance. This screenshot was measured on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2. It is the same API page as the figure in Chapter 11, and here you look at the bottom of the page:
+The "scroll to the bottom" of the Web UI path looks like the following on a real instance. This screenshot was taken on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2. It is the same API page as the figure in Chapter 11, and here you look at the bottom of the page:
 
 ![Bottom of the settings page API area: the Langfuse area, with the text "Traces, evals, prompt management and metrics to debug and improve your LLM application.", and a Configuration button on the right](../assets/images/demo/ragflow-11-api-page.png)
 
-The "scroll the API page to the bottom" in the body is fulfilled in this picture: the Langfuse Configuration area hangs under the status-code table of ERROR CODES, on the last row at the bottom of the page. Click Configuration to enter the filling and saving of the triple, Host, Public Key, and Secret Key. The API key is at the top of the page, and the tracing configuration is at the bottom of the page. One page apart, and the two actions use the same entry.
+The "scroll the API page to the bottom" in the body shows up in this picture: the Langfuse Configuration area hangs under the status-code table of ERROR CODES, on the last row at the bottom of the page. Click Configuration to enter the filling and saving of the triple, Host, Public Key, and Secret Key. The API key is at the top of the page, and the tracing configuration is at the bottom of the page. One page apart, and the two actions use the same entry.
 
 After saving, the Go chat pipeline uses these credentials to report on chat requests that **use a knowledge base or web search**. A chat that is traced looks like this in Langfuse:
 
@@ -136,9 +136,9 @@ After saving, the Go chat pipeline uses these credentials to report on chat requ
 | generation: `chat` | The model name; the input includes the prompt, the citation prompt, and the model message list |
 | completion update | An output summary, plus the three token counts prompt / completion / total |
 
-Delivery is asynchronous: a failed tracing delivery does not block the chat response. The availability of the observability platform is decoupled from the business (this book's position: this also means "a failed report" itself has no alert, and the health of the observability platform itself has to be watched on the platform side).
+Delivery is asynchronous: a failed tracing delivery does not block the chat response. The availability of the observability platform is decoupled from the business (our recommendation: this also means "a failed report" itself has no alert, and the health of the observability platform itself has to be watched on the platform side).
 
-The internal structure of a trace, evaluation, and multi-tenant data analysis are work on the Langfuse side (see the Langfuse book). The minimum requirement for operations is: on the day of go-live, get traces into the platform. Carry out item 8 of the checklist in 12.8.
+The internal structure of a trace, evaluation, and multi-tenant data analysis are work on the Langfuse side (see the Langfuse book). The minimum requirement for operations is: on the day of go-live, get traces into the platform. Carry out item 8 of the checklist in Section 12.8.
 
 ## 12.4 Backup and restore
 
@@ -178,7 +178,7 @@ docker compose -p docker -f docker/docker-compose.yml down
 backup_dir="backup-ragflow-v1-$(date +%Y%m%d-%H%M%S)"
 mkdir "$backup_dir"
 
-volume_name=docker_mysql_data    # 对每个记录的卷重复执行
+volume_name=docker_mysql_data    # Repeat for each recorded volume
 docker volume inspect "$volume_name" >/dev/null &&
   docker run --rm -v "$volume_name":/source:ro -v "$PWD/$backup_dir":/backup alpine:3.20 \
     tar czf "/backup/$volume_name.tar.gz" -C /source . &&
@@ -191,7 +191,7 @@ Finally `ls -lh "$backup_dir"` confirms that every volume has a matching `.tar.g
 
 Restore onto the target host: install the **same version** of RAGFlow, restore the saved configuration, put the backup directory at the repository root, and keep the services stopped. For each archive, if the target volume already exists, inspect it before using it. After `docker volume create`, unpack. Do not keep using a volume whose unpack failed. After confirming there is no data in it that must be kept, switch to a new empty volume and retry. Restore a bind mount to the same path on the source host. After that, start with `up -d`, look at the status with `ps --all` and `logs --tail=200 ragflow-cpu`, and finally log in and confirm: the knowledge bases and files are all there, files can be opened, and retrieval returns the content of parsed documents.
 
-This book's position: **a backup that has not been through a restore drill is only a hope that occupies disk**. The official upgrade-preparation checklist likewise requires "restore and verify in an independent test environment, and the test deployment must not connect to production volumes". A restore drill is the cheapest disaster insurance. Schedule it as a periodic action (for a suggested cadence, see 12.8).
+Our recommendation: **a backup that has not been through a restore drill is only a hope that occupies disk**. The official upgrade-preparation checklist likewise requires "restore and verify in an independent test environment, and the test deployment must not connect to production volumes". A restore drill is the cheapest disaster insurance. Schedule it as a periodic action (for a suggested cadence, see Section 12.8).
 
 ## 12.5 Upgrade and migration
 
@@ -201,11 +201,11 @@ There is an officially specified standard route from v0.x up to v1.x. An earlier
 
 ```mermaid
 flowchart LR
-    A["v0.20.0<br/>更早版本先到此"] --> B["v0.22.1<br/>内嵌 embedding 模型过渡"]
-    B --> C["v0.25.6<br/>模型供应商迁移前检查点"]
-    C --> D["v0.26.4<br/>基础模型供应商迁移"]
-    D --> E["v0.27.2<br/>v0.x 迁移收尾"]
-    E --> F["v1.0.0-rc1<br/>强制 · 不可逆边界"]
+    A["v0.20.0<br/>Older versions come here first"] --> B["v0.22.1<br/>Transition for the embedded embedding model"]
+    B --> C["v0.25.6<br/>Checkpoint before the model-provider migration"]
+    C --> D["v0.26.4<br/>Migration of the basic model provider"]
+    D --> E["v0.27.2<br/>End of the v0.x migration"]
+    E --> F["v1.0.0-rc1<br/>Forced. The irreversible boundary"]
     F --> G["latest v1.x"]
 ```
 
@@ -230,15 +230,15 @@ This is the only **irreversible** step on the whole route. It introduces the v1 
 | Kvrocks stores cache and checkpoints; ClickHouse is added | All three use brand-new empty volumes. Do not mount v0's Redis volume onto them |
 | Deprecated HTTP API aliases are removed | Callers check the interfaces against Chapter 11 |
 | Tag files are no longer bound to a dataset | A Tag dataset of the Python backend is invalid after migration: reconfigure the tag files on the Go backend and verify |
-| The local sandbox and the early Team/Me permission behavior are not supported | The sandbox moves to the provider configuration in 12.7; for the permission system, see Chapter 13 |
+| The local sandbox and the early Team/Me permission behavior are not supported | The sandbox moves to the provider configuration in Section 12.7; for the permission system, see Chapter 13 |
 | The GraphRAG / RAPTOR configuration pages go offline | Content already generated can still be retrieved |
 
-Aligning the terms: the "knowledge base (Knowledge Base)" in the upgrade docs is the "dataset (Dataset)" this book says throughout. v1 changed the name, and the upgrade material was not all changed.
+Aligning the terms: the "knowledge base" in the upgrade docs is the "dataset" this book says throughout. v1 changed the name, and the upgrade material was not all changed.
 
 The operational skeleton (the default four-volume deployment of MySQL + MinIO + Redis + Elasticsearch):
 
 ```bash
-# ① v0.27.2 停机并创建恢复点(四归档逐一校验可读)
+# ① Stop v0.27.2 and create a restore point (check that each of the four archives is readable)
 docker compose -p docker -f docker/docker-compose.yml down
 backup_dir="backup-v0.27.2-$(date +%Y%m%d-%H%M%S)"
 bash docker/migration.sh backup "$backup_dir"
@@ -246,12 +246,12 @@ for archive in mysql_backup.tar.gz minio_backup.tar.gz redis_backup.tar.gz es_ba
   tar tzf "$backup_dir/$archive" >/dev/null || exit 1
 done
 
-# ② 新目录部署 v1.0.0-rc1:用新模板 .env 拷入旧值,RAGFLOW_IMAGE=infiniflow/ragflow:v1.0.0-rc1
-# ③ 启动并跟踪迁移日志,直到迁移完成、服务起来
+# ② Deploy v1.0.0-rc1 in a new directory: copy the old values into the new template .env, RAGFLOW_IMAGE=infiniflow/ragflow:v1.0.0-rc1
+# ③ Start and follow the migration log until migration finishes and the service is up
 docker compose -p docker -f docker/docker-compose.yml up -d
 docker compose -p docker -f docker/docker-compose.yml logs -f ragflow-cpu
 
-# ④ 健康检查(默认 web 端口 80,改过 SVR_WEB_HTTP_PORT 则用实际值)
+# ④ Health check (default web port 80; if SVR_WEB_HTTP_PORT was changed, use the real value)
 curl -f http://127.0.0.1/api/v1/system/healthz
 ```
 
@@ -259,7 +259,7 @@ The failure discipline, said once and clearly: if the migration reports an error
 
 Closing verification after the upgrade: log in and confirm the data and the configuration are there, and test one retrieval, one new-document upload, one chat, and one Agent run. A deployment that uses Tongyi Qianwen has to reselect the Base URL in the model provider and save again. Reconfigure Tag datasets according to the table above. Keep the v0.27.2 backup until the new deployment passes acceptance and runs steadily under normal load.
 
-Later upgrades inside v1.x are much simpler: first do the backup in 12.4, then follow the official upgrade-from-v1.x docs. When the Go backend starts, it executes database migrations gated by version. The full record of each schema/data change and version marker is in the official Database Change Log. When troubleshooting a migration problem, follow that map. Understanding the main line of an upgrade does not depend on it.
+Later upgrades inside v1.x are much simpler: first do the backup in Section 12.4, then follow the official upgrade-from-v1.x docs. When the Go backend starts, it executes database migrations gated by version. The full record of each schema/data change and version marker is in the official Database Change Log. When troubleshooting a migration problem, follow that map. Understanding the main line of an upgrade does not depend on it.
 
 ## 12.6 CLI and Admin UI
 
@@ -281,7 +281,7 @@ Connect in Admin mode (the default is `127.0.0.1:9381`; when the host port publi
 ragflow-cli --admin --host 127.0.0.1:9381 --user admin@ragflow.io
 ```
 
-The password is entered at an interactive prompt. **Do not** pass a real password with `--password`. Command-line arguments are visible to other local processes, and they also go into shell history. `--output` can switch among `table` (the default) / `plain` / `json` (this book's position: inspection scripts use `json`, and a person reading uses `table`). The commands are SQL style: they end with a semicolon, they are case-insensitive, the prompt is `RAGFlow(admin)>`, and you remember them by command family:
+The password is entered at an interactive prompt. **Do not** pass a real password with `--password`. Command-line arguments are visible to other local processes, and they also go into shell history. `--output` can switch among `table` (the default) / `plain` / `json` (our recommendation: inspection scripts use `json`, and a person reading uses `table`). The commands are SQL style: they end with a semicolon, they are case-insensitive, the prompt is `RAGFlow(admin)>`, and you remember them by command family:
 
 | Command family | Representative commands | What they do |
 |--------|---------|--------|
@@ -289,7 +289,7 @@ The password is entered at an interactive prompt. **Do not** pass a real passwor
 | Service | `LIST SERVICES` / `SHOW SERVICE '<name>'` | Dependency health plus runtime processes registered by heartbeat (`api_server` / `ingestor` / `file_syncer`) |
 | User | `LIST USERS` / `CREATE USER` / `ALTER USER ACTIVE` / `ALTER USER PASSWORD` / `DROP USER` | The account lifecycle; before `DROP` you must first `ACTIVE off` (an active user refuses deletion); an administrator account cannot be deleted |
 | Configuration | `LIST VARS` / `SHOW VAR '<name>'` / `LIST CONFIGS` / `LIST ENVS` | Runtime settings and an environment summary |
-| Ingestion | `LIST INGESTORS` / `LIST INGESTION TASKS` | The ingestion processes and the task surface (for the orchestration of an ingestion pipeline (Ingestion Pipeline), see Chapter 10) |
+| Ingestion | `LIST INGESTORS` / `LIST INGESTION TASKS` | The ingestion processes and the task surface (for the orchestration of an ingestion pipeline, see Chapter 10) |
 | Message queue | `MQ SHOW` / `MQ LIST [PENDING]` / `MQ PUBLISH` / `MQ PULL` | Diagnose the NATS JetStream task stream; `PUBLISH` sends a test message, `PULL` acknowledges by default, and `NOACK` is a negative acknowledgement that can be redelivered |
 | Meta-commands | `\h` / `\q` | Help and quit |
 
@@ -310,27 +310,27 @@ The entry is `/admin` (for example `http://192.168.1.5/admin`). Three pages cove
 |------|---------|---------|
 | Service status | View dependency health and process heartbeats: MySQL, the document engine (ES/Infinity), object storage, Kvrocks, NATS, and each process `api_server` / `ingestor` / `file_syncer`; in Actions, look at `elapsed` and the status message | A dependency row `alive` means the health check passed; a process row `alive` means there was a heartbeat within 45 seconds. This place does not provide an entry for container/log troubleshooting. To keep investigating, use the deployment environment's own tools |
 | User management | Query users, create users, start and stop with `Active`/`Inactive`, reset passwords, delete, and view details (most recent login time, and so on) | You cannot disable, change the type of, reset, or delete the account you are currently logged in as; deletion is a high-risk action, so hand over resources first and set `Inactive` first; grant `Superuser` only to people who truly need to enter the Admin UI |
-| Sandbox settings | Choose and test the code-execution sandbox provider | A system-level setting; saving takes effect for the whole deployment (12.7) |
+| Sandbox settings | Choose and test the code-execution sandbox provider | A system-level setting; saving takes effect for the whole deployment (Section 12.7) |
 
-The first of the three pages looks like the following on a real instance. This screenshot was measured on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2, entering the Service status page of the main site /admin with a Superuser account:
+The first of the three pages looks like the following on a real instance. This screenshot was taken on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2, entering the Service status page of the main site /admin with a Superuser account:
 
 ![Admin UI Service status page: all 8 service rows Alive -- mysql (database, 3306), elasticsearch (doc_engine, 9200), minio (storage_engine, 9000), kvrocks (cache, 6379), nats (message_queue, 4222), plus the process rows ragflow-server-4277c299 (api_server, 9380), ingestor-cc1a91af (ingestor), syncer-6efbb8b9 (file_syncer)](../assets/images/demo/ragflow-12-admin-services.png)
 
-The "cockpit" in the body is this screen: five dependency rows (database, doc_engine, storage_engine, cache, message_queue) plus three runtime-process rows (api_server, ingestor, file_syncer), all Alive. Item 8 of the checklist in 12.8, "put Admin UI service status into the daily inspection", is scanning this. Two measured points, written down on their own: the entry of the Admin UI is the /admin path of the main site, not the root path of port 9381; and only a Superuser can enter. Measured with an ordinary account, the visit returns 403.
+The "cockpit" in the body is this screen: five dependency rows (database, doc_engine, storage_engine, cache, message_queue) plus three runtime-process rows (api_server, ingestor, file_syncer), all Alive. Item 8 of the checklist in Section 12.8, "put Admin UI service status into the daily inspection", is scanning this. Two points confirmed in testing, written down on their own: the entry of the Admin UI is the /admin path of the main site, not the root path of port 9381; and only a Superuser can enter. Confirmed in testing with an ordinary account, the visit returns 403.
 
 The initial administrator: when the Admin Service starts with `--init-superuser` and there is not yet a superuser, it creates `admin@ragflow.io` (initial password `admin`). Change the password immediately on the first login. This account is used for system initialization and for creating later administrators. **It is not a day-to-day operations account shared for the long term**. The meaning of account status: `Active` can log in and be used normally; `Inactive` forbids login, but the account and the data are kept. The official line on passwords: the create form's frontend validates at least 6 characters, and resetting a password at least 8 characters. A production environment should impose a stronger unified password policy.
 
-The User management page looks like the following on a real instance. This screenshot was measured on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2. There are 4 users, and one row is redacted:
+The User management page looks like the following on a real instance. This screenshot was taken on 2026-11-04 on a local Docker deployment of RAGFlow v1.0.0-rc2. There are 4 users, and one row is redacted:
 
-![Admin UI User management page: Email, Nickname, Status, User type, and Actions columns, 4 user rows -- 书舟 (demo@ragflow-book.local, Superuser), admin (admin@ragflow.io), one row redacted, 演示二号 (demo2@ragflow-book.local, Normal); Status and User type are both inline dropdowns, and the New user button is at the upper right](../assets/images/demo/ragflow-12-admin-users.png)
+![Admin UI User management page: Email, Nickname, Status, User type, and Actions columns, 4 user rows -- Shuzhou (书舟, demo@ragflow-book.local, Superuser), admin (admin@ragflow.io), one row redacted, Demo Two (演示二号, demo2@ragflow-book.local, Normal); Status and User type are both inline dropdowns, and the New user button is at the upper right](../assets/images/demo/ragflow-12-admin-users.png)
 
-Status and User type are both inline dropdowns. Starting and stopping an account, and granting Superuser, are changed in these two columns. The constraint in the table above, "you cannot disable, change the type of, reset, or delete the account you are currently logged in as", can also be seen in the picture: for the account currently logged in, Shuzhou (书舟), these two columns are static badges, with no dropdown. An ordinary account and a Superuser are obvious at a glance in the User type column. The "minimum grant of Superuser" in 12.7.2 is the discipline of this column.
+Status and User type are both inline dropdowns. Starting and stopping an account, and granting Superuser, are changed in these two columns. The constraint in the table above, "you cannot disable, change the type of, reset, or delete the account you are currently logged in as", can also be seen in the picture: for the account currently logged in, Shuzhou (书舟), these two columns are static badges, with no dropdown. An ordinary account and a Superuser are obvious at a glance in the User type column. The "minimum grant of Superuser" in Section 12.7.2 is the discipline of this column.
 
 ## 12.7 The code execution sandbox and the security surface
 
 ### 12.7.1 The sandbox: deciding where code runs
 
-The Code component of an Agent canvas (see Chapter 10) can execute Python or JavaScript. That code may come from the canvas author, and it may also be generated by the model. This book's position: **untrusted code does not enter the production process**. Handing the code to an isolated environment to execute is the precondition for putting a canvas that has a Code component into production. That is why the code execution sandbox (Code Execution Sandbox) exists: in v1, an administrator must first select and configure a sandbox provider before the Code component can be used.
+The Code component of an Agent canvas (see Chapter 10) can execute Python or JavaScript. That code may come from the canvas author, and it may also be generated by the model. Our recommendation: **untrusted code does not enter the production process**. Handing the code to an isolated environment to execute is the precondition for putting a canvas that has a Code component into production. That is why the code execution sandbox exists: in v1, an administrator must first select and configure a sandbox provider before the Code component can be used.
 
 The provider decides where the code actually runs:
 
@@ -369,14 +369,14 @@ The lines of defense from each section of this chapter, gathered into one table,
 
 ## 12.8 Running case: a production checklist for after-sales-kb
 
-Back to the current state of the running case: three kinds of after-sales documents (a 50-page policy-manual PDF, an FAQ XLSX of about 200 rows, and a shipping-time notice) have become a tuned dataset (Chapters 3-7), the "After-sales Assistant" serves support question answering (Chapter 8), and the canvas support Agent handles returns and exchanges (Chapter 10). The checklist before everyone goes live:
+Back to the current state of our running example: three kinds of after-sales documents (a 50-page policy-manual PDF, an FAQ XLSX of about 200 rows, and a shipping-time notice) have become a tuned dataset (Chapters 3-7), the "After-sales Assistant" serves support question answering (Chapter 8), and the canvas support Agent handles returns and exchanges (Chapter 10). The checklist before everyone goes live:
 
 | # | Check | Action | Source |
 |---|--------|------|------|
-| 1 | Capacity accounting | Check each container's `MEM_LIMIT` against support concurrency; for local TEI embedding, reserve the measured peak plus a margin | 12.2.2 |
+| 1 | Capacity accounting | Check each container's `MEM_LIMIT` against support concurrency; for local TEI embedding, reserve the hands-on peak plus a margin | 12.2.2 |
 | 2 | Tighten the configuration | `ENABLE_REGISTER=0`; support accounts are created one by one by an administrator in the Admin UI | 12.2.2 / 12.6.2 |
 | 3 | Encrypt the entry | Configure the domain certificate by the official flow, and finish the persistent mount | 12.2.3 |
-| 4 | Backup cadence | A backup is required before an upgrade; day to day, a full backup once a week is suggested (inside a downtime window). "Once a week" is this book's position. The official docs do not prescribe a cadence | 12.4 |
+| 4 | Backup cadence | A backup is required before an upgrade; day to day, a full backup once a week is suggested (inside a downtime window). "Once a week" is our recommendation. The official docs do not prescribe a cadence | 12.4 |
 | 5 | Restore drill | Before go-live, finish one "backup, then restore, then login verification" drill in an independent environment, and repeat it quarterly after that | 12.4.3 |
 | 6 | Upgrade window | Schedule the upgrade by checkpoints, and do not swap the image in place; you are already inside v1.x, so back up before every upgrade | 12.5 |
 | 7 | Sandbox switch | The support Agent canvas does not use a Code component, so do not configure a provider for now. The Code component being unavailable is exactly the desired state. If you need it later, configure Self-Managed first and test it through | 12.7 |
@@ -386,7 +386,7 @@ Item 7 is worth one more sentence: the after-sales-kb canvas uses only retrieval
 
 ## Chapter summary
 
-1. The gap between production and a trial is six things: capacity, observability, backup, upgrade, the management plane, and security. Each section of this chapter closes one of them, and the checklist in 12.8 strings them back to after-sales-kb.
+1. The gap between production and a trial is six things: capacity, observability, backup, upgrade, the management plane, and security. Each section of this chapter closes one of them, and the checklist in Section 12.8 strings them back to after-sales-kb.
 2. Change configuration in `.env` and the template, and restart every container for it to take effect. `MEM_LIMIT` is a per-container limit. `trusted_proxies` has replacement semantics. Production must check `ENABLE_REGISTER=0` and the persistent SSL mount.
 3. Tracing connects to Langfuse per tenant: one chat equals one `openai_chat` trace (`userId` is the tenant, `sessionId` is the session) plus one `chat` generation plus token counts. Delivery is asynchronous, and it does not block the business.
 4. Backup equals the eight kinds of persistent data plus configuration and certificates. The scope follows `docker inspect`. The `tar tzf` check is not a ceremony. A restore drill is the only proof that a backup is valid.
@@ -418,8 +418,8 @@ By the time you have read this far, you should be able to:
 
 ## Review checklist (before publication)
 
-- [x] The Admin UI (Service status, User management) was measured on 2026-11-04 (screenshots in 12.6.2): the entry is /admin on the main site (the root path of 9381 returns JSON), and only a Superuser can enter (an ordinary account gets 403); `docker compose`, `migration.sh backup`, the seven SSL steps, and the CLI command families are still to be measured section by section
+- [x] The Admin UI (Service status, User management) was confirmed in testing on 2026-11-04 (screenshots in Section 12.6.2): the entry is /admin on the main site (the root path of 9381 returns JSON), and only a Superuser can enter (an ordinary account gets 403); `docker compose`, `migration.sh backup`, the seven SSL steps, and the CLI command families are still to be verified hands-on section by section
 - [ ] The full v0.27.2 to v1.0.0-rc1 migration flow has not been drilled (an irreversible operation, and it needs a dedicated environment that can be thrown away)
 - [ ] Check the interface elements of the Admin UI's three pages one by one against the actual v1.0.0-rc2 version
-- [ ] A measured connection to self-hosted Langfuse (trace fields and asynchronous delivery behavior)
+- [ ] A hands-on check of the connection to self-hosted Langfuse (trace fields and asynchronous delivery behavior)
 - [ ] Check the "eight-item backup table" against the `docker inspect` output of the actual deployment (deployment forms that enable Infinity / Kibana)

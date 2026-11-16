@@ -6,18 +6,18 @@ source: docs/guides/agent/agent_overview.md
 
 # Chapter 10 Agents and workflows
 
-> Chapter guide: The "After-sales Assistant" that Chapter 8 put into service can answer questions that are in the knowledge base, but when a user says "help me book an on-site installation", it can only search awkwardly and then apologize. A configuration-style application only retrieves and generates. It does not get things done. This chapter brings in RAGFlow's third layer: the canvas Agent. Connect components on a visual canvas and pass variables, and you can orchestrate a full business flow of "intent routing, then knowledge retrieval, then model generation, then a call to an external system". On the data side there is also an Ingestion Pipeline for a custom parsing pipeline, and on the memory side there is Memory, which stores and retrieves interaction history across sessions. This chapter keeps the after-sales running case and upgrades the Chapter 8 "After-sales Assistant" into an "After-sales Support Agent", explaining node by node how variables are passed. By the end of this chapter, you can: read the canvas model of nodes, edges, and variables; choose components by family for a business flow; create a custom ingestion pipeline and finish a test run; configure an Agent's memory for both writing and retrieval; and build, from scratch, a customer-service Agent that can be published.
+> Chapter guide: The "After-sales Assistant" that Chapter 8 put into service can answer questions that are in the knowledge base, but when a user says "help me book an on-site installation", it can only search awkwardly and then apologize. A configuration-style application only retrieves and generates. It does not get things done. This chapter brings in RAGFlow's third layer: the canvas Agent. Connect components on a visual canvas and pass variables, and you can orchestrate a full business flow of "intent routing, then knowledge retrieval, then model generation, then a call to an external system". On the data side there is also an Ingestion Pipeline for a custom parsing pipeline, and on the memory side there is Memory, which stores and retrieves interaction history across sessions. This chapter keeps the after-sales running example and upgrades the Chapter 8 "After-sales Assistant" into an "After-sales Support Agent", explaining node by node how variables are passed. By the end of this chapter, you can: read the canvas model of nodes, edges, and variables; choose components by family for a business flow; create a custom ingestion pipeline and finish a test run; configure an Agent's memory for both writing and retrieval; and build, from scratch, a customer-service Agent that can be published.
 
 ```mermaid
 flowchart LR
-    A["Agent 页创建空白 Workflow 画布（10.2）<br/>Begin 唯一不可删,先配 Begin 再接组件"] --> B["Begin 配触发模式与开场白（10.3）<br/>按四族选组件,变量经选择器插引用<br/>确定性 Switch,语义 Categorize"]
-    B --> C{"解析能对号入座内建 11 种？（10.4）"}
-    C -->|"能对号入座"| D["不上管线,内建方法即选即用（第 4 章）"]
-    C -->|"还差一步加工"| E["建摄取管线（10.4）<br/>Parser→Chunker→Transformer→Indexer<br/>过 Checklist,先 test run 后全量"]
-    D --> F["创建 Memory 并双向接入（10.5）<br/>Message 挂 Save to Memory 写回<br/>Retrieval source 选 Memory 读出"]
+    A["On the Agent page, create a blank Workflow canvas (10.2)<br/>Begin is the only node you cannot delete. Configure Begin, then attach components"] --> B["Begin sets the trigger mode and the opening line (10.3)<br/>Pick components from the four families. Insert references through the picker<br/>Switch is deterministic. Categorize is semantic"]
+    B --> C{"Can parsing be matched to one of the 11 built-in methods? (10.4)"}
+    C -->|"It matches"| D["Do not use a pipeline. A built-in method is choose-and-use (Chapter 4)"]
+    C -->|"It still needs one more processing step"| E["Build an ingestion pipeline (10.4)<br/>Parser, Chunker, Transformer, Indexer<br/>Pass the checklist, test-run a sample, then run the rest"]
+    D --> F["Create a Memory and connect it both ways (10.5)<br/>Message hangs Save to Memory for the write-back<br/>Retrieval source selects Memory for the read"]
     E --> F
-    F --> G["搭售后客服 Agent（10.6）<br/>Categorize 读 sys.query 意图分流<br/>产品咨询答问 · 安装预约登记工单"]
-    G --> H["Run 三问走查通过后 Publish（10.2 · 10.6）<br/>与第 8 章助手并存,同一知识库两个入口<br/>对外暴露经 API 与 MCP（第 11 章）"]
+    F --> G["Build the after-sales support Agent (10.6)<br/>Categorize reads sys.query and splits by intent<br/>Product questions get an answer. Installation appointments open a ticket"]
+    G --> H["After the three-question walkthrough passes, Publish (10.2 and 10.6)<br/>It sits beside the Chapter 8 assistant: one knowledge base, two entries<br/>Expose it through the API and MCP (Chapter 11)"]
 ```
 
 *Flowchart for this chapter*
@@ -26,13 +26,13 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**The knowledge base can retrieve, but what the user wants is for something to get done**: judge the intent first, then search the base or call an interface, and finally return a result. One continuous flow, where one question and one answer are not enough. See 10.1 and 10.3, then build along with 10.6.
+**The knowledge base can retrieve, but what the user wants is for something to get done**: judge the intent first, then search the base or call an interface, and finally return a result. One continuous flow, where one question and one answer are not enough. See Section 10.1 and 10.3, then build along with 10.6.
 
-**Built-in parsing is not enough**: a special format needs a different parser combination, chunks need summaries and tags, or the material even needs to be compiled into a knowledge artifact. See 10.4. It is the orchestratable version of the built-in parsing in Chapter 4.
+**Built-in parsing is not enough**: a special format needs a different parser combination, chunks need summaries and tags, or the material even needs to be compiled into a knowledge artifact. See Section 10.4. It is the orchestratable version of the built-in parsing in Chapter 4.
 
-**The Agent has to remember what the user said last time**: preferences across sessions, historical tickets, and continued context. See 10.5, and configure both directions of memory, write-back and retrieval.
+**The Agent has to remember what the user said last time**: preferences across sessions, historical tickets, and continued context. See Section 10.5, and configure both directions of memory, write-back and retrieval.
 
-Prerequisites: Chapter 2 has already configured a chat model; the after-sales-kb from Chapters 3-5 has already been parsed into usable chunks; the chat assistant from Chapter 8 is the comparison object (not a hard prerequisite, but the division of work in 10.1 and the comparison in 10.6 keep pointing back to it).
+Prerequisites: Chapter 2 has already configured a chat model; the after-sales-kb from Chapters 3-5 has already been parsed into usable chunks; the chat assistant from Chapter 8 is the comparison object (not a hard prerequisite, but the division of work in Section 10.1 and the comparison in Section 10.6 keep pointing back to it).
 
 ## 10.1 Overview: the canvas model and the split with the chat assistant
 
@@ -50,7 +50,7 @@ Of the three, the variable is the easiest to overlook. A line on the canvas only
 
 ### The split with the chat assistant
 
-Chapter 8 already gave a comparison table for the two (see 8.1). The official split, in one sentence: **Chat fits applications whose main job is knowledge-base question answering and multi-turn conversation; Agent fits business workflows that need conditional branches, tool calls, data processing, or multi-step orchestration**.
+Chapter 8 already gave a comparison table for the two (see Section 8.1). The official split, in one sentence: **Chat fits applications whose main job is knowledge-base question answering and multi-turn conversation; Agent fits business workflows that need conditional branches, tool calls, data processing, or multi-step orchestration**.
 
 For the decision itself, if any one of three tests hits, it is time to move up from a chat assistant to a canvas Agent:
 
@@ -58,7 +58,7 @@ For the decision itself, if any one of three tests hits, it is time to move up f
 2. **Tool calls**. It has to touch something outside the knowledge base: an HTTP interface, a database, an MCP tool, or custom code.
 3. **Conditional branches**. Different inputs take different paths: after-sales questions search the policy base, appointment requests go into a form, and complaints are handed to a human.
 
-The typical scenes the official docs list match this: answer from a knowledge base; recognize intent and route it to different processing flows; call an HTTP interface, a database, an MCP tool, or custom code; split and batch-process long text; save session memory or export a processing result.
+The typical scenarios the official docs list match this: answer from a knowledge base; recognize intent and route it to different processing flows; call an HTTP interface, a database, an MCP tool, or custom code; split and batch-process long text; save session memory or export a processing result.
 
 One detail that is easy to miss: the Retrieval component has two uses inside an Agent. It can be an **ordinary workflow node** (a fixed position, a fixed retrieval), or it can hang under the Agent component as a **tool** (the LLM decides on its own when to retrieve). The first is the canvas version of the Chapter 8 style of question answering. The second is the one that carries a bit of "autonomy". Section 10.6 of this chapter uses the first. It is easier to understand and easier to debug.
 
@@ -83,7 +83,7 @@ After login, click **Agent** in the top navigation. Agents already created are s
 |------|------|------|
 | **Create from template** | The template already presets components and connections (Deep Research, Knowledge Base Q&A, Data Analysis, E-commerce Customer Service, and others) | The business scene is close to the template, and you only need to change the model, knowledge base, prompts, interface address, or output content |
 | **Create from blank:Workflow** | The canvas has only `Begin` | A conversational Agent, the main subject of this chapter |
-| **Create from blank:Ingestion pipeline / Compilation operator** | The pipeline starts with `Begin → Parser` | Custom parsing (10.4); knowledge compilation (see Chapter 6) |
+| **Create from blank:Ingestion pipeline / Compilation operator** | The pipeline starts with `Begin → Parser` | Custom parsing (Section 10.4); knowledge compilation (see Chapter 6) |
 
 When creating from blank, first choose the type (Workflow / Ingestion pipeline / Compilation operator), name it, confirm, and then enter the canvas. There is also a non-interactive path: on an old Agent, **Management > Export** exports JSON, which you then import under a new name. That is the official way to "copy", and it is also the only way to back up a configuration (deletion also deletes every saved version, so export before you delete).
 
@@ -136,24 +136,24 @@ Four variables are used most often and recur throughout the book. They are worth
 |------|------|----------------|
 | `sys.query` | The question in the current user input | The system provides it; Categorize, Retrieval, and the Agent prompt all read it |
 | `formalized_content` | The tidied text output by a Retrieval, SQL, or tool component | Produced by retrieval/tools; consumed by the Agent's User prompt |
-| `chunks` | The set of fragments output by a document-parsing or chunking component | Flows inside a pipeline (10.4) |
+| `chunks` | The set of fragments output by a document-parsing or chunking component | Flows inside a pipeline (Section 10.4) |
 | `content` | The main text output of a component such as Agent or Code | Produced by generation components; consumed by Message |
 
 ### The four-family component table
 
-Components on the Workflow canvas can be grouped into four families by duty (the official docs give each component its own page and do not publish an official grouping; the grouping in the table below is this book's position, and the component list follows the docs):
+Components on the Workflow canvas can be grouped into four families by duty (the official docs give each component its own page and do not publish an official grouping; the grouping in the table below is our recommendation, and the component list follows the docs):
 
 | Family | Component | Duty | Typical use |
 |----|------|------|---------|
 | Dialogue and generation | `Begin` | The start: trigger mode, opening line, input variables | Every Agent must have one; see below |
 | | `Agent` | Calls the LLM for reasoning, generation, planning, and tool calls | The "brain" on the canvas; see below |
 | | `Message` | Outputs a reply to the user | The last baton of a fallback flow; often inserts `content` or a receipt text |
-| | `Await response` | Collects input from the user midway and waits | Form collection: name, time, options (the appointment branch in 10.6) |
+| | `Await response` | Collects input from the user midway and waits | Form collection: name, time, options (the appointment branch in Section 10.6) |
 | Data operations | `Retrieval` | Retrieves from a knowledge base or from Memory | `sys.query` in, `formalized_content` out; see below |
 | | `Execute SQL` | Queries an external database and turns the result into text/a table | Inventory lookup, pulling numbers for a report (six databases; see the note after the table) |
 | | `Code` | Runs custom code to process data | Parse the JSON response of HTTP, tidy fields |
 | | `Text processing` | Text processing | A light transformation of upstream text |
-| Flow control | `Categorize` | Classifies input by semantics and routes it to the matching outlet | Intent routing (the lead of 10.6) |
+| Flow control | `Categorize` | Classifies input by semantics and routes it to the matching outlet | Intent routing (the lead of Section 10.6) |
 | | `Switch` | Branches on a conditional expression | Deterministic conditions: numeric comparison, boolean judgment |
 | | `Iteration` | Runs a sub-flow in a loop | Batch processing of long text in segments |
 | External tools | `HTTP Request` | Calls a REST API | Ticket registration, notification push; see below |
@@ -189,9 +189,9 @@ The Agent component calls a large model for reasoning, generation, task planning
 Answer using the reference. If it does not contain the answer, say so.
 ```
 
-(The Example comes from the original official documentation. For a Chinese scenario you can write 「仅依据参考资料回答,资料没有就说没有,并追问用户」.)
+(The Example comes from the original official documentation. For a Chinese scenario you can write "仅依据参考资料回答,资料没有就说没有,并追问用户" ("Answer only from the reference. If it is not there, say so, and ask the user a follow-up.").)
 
-**Tools and sub-Agents**: once a tool or a sub-Agent is hung under the Agent component, the current Agent's role becomes **planner**. The model decides when to call which capability. The built-in tool picker includes knowledge retrieval (Retrieval), Execute SQL, Code, search, and others. MCP tools are chosen on the **MCP tab** (the configuration entry is **User settings > MCP > Add MCP**; the user who runs it must have permission for the selected Server; for the protocol details of connecting external tools through MCP, see the MCP book). Two boundaries that are easy to trip on: `HTTP Request` is a workflow node, and it is **not in** the Agent component's built-in tool picker; **Max reflection rounds** appears on the panel only after a tool or a sub-Agent is attached, and **Tool timeout** appears only after an MCP tool is selected. When a tool should be used has to be written into the System prompt. The wording of the official Example is worth copying: "Use Retrieval for product questions; if no relevant content is found, ask the user for more details."
+**Tools and sub-Agents**: once a tool or a sub-Agent is hung under the Agent component, the current Agent's role becomes **planner**. The model decides when to call which capability. The built-in tool picker includes knowledge retrieval, Execute SQL, Code, search, and others. MCP tools are chosen on the **MCP tab** (the configuration entry is **User settings > MCP > Add MCP**; the user who runs it must have permission for the selected Server; for the protocol details of connecting external tools through MCP, see the MCP book). Two boundaries that are easy to trip on: `HTTP Request` is a workflow node, and it is **not in** the Agent component's built-in tool picker; **Max reflection rounds** appears on the panel only after a tool or a sub-Agent is attached, and **Tool timeout** appears only after an MCP tool is selected. When a tool should be used has to be written into the System prompt. The wording of the official Example is worth copying: "Use Retrieval for product questions; if no relevant content is found, ask the user for more details."
 
 **Structured Output**: the default output is `content` (natural-language text). After **Structured output** is turned on, it returns `structured` according to a custom JSON Schema, so downstream nodes such as `Code`, `HTTP Request`, `Execute SQL`, and `Switch` can read it programmatically. This is the key mechanism of "Agent output, then structured consumption", and it is much more reliable than digging fields out of free text.
 
@@ -206,7 +206,7 @@ The official docs have one performance reminder worth posting at the desk: tool 
 
 ### The Retrieval component: knowledge retrieval
 
-On the canvas, Retrieval retrieves relevant content from a specified knowledge base or from Memory. It can be an ordinary workflow node, or a tool of the Agent component (already mentioned in 10.1). Five configuration steps: choose the **Query variable** (often `sys.query`); under **Retrieval source**, choose one or more knowledge bases, or choose Memory; in advanced settings, adjust **Similarity threshold**, **Keyword similarity weight**, **Rerank candidate count**, and **Top N** (choose a **Rerank model** when needed); for a cross-language scene, choose **Cross-language search**; Run a trial retrieval.
+On the canvas, Retrieval retrieves relevant content from a specified knowledge base or from Memory. It can be an ordinary workflow node, or a tool of the Agent component (already mentioned in Section 10.1). Five configuration steps: choose the **Query variable** (often `sys.query`); under **Retrieval source**, choose one or more knowledge bases, or choose Memory; in advanced settings, adjust **Similarity threshold**, **Keyword similarity weight**, **Rerank candidate count**, and **Top N** (choose a **Rerank model** when needed); for a cross-language scene, choose **Cross-language search**; Run a trial retrieval.
 
 The meaning of the parameters continues from Chapter 7. Here, only the differences on the canvas side:
 
@@ -269,7 +269,7 @@ The way to validate a pipeline is not Run. It is **test run**: after configuring
 
 ### Built-in or pipeline: the tradeoff
 
-**This book's position: choose built-in for standard cases, and a pipeline for special handling.**
+**Our recommendation: choose built-in for standard cases, and a pipeline for special handling.**
 
 | | Built-in parsing | Ingestion pipeline |
 |---|---------|---------|
@@ -316,13 +316,13 @@ Now upgrade the Chapter 8 "After-sales Assistant" into a canvas Agent, the "Afte
 
 ```mermaid
 flowchart TD
-    B["Begin<br/>Conversational 触发<br/>产出 sys.query"] --> C{"Categorize<br/>读 sys.query 做意图分流"}
-    C -- 产品咨询 --> R["Retrieval<br/>查 after-sales-kb<br/>产出 formalized_content"]
-    R --> A["Agent 组件<br/>User prompt 引用 sys.query<br/>与 formalized_content"]
-    A --> M1["Message<br/>插入 Agent 的 content"]
-    C -- 安装预约 --> W["Await Response<br/>表单收集姓名与期望时间"]
-    W --> H["HTTP Request<br/>表单值作参数登记工单<br/>产出 result"]
-    H --> M2["Message<br/>回执与工单确认"]
+    B["Begin<br/>Conversational trigger<br/>Produces sys.query"] --> C{"Categorize<br/>Read sys.query and split by intent"}
+    C -- Product question --> R["Retrieval<br/>Query after-sales-kb<br/>Produces formalized_content"]
+    R --> A["Agent component<br/>The user prompt cites sys.query<br/>and formalized_content"]
+    A --> M1["Message<br/>Insert the Agent content"]
+    C -- Installation appointment --> W["Await Response<br/>A form collects the name and the desired time"]
+    W --> H["HTTP Request<br/>The form values are the parameters that open the ticket<br/>Produces result"]
+    H --> M2["Message<br/>A receipt and ticket confirmation"]
 ```
 
 *After-sales Support Agent canvas: two branches, five kinds of variable reference*
@@ -340,7 +340,7 @@ flowchart TD
 
 Variables in and out: it reads `sys.query`. The output is a route. Whichever category hits, the flow takes that outlet. There is no text variable to reference here. The classification result shows up as which edge is taken.
 
-**(3) Retrieval: the product-inquiry branch**. Add it after the "Product inquiry" outlet. Query variables use `sys.query`. Retrieval source chooses after-sales-kb. The parameters follow the conclusion settled in Chapter 8, section 8.4.2: Similarity threshold 0.2, Keyword similarity weight 0.5, Rerank off. The tuning conclusion from Chapter 7 has to **stay consistent** in both the chat assistant and the canvas Agent. That is the base of one knowledge service with two entries. Variables in and out: it reads `sys.query` and produces `formalized_content` (the tidied text of the hit chunks).
+**(3) Retrieval: the product-inquiry branch**. Add it after the "Product inquiry" outlet. Query variables use `sys.query`. Retrieval source chooses after-sales-kb. The parameters follow the conclusion settled in Chapter 8, Section 8.4.2: Similarity threshold 0.2, Keyword similarity weight 0.5, Rerank off. The tuning conclusion from Chapter 7 has to **stay consistent** in both the chat assistant and the canvas Agent. This keeps one knowledge service consistent across both entry points. Variables in and out: it reads `sys.query` and produces `formalized_content` (the tidied text of the hit chunks).
 
 **(4) Agent component: LLM generation**. The system prompt sets the boundary (you can copy it and adapt it):
 
@@ -348,6 +348,9 @@ Variables in and out: it reads `sys.query`. The output is a route. Whichever cat
 你是售后客服,依据产品资料回答产品使用与售后政策问题。
 资料中没有的,明确说没有,并追问一个澄清问题;不猜测、不编造。
 ```
+
+The prompt above is kept in Chinese because the corpus is Chinese. English gloss: You are an after-sales support agent. Answer product-use and after-sales policy questions from the product material. If the material does not contain it, say so, and ask one clarifying question. Do not guess, and do not fabricate.
+
 
 Assemble the User prompt in the standard structure: after typing `Question: `, insert `sys.query` through the variable picker (type `/`); on a new line, after typing `Reference: `, insert the `formalized_content` of Retrieval (3). Turn Citation on. Variables in and out: it reads `sys.query` and `formalized_content`, and produces `content` (a natural-language answer).
 
@@ -359,7 +362,7 @@ Assemble the User prompt in the standard structure: after typing `Question: `, i
 
 **(8) Message: the receipt (the end of the installation-appointment branch)**. Insert the `result` of (7), or assemble a confirmation: "Your installation appointment has been registered. Name X, time Y, ticket number Z."
 
-There is one deliberate departure from the quickstart. This book's position: **the appointment branch in the original quickstart stops at "collect and display", and does not actually place an order**. That is clean for teaching, and it leaves a debt in production. The after-sales Example in the official agent_overview happens to supply this link: "If the user asks for an installation appointment, use an HTTP request to call the external ticket system." (7) is that link. It upgrades "collect preferences" into "register a ticket".
+There is one deliberate departure from the quickstart. Our recommendation: **the appointment branch in the original quickstart stops at "collect and display", and does not actually place an order**. That is clean for teaching, and it leaves a debt in production. The after-sales Example in the official agent_overview happens to supply this link: "If the user asks for an installation appointment, use an HTTP request to call the external ticket system." (7) is that link. It upgrades "collect preferences" into "register a ticket".
 
 ### A three-question walkthrough and troubleshooting
 
@@ -371,9 +374,9 @@ After Save, Run. Three test questions, each taking one path:
 | Does Model A support Bluetooth? | The product-inquiry branch; the Agent says clearly that the material does not mention it, and asks a follow-up |
 | I want to book a technician to come and install it | The installation-appointment branch; a form appears, and after submit the receipt contains the registration information |
 
-Three troubleshooting items (summarized from the quickstart text): if the route is wrong, refine the category descriptions and example sentences; if retrieval is empty, check the parsing status, the knowledge-base selection, and the query words; if the answer ignores the retrieved text, check the Agent's variable references. Variables again. It is no accident that they rank first in the five checks of 10.2.
+Three troubleshooting items (summarized from the quickstart text): if the route is wrong, refine the category descriptions and example sentences; if retrieval is empty, check the parsing status, the knowledge-base selection, and the query words; if the answer ignores the retrieved text, check the Agent's variable references. Variables again. It is no accident that they rank first in the five checks of Section 10.2.
 
-Only after both branches work as expected do you click **Publish**. After publishing, this Agent and the Chapter 8 "After-sales Assistant" coexist on the same after-sales-kb: the same knowledge, two entries, each answering its own kind of question. That is the division-of-work table in 8.1, landed in a real setup.
+Only after both branches work as expected do you click **Publish**. After publishing, this Agent and the Chapter 8 "After-sales Assistant" coexist on the same after-sales-kb: the same knowledge, two entries, each answering its own kind of question. That is the division-of-work table in Section 8.1, landed in a real setup.
 
 ## Chapter summary
 
@@ -396,21 +399,21 @@ By the time you have read this far, you should be able to:
 - ☐ Use the four-family component table to choose and connect a three-step business flow, and explain where `Switch` and `Categorize` each apply;
 - ☐ Create one Ingestion Pipeline (Begin, then Parser, then Token Chunker, then Transformer, then Indexer), and explain why test run comes before a full import;
 - ☐ Configure both directions of memory for an Agent: the Message component writes back, the Retrieval component reads out, and you verify that a new message appears on the Messages page;
-- ☐ Build the After-sales Support Agent as in 10.6, get the three-question walkthrough passing, and point out which step is the production completion of the quickstart.
+- ☐ Build the After-sales Support Agent as in Section 10.6, get the three-question walkthrough passing, and point out which step is the production completion of the quickstart.
 
 ## Further reading
 
-- **Chapter 8 (chat assistants and sessions)**. The configuration-style route for pure knowledge question answering, and the alternative to this chapter's canvas route. The comparison conclusion in 10.6 is built on the division-of-work table in 8.1.
+- **Chapter 8 (chat assistants and sessions)**. The configuration-style route for pure knowledge question answering, and the alternative to this chapter's canvas route. The comparison conclusion in Section 10.6 is built on the division-of-work table in Section 8.1.
 - **Chapters 4-5 (parsing and chunking / enrichment and indexing)**. The built-in counterpart of every component in the 10.4 pipeline. Read them before reading the pipeline, so you know what each node is replacing.
 - **Chapter 6 (knowledge compilation and knowledge artifacts)**. The full expansion of the `Compiler` component in a pipeline and of Compilation operator.
 - **Chapter 11 (external integration: API and MCP)**. The Agent in this chapter is reachable only inside the UI. The two ways to expose it outward, and the protocol details of connecting external tools through MCP (see the MCP book).
-- **The original official quickstart (Build a Customer Support Agent)**. The source of the skeleton in 10.6. The original English version can serve as a checklist while you build.
+- **The original official quickstart (Build a Customer Support Agent)**. The source of the skeleton in Section 10.6. The original English version can serve as a checklist while you build.
 
 ## Review checklist (before publication)
 
 - [ ] Check the facts in the whole chapter, section by section, against the official source material (seven files under docs/guides/agent plus two files under docs/guides/memory, v1.0.0-rc2, verified 2026-10-27)
-- [ ] The canvas Agent in 10.6 has not been walked through on a real machine: the three-question walkthrough results and the HTTP Request ticket registration are both deduced from the docs, and a measured record from a real machine is still to be added
-- [ ] The 10.4 test run has not been measured: the test-knowledge-base validation flow still has to be walked through on a real machine
-- [ ] Creating a Memory in 10.5 and connecting both directions have not been measured; the Save to Memory mount point and the Vector similarity weight field name follow the real panel
-- [ ] The form-configuration details of Await Response (the appointment-collection Example in dialogue_component.md) were not read in depth; (6) in 10.6 is expanded only from the quickstart overview
-- [ ] The retrieval parameters in (3) of 10.6 follow the conclusion of Chapter 8, section 8.4.2 (0.2/0.5/no rerank); on a real machine, check whether the parameter items on the Agent retrieval-component panel are the same set as on the chat assistant
+- [ ] The canvas Agent in Section 10.6 has not been walked through on a real machine: the three-question walkthrough results and the HTTP Request ticket registration are both deduced from the docs, and a hands-on record from a real machine is still to be added
+- [ ] The 10.4 test run has not been confirmed in testing: the test-knowledge-base validation flow still has to be walked through on a real machine
+- [ ] Creating a Memory in Section 10.5 and connecting both directions have not been verified hands-on; the Save to Memory mount point and the Vector similarity weight field name follow the real panel
+- [ ] The form-configuration details of Await Response (the appointment-collection Example in dialogue_component.md) were not read in depth; (6) in Section 10.6 is expanded only from the quickstart overview
+- [ ] The retrieval parameters in (3) of Section 10.6 follow the conclusion of Chapter 8, Section 8.4.2 (0.2/0.5/no rerank); on a real machine, check whether the parameter items on the Agent retrieval-component panel are the same set as on the chat assistant

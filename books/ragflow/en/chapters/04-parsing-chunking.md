@@ -6,18 +6,18 @@ source: docs/guides/dataset/configuration.md
 
 # Chapter 4 Parsing and chunking: from documents to Chunk
 
-> Chapter guide: Chapter 3 put the three kinds of documents from 「售后知识底座」 (After-sales Knowledge Base) into the dataset `after-sales-kb`, but an upload is not yet usable. A document has to go through parsing and chunking before it becomes a chunk (Chunk) the retrieval engine can hit. This step sets the ceiling of the knowledge base: cut the chunks too fine, and the answer loses its context; cut them too coarse, and what comes back is a stretch of noise. This chapter covers the first two of the four stages of the parsing pipeline: how the Parser extracts content by format (a built-in parser, or calling in a vision model), and how the Chunker cuts that content into pieces of a suitable size (choosing among the 11 built-in chunk methods, the two chunkers General and Title, and column-role configuration). It then uses the running case to give the after-sales policy manual, the product FAQ, and the shipping timeliness notice each a plan. By the end of this chapter, you can: choose a chunk method for new material and configure the Parser and Chunker; use column roles so a table is both searchable and filterable; view, correct, and disable at chunk level on the chunk management page; and complete the loop "change the config → reparse → retrieval test".
+> Chapter guide: Chapter 3 put the three kinds of documents from "售后知识底座" ("After-sales Knowledge Base") into the dataset `after-sales-kb`, but an upload is not yet usable. A document has to go through parsing and chunking before it becomes a chunk the retrieval engine can hit. This step sets the ceiling of the knowledge base: cut the chunks too fine, and the answer loses its context; cut them too coarse, and what comes back is a stretch of noise. This chapter covers the first two of the four stages of the parsing pipeline: how the Parser extracts content by format (a built-in parser, or calling in a vision model), and how the Chunker cuts that content into pieces of a suitable size (choosing among the 11 built-in chunk methods, the two chunkers General and Title, and column-role configuration). It then uses our running example to give the after-sales policy manual, the product FAQ, and the shipping timeliness notice each a plan. By the end of this chapter, you can: choose a chunk method for new material and configure the Parser and Chunker; use column roles so a table is both searchable and filterable; view, correct, and disable at chunk level on the chunk management page; and complete the loop "change the config → reparse → retrieval test".
 
 ```mermaid
 flowchart LR
-    A["数据集配置页选解析类型（4.2）<br/>拿不准先走 Built-in，Pipeline 见第 10 章<br/>先传样本跑检索测试再全量"] --> B{"选定切片方法（4.2）<br/>素材形态优先，选错安静切坏"}
-    B -->|"章节结构 · 条款类"| C["售后政策手册：Manual（4.4 · 4.7.1）<br/>Title 选 Hierarchy · 标题正则配全<br/>表上下文窗口 · 无边框表上视觉模型"]
-    B -->|"XLSX 问答表"| D["商品 FAQ：Table（4.5 · 4.7.2）<br/>通常每行一片 · 列角色走 Manual<br/>问题 Both · 答案 Indexing · 类目/时间 Metadata"]
-    B -->|"短文档公告"| E["物流时效公告：General / Email（4.3 · 4.7.3）<br/>HTML 去目录去页眉页脚<br/>默认 512 起步 · 多载体只留一份主源"]
-    C --> F["解析完成后进 chunk 管理页（4.6.1）<br/>逐片抽查 · 修正 · 过时片停用<br/>改配置不追溯，须重新解析（4.6.3）"]
+    A["On the dataset configuration page, choose the parse type (4.2)<br/>If you are unsure, start with Built-in. Pipeline is Chapter 10<br/>Upload a sample, run retrieval testing, then do the rest"] --> B{"Choose the chunk method (4.2)<br/>The shape of the material comes first. A wrong choice cuts badly, and quietly"}
+    B -->|"Chapter structure, clause-like"| C["After-sales policy manual: Manual (4.4 and 4.7.1)<br/>Title uses Hierarchy. Fill in the heading regex<br/>Table context window. Vision model for borderless tables"]
+    B -->|"XLSX question-and-answer table"| D["Product FAQ: Table (4.5 and 4.7.2)<br/>Usually one row per chunk. Column roles use Manual<br/>Question: Both. Answer: Indexing. Category and time: Metadata"]
+    B -->|"A short notice"| E["Shipping-time notice: General / Email (4.3 and 4.7.3)<br/>HTML: drop the TOC, headers, and footers<br/>Start from the default 512. Keep one primary copy across carriers"]
+    C --> F["After parsing, open the chunk page (4.6.1)<br/>Spot-check, correct, and disable stale chunks<br/>A config change is not retroactive. Reparse (4.6.3)"]
     D --> F
     E --> F
-    F --> G["检索测试验证切片质量（第 7 章）<br/>管线后两段 Extractor · Indexer 见第 5 章"]
+    F --> G["Retrieval testing checks chunk quality (Chapter 7)<br/>The last two pipeline stages, Extractor and Indexer, are Chapter 5"]
 ```
 
 *Flowchart for this chapter*
@@ -26,33 +26,33 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**The document has finished parsing, but retrieval testing hits fragments or one solid block**: go back to 4.2 and check whether the chunk method matches the form of the material, then go to 4.4 and adjust the Chunker parameters. If the method is wrong, every parameter tweak after that is a patch.
+**The document has finished parsing, but retrieval testing hits fragments or one solid block**: go back to Section 4.2 and check whether the chunk method matches the form of the material, then go to Section 4.4 and adjust the Chunker parameters. If the method is wrong, every parameter tweak after that is a patch.
 
-**Scans, multi-column PDFs, and PPTs that mix images and text come out a mess**: go straight to 4.3 (Parser configuration). This section answers two things: which parser to choose, and when it is worth turning a vision model on for it.
+**Scans, multi-column PDFs, and PPTs that mix images and text come out a mess**: go straight to Section 4.3 (Parser configuration). This section answers two things: which parser to choose, and when it is worth turning a vision model on for it.
 
-**A table knowledge base cannot be searched into, and filters do not move**: see 4.5 (column roles). Whether each column of a table should take part in retrieval, serve only as metadata, or do both is a per-column decision, not a dataset-level switch.
+**A table knowledge base cannot be searched into, and filters do not move**: see Section 4.5 (column roles). Whether each column of a table should take part in retrieval, serve only as metadata, or do both is a per-column decision, not a dataset-level switch.
 
-Two other situations are also common. Parsing fails, or you changed the configuration and it "does not take effect". See 4.6. Most of these are not faults. The reparse semantics have not been taken in.
+Two other situations are also common. Parsing fails, or you changed the configuration and it "does not take effect". See Section 4.6. Most of these are not faults. The reparse semantics have not been taken in.
 
 Prerequisites: creating the dataset and uploading files in Chapter 3; the model channel in Chapter 2. The vision models and ASR models used in this chapter all come from the model service configured there.
 
 ## 4.1 Overview: the four stages of the parsing pipeline
 
-Set down this book's position first: **the chunk method is this book's main battlefield**. More than half of the final question-answering quality of a RAG system is decided at the moment the chunks take their shape. However strong the model is, it can only look for the answer inside the chunks that retrieval feeds it. That is why this chapter is the heaviest in the book, and why that weight is worth it.
+Set down our recommendation first: **the chunk method is this book's main battlefield**. More than half of the final question-answering quality of a RAG system is decided at the moment the chunks take their shape. However strong the model is, it can only look for the answer inside the chunks that retrieval feeds it. That is why this chapter is the heaviest in the book, and why that weight is worth it.
 
 From a document to a searchable chunk, RAGFlow's parsing pipeline has four stages:
 
 ```mermaid
 flowchart LR
-    D["文档<br/>PDF · XLSX · HTML · 邮件 · 音频…"] --> P
-    subgraph S1["本章：从文档到 Chunk"]
-        P["① Parser 解析<br/>按格式提取内容<br/>OCR · 表格识别 · 版面分析"] --> C["② Chunker 切片<br/>切片方法 + 切片参数<br/>General / Title / 列角色"]
+    D["Document<br/>PDF, XLSX, HTML, email, audio..."] --> P
+    subgraph S1["This chapter: from a document to chunks"]
+        P["1. Parser<br/>Extract content by format<br/>OCR, table recognition, layout analysis"] --> C["2. Chunker<br/>Chunk method plus chunk parameters<br/>General / Title / column roles"]
     end
-    subgraph S2["第 5 章：从 Chunk 到可检索"]
-        C --> E["③ Extractor 增强<br/>关键词 · 问题 · 标签<br/>上下文摘要 · 元数据"]
-        E --> I["④ Indexer 索引<br/>向量 / 全文<br/>写入检索引擎"]
+    subgraph S2["Chapter 5: from chunks to something retrievable"]
+        C --> E["3. Extractor<br/>Keywords, questions, tags<br/>Context summary, metadata"]
+        E --> I["4. Indexer<br/>Vector / full text<br/>Write into the retrieval engine"]
     end
-    I --> R["检索测试<br/>第 7 章"]
+    I --> R["Retrieval testing<br/>Chapter 7"]
 ```
 
 *The four stages of the parsing pipeline: this chapter covers the first two, and the last two are in Chapter 5*
@@ -68,7 +68,7 @@ Two reading notes. First, the official docs state clearly that "different built-
 
 ## 4.2 Choosing a built-in chunk method
 
-The chunk method (Chunk method) is the overall strategy by which a dataset processes uploaded documents and turns them into chunks. **Parse type** (parsing type) on the configuration page offers two entries: **Built-in** (built-in parsing) and **Pipeline** (a custom ingestion pipeline (Ingestion Pipeline)). Before you open the configuration page, one small thing is worth checking: the **Language** setting in the basic information of the dataset (Dataset) affects the language assumptions of parsing and of model processing (the other basic-information fields are in Chapter 3). If the language of the material does not match the setting, chunk quality is already one layer worse.
+The chunk method is the overall strategy by which a dataset processes uploaded documents and turns them into chunks. **Parse type** (parsing type) on the configuration page offers two entries: **Built-in** (built-in parsing) and **Pipeline** (a custom ingestion pipeline). Before you open the configuration page, one small thing is worth checking: the **Language** setting in the basic information of the dataset affects the language assumptions of parsing and of model processing (the other basic-information fields are in Chapter 3). If the language of the material does not match the setting, chunk quality is already one layer worse.
 
 | | Built-in (built-in parsing) | Pipeline (custom ingestion pipeline) |
 |---|---|---|
@@ -78,7 +78,7 @@ The chunk method (Chunk method) is the overall strategy by which a dataset proce
 | Prerequisite | None | The pipeline must already be created and configured; if there is no pipeline yet, the entry on the configuration page can jump you to Agent to create one |
 | Where it is developed | 4.3-4.5 in this chapter | (see Chapter 10) |
 
-**This book's position: when you are not sure, start with Built-in.** Built-in methods cover the great majority of document forms. Pipeline is the upgrade you take after "built-in cannot meet the need". It is not the default.
+**Our recommendation: when you are not sure, start with Built-in.** Built-in methods cover the great majority of document forms. Pipeline is the upgrade you take after "built-in cannot meet the need". It is not the default.
 
 ### The 11 built-in chunk methods
 
@@ -96,37 +96,37 @@ The chunk method (Chunk method) is the overall strategy by which a dataset proce
 | Audio | Audio such as WAV/MP3/AAC/FLAC/OGG | Transcribes to text with an ASR model first, then chunks the transcript |
 | Email | Mail files such as EML/MSG | Extracts sender, recipients, subject, body, and attachments, then chunks |
 
-On the rc2 interface, that table looks like this. Screenshot measured on 2026-11-04, on a local Docker deployment of RAGFlow v1.0.0-rc2: the Built-in pipelines area of the Agent page, where chunk methods appear as ingestion-pipeline templates.
+On the rc2 interface, that table looks like this. Screenshot taken on 2026-11-04, on a local Docker deployment of RAGFlow v1.0.0-rc2: the Built-in pipelines area of the Agent page, where chunk methods appear as ingestion-pipeline templates.
 
 ![12 Built-in pipelines template cards on the Agent page: General, Q&A, Manual, Table, Paper, Book, Laws, Presentation, Picture, One, Audio, and Email, each card with a copy button](../assets/images/demo/ragflow-04-chunk-templates.png)
 
-The 12 cards can be matched one by one against the 11 methods in the table above. The only extra is a separate **Picture** (image) template. rc2 gives image ingestion a card of its own, and the table in the body does not list it on its own; the Manual template mentioned in the body is indeed in the list. The template cards are the physical inventory of chunk methods. When you choose, walk this figure against the table above, then go into the parser configuration in 4.3. The reason for the choice then has a place to land on the interface.
+The 12 cards can be matched one by one against the 11 methods in the table above. The only extra is a separate **Picture** (image) template. rc2 gives image ingestion a card of its own, and the table in the body does not list it on its own; the Manual template mentioned in the body is indeed in the list. The template cards are the physical inventory of chunk methods. When you choose, walk this figure against the table above, then go into the parser configuration in Section 4.3. The reason for the choice then has a place to land on the interface.
 
 ### The selection decision: the form of the material comes first
 
 The official selection advice, in one sentence: choose the method by the form of the material itself. Start ordinary documents with General, start table material with Table, and give question sets, manuals, papers, pictures, audio, and mail each their matching method, so you spend less later adjusting chunks.
 
-**This book's position: look at the form of the material first, then at what you expect from retrieval.** Form decides "whether it can be cut right". Cut question-answer pairs with General, and whether a pair stays whole is luck. What you expect from retrieval decides "whether the cut is fit to use". The same manual, if you want every hit to carry a "chapter > clause" path, has to be chunked by heading structure. From that, one decision path:
+**Our recommendation: look at the form of the material first, then at what you expect from retrieval.** Form decides "whether it can be cut right". Cut question-answer pairs with General, and whether a pair stays whole is luck. What you expect from retrieval decides "whether the cut is fit to use". The same manual, if you want every hit to carry a "chapter > clause" path, has to be chunked by heading structure. From that, one decision path:
 
 ```mermaid
 flowchart TD
-    A["新素材选型<br/>先看形态"] --> B{"特殊形态?"}
-    B -->|"问答对"| Q["Q&A"]
-    B -->|"表格数据"| T["Table"]
-    B -->|"音频 / 邮件 / 演示"| S["Audio / Email / Presentation"]
-    B -->|"短文且要完整上下文"| O["One"]
-    B -->|"否"| C{"有可识别的标题结构?"}
-    C -->|"手册 / 书 / 法规 / 论文"| H["Manual / Book / Laws / Paper"]
-    C -->|"否"| G["General<br/>大多数常规文档的起点"]
+    A["Choosing a method for new material<br/>Look at the shape first"] --> B{"A special shape?"}
+    B -->|"Question-and-answer pairs"| Q["Q&A"]
+    B -->|"Table data"| T["Table"]
+    B -->|"Audio / email / slides"| S["Audio / Email / Presentation"]
+    B -->|"Short, and the whole context has to stay"| O["One"]
+    B -->|"No"| C{"Is there a heading structure you can recognize?"}
+    C -->|"Manual / book / laws / paper"| H["Manual / Book / Laws / Paper"]
+    C -->|"No"| G["General<br/>The starting point for most ordinary documents"]
 ```
 
 *Decision path for the chunk method: questions of form come before questions of structure*
 
-Know the cost of choosing wrong: **a mismatched method usually does not report an error. It quietly cuts out bad chunks.** A question set is cut into semantic fragments, and a manual is cut into structureless blocks of text. When you notice, the only remedy is to reparse (see 4.6.3). So upload one or two samples into the dataset first, run one retrieval test (Retrieval Testing), and only then upload the full batch. That is the low-cost way of trying and correcting that this book recommends (retrieval testing is covered in Chapter 7).
+Know the cost of choosing wrong: **a mismatched method usually does not report an error. It quietly cuts out bad chunks.** A question set is cut into semantic fragments, and a manual is cut into structureless blocks of text. When you notice, the only remedy is to reparse (see Section 4.6.3). So upload one or two samples into the dataset first, run one retrieval test (Retrieval Testing), and only then upload the full batch. That is the low-cost way of trying and correcting that this book recommends (retrieval testing is covered in Chapter 7).
 
 ## 4.3 Parser configuration: set the parsing strategy by format
 
-After you choose a chunk method, you can go on to configure document parsing, chunking, and content enrichment. This section is the Parser. It decides how content of different formats is extracted. Keep the two layers apart. The chunk method in 4.2 is "how the dataset cuts". The parser in this section is "how the content of a given format is read out". For example, the table cells under the Table chunk method still need a parser chosen to recognize the table structure.
+After you choose a chunk method, you can go on to configure document parsing, chunking, and content enrichment. This section is the Parser. It decides how content of different formats is extracted. Keep the two layers apart. The chunk method in Section 4.2 is "how the dataset cuts". The parser in this section is "how the content of a given format is read out". For example, the table cells under the Table chunk method still need a parser chosen to recognize the table structure.
 
 ### 4.3.1 PDF: the format with the most problems and the heaviest configuration
 
@@ -148,18 +148,18 @@ PDF is the format with the most problems in practice, and it also has the most c
 
 | Configuration item | What it does | When to turn it on |
 |--------|------|---------|
-| Multi-column layout recognition (multi-column layout recognition) | Recognizes two-column / multi-column pages and extracts text regions in a suitable reading order | Multi-column documents such as papers, journals, and reports |
+| Multi-column layout recognition | Recognizes two-column / multi-column pages and extracts text regions in a suitable reading order | Multi-column documents such as papers, journals, and reports |
 | Remove original table of contents (remove the original table of contents) | Removes the table of contents that comes with the PDF during parsing, so it does not enter chunks and retrieval results as if it were body text | When contents pages would be treated as body text |
-| Remove headers and footers (remove headers and footers) | Recognizes and removes the headers and footers repeated on every page, cutting irrelevant content in the knowledge base | When every page has a header / footer / page number |
-| Page range (page range) | Set a start and end page, and add more than one range, to skip pages that do not need processing | When a long document should only contribute some chapters |
-| Disable vision model (disable the vision model) | When on, parsing does not call a vision model; when off, a vision model can help understand a complex layout or mixed image-and-text content | Decide by document complexity (see 4.3.7) |
+| Remove headers and footers | Recognizes and removes the headers and footers repeated on every page, cutting irrelevant content in the knowledge base | When every page has a header / footer / page number |
+| Page range | Set a start and end page, and add more than one range, to skip pages that do not need processing | When a long document should only contribute some chapters |
+| Disable vision model (disable the vision model) | When on, parsing does not call a vision model; when off, a vision model can help understand a complex layout or mixed image-and-text content | Decide by document complexity (see Section 4.3.7) |
 | Model (vision model) | Choose the vision model parsing needs; the stronger the model, the more complete its understanding of a complex layout may be, and quality and token consumption change with it | When a vision model is needed |
 
 External models are shown in the parser dropdown grouped by model provider. Whether one is available depends on the providers already configured and on their capabilities. The same is true of external models for table parsing and image parsing, and later sections will not repeat it.
 
 ### 4.3.2 Table: recognizing the structure of table content
 
-This is recognition of tables inside a document. It is a different layer from the Table chunk method in 4.2. You can configure three items: **Parsing method** (DeepDOC / TCADP Parser / external model), **Disable vision model**, and **Model**. Official wording: DeepDOC recognizes table structure and extracts cell content, and it fits most standard tables. A regular table with clear borders can use a built-in parser. For a complex table, a borderless table, merged rows or columns, or a table that needs to be read visually, then consider a model with vision. The price is the same: extra model calls and tokens.
+This is recognition of tables inside a document. It is a different layer from the Table chunk method in Section 4.2. You can configure three items: **Parsing method** (DeepDOC / TCADP Parser / external model), **Disable vision model**, and **Model**. Official wording: DeepDOC recognizes table structure and extracts cell content, and it fits most standard tables. A regular table with clear borders can use a built-in parser. For a complex table, a borderless table, merged rows or columns, or a table that needs to be read visually, then consider a model with vision. The price is the same: extra model calls and tokens.
 
 ### 4.3.3 Image: OCR or an external model
 
@@ -191,9 +191,9 @@ Configuration for these four formats turns on two things: **removing repeats** (
 
 ### 4.3.6 Vision models: benefit and token cost
 
-Pull out one sentence that keeps reappearing in 4.3.1-4.3.5 and make it a rule on its own. The official wording is always the same shape: "Start plain-text content from a built-in parser; for scans, multiple columns, complex tables, and mixed images and text, a vision model may improve parsing quality; because a vision model incurs extra calls and tokens, enable it by document type."
+Pull out one sentence that keeps reappearing in Section 4.3.1-4.3.5 and make it a rule on its own. The official wording is always the same shape: "Start plain-text content from a built-in parser; for scans, multiple columns, complex tables, and mixed images and text, a vision model may improve parsing quality; because a vision model incurs extra calls and tokens, enable it by document type."
 
-**This book's position: a vision model is "prescribed for the document's actual condition", not "a supplement for everyone".** In the same dataset, turning a vision model on for a plain-text PDF only burns tokens and does not raise quality, while a borderless table such as a compensation-standard table is recognized as garbage if you leave the vision model off. Gather the official advice that keeps reappearing for each format in 4.3 into one comparison table, and match each kind of material to its row:
+**Our recommendation: a vision model is "prescribed for the document's actual condition", not "a supplement for everyone".** In the same dataset, turning a vision model on for a plain-text PDF only burns tokens and does not raise quality, while a borderless table such as a compensation-standard table is recognized as garbage if you leave the vision model off. Gather the official advice that keeps reappearing for each format in Section 4.3 into one comparison table, and match each kind of material to its row:
 
 | Feature of the material | Suggested path |
 |---------|---------|
@@ -215,14 +215,14 @@ The Chunker decides how the parse output is split. Built-in configuration has tw
 
 | Parameter | Default | What it does |
 |------|--------|------|
-| Recommended chunk size (recommended chunk size) | **512** (tokens) | The target size of each chunk. The system combines neighboring content up to that size, but it is a target, not a hard cap. A paragraph that exceeds the target and cannot be split further may stay as one chunk |
+| Recommended chunk size | **512** (tokens) | The target size of each chunk. The system combines neighboring content up to that size, but it is a target, not a hard cap. A paragraph that exceeds the target and cannot be split further may stay as one chunk |
 | Overlap ratio(%) (overlap ratio) | -- | The share of content that neighboring chunks share. When overlap is on, content at the end of the previous chunk is copied to the start of the next, which reduces context lost at the boundary and improves semantic continuity. Set **0** for no overlap |
-| Table context window (table context window) | -- | How much context before and after (tokens) is attached to a table chunk, keeping the relation between the table and the surrounding text. Set **0** to attach none |
-| Image context window (image context window) | -- | How much context before and after (tokens) is attached to an image chunk. It fits images that need the surrounding text before they can be understood. Set **0** to attach none |
-| Delimiters (delimiters) | Newline `\n`, period, question mark, exclamation mark, semicolon, and so on | The set of delimiters that take part in splitting |
-| Split by delimiter (split by delimiter) | -- | Split the text by delimiters first, then combine neighboring fragments up to the recommended chunk size, assembling a suitable size while keeping the semantics as far as possible |
-| Split positions (split positions) | -- | Shows every delimiter currently in use, so you can confirm which boundaries are used |
-| Add (add) | -- | Add a custom delimiter. Use a boundary marker that means something in the document, such as a heading mark or a paragraph mark |
+| Table context window | -- | How much context before and after (tokens) is attached to a table chunk, keeping the relation between the table and the surrounding text. Set **0** to attach none |
+| Image context window | -- | How much context before and after (tokens) is attached to an image chunk. It fits images that need the surrounding text before they can be understood. Set **0** to attach none |
+| Delimiters | Newline `\n`, period, question mark, exclamation mark, semicolon, and so on | The set of delimiters that take part in splitting |
+| Split by delimiter | -- | Split the text by delimiters first, then combine neighboring fragments up to the recommended chunk size, assembling a suitable size while keeping the semantics as far as possible |
+| Split positions | -- | Shows every delimiter currently in use, so you can confirm which boundaries are used |
+| Add | -- | Add a custom delimiter. Use a boundary marker that means something in the document, such as a heading mark or a paragraph mark |
 | Use sub-chunks for retrieval (retrieve with sub-chunks) | -- | Turn on parent-child chunks (parent-child): generate smaller child chunks from a larger parent chunk, and retrieve with the child chunks. After a child chunk hits, the parent chunk supplies more complete context |
 
 The official four sentences of advice are worth copying into the team standard verbatim, and then turning into an action table of "symptom → which parameter to move":
@@ -234,7 +234,7 @@ The official four sentences of advice are worth copying into the team standard v
 | Many tables and images, and the surrounding text has come loose from the figure | Configure Table / Image context window |
 | You want precise retrieval and you also want to keep the full context | Turn on Use sub-chunks for retrieval |
 
-**This book's position: the three window-style parameters (chunk size, table context, and image context) are three faces of the same tradeoff.** They all spend tokens, and they all buy completeness of context. Body text before and after a table getting cut away is the most common retrieval failure for table knowledge (the table is hit, the applicable conditions are lost). So for a "table + preconditions" document such as a compensation clause, the table context window should rank above overlap.
+**Our recommendation: the three window-style parameters (chunk size, table context, and image context) are three faces of the same tradeoff.** They all spend tokens, and they all buy completeness of context. Body text before and after a table getting cut away is the most common retrieval failure for table knowledge (the table is hit, the applicable conditions are lost). So for a "table + preconditions" document such as a compensation clause, the table context window should rank above overlap.
 
 ### 4.4.2 Title Chunker: chunk by heading structure
 
@@ -254,9 +254,9 @@ Choose the mode in one sentence: **if a sense of position comes first, choose Hi
 
 ### 4.4.3 Heading-recognition rules: regex and rule sets
 
-**Rules**, shared by both modes, decides "what counts as a heading". Each rule can contain five levels of regular expression, H1 through H5. They can match Markdown marks (`#`, `##`, `###`), Chinese numbered headings (such as 「第一章」 and 「三、」), and English heading words (`PART`, `Chapter`, `Section`, `Article`). **Add regular expression** adds one level and its regex to the current rule. **Add rule** adds a whole new rule set, for a different language, numbering system, or document format.
+**Rules**, shared by both modes, decides "what counts as a heading". Each rule can contain five levels of regular expression, H1 through H5. They can match Markdown marks (`#`, `##`, `###`), Chinese numbered headings (such as "第一章" ("Chapter 1, as a heading pattern in the manual") and "三、" ("a Chinese enumeration marker, like 3.")), and English heading words (`PART`, `Chapter`, `Section`, `Article`). **Add regular expression** adds one level and its regex to the current rule. **Add rule** adds a whole new rule set, for a different language, numbering system, or document format.
 
-**This book's position: heading regex is the "foundation work" of heading-based chunking, and it is worth writing all five levels for a manual before you put it online.** Once level recognition is under-configured, for example a manual mixes the two numbering systems 「第一章」 and 「1.1」 and the rules only cover one of them, the headings that slip through are demoted to body text, and the chunk boundaries collapse with them. After you write the regex, upload a sample and verify the level tree before you talk about token limit.
+**Our recommendation: heading regex is the "foundation work" of heading-based chunking, and it is worth writing all five levels for a manual before you put it online.** Once level recognition is under-configured, for example a manual mixes the two numbering systems "第一章" ("Chapter 1, as a heading pattern in the manual") and "1.1" ("a sample heading number") and the rules only cover one of them, the headings that slip through are demoted to body text, and the chunk boundaries collapse with them. After you write the regex, upload a sample and verify the level tree before you talk about token limit.
 
 ## 4.5 Column roles: make a table both searchable and filterable
 
@@ -264,7 +264,7 @@ When a dataset uses **Table** as its built-in chunk method, **Column mode** (col
 
 **Auto (automatic)**: the default. Every column both enters the chunk text and is stored as metadata. It fits the case where you do not need to distinguish what columns are for, and you want all of the table content to take part in retrieval and to be usable as metadata at the same time.
 
-**Manual (manual)**: RAGFlow recognizes the table's columns and shows them one by one under the original column names. Names such as `CRIM`, `ZN`, `INDUS`, and `CHAS` appear on the interface. They come from the column names of the current table. They are **not predefined RAGFlow fields**. Each column is one of three, chosen from a dropdown:
+**Manual**: RAGFlow recognizes the table's columns and shows them one by one under the original column names. Names such as `CRIM`, `ZN`, `INDUS`, and `CHAS` appear on the interface. They come from the column names of the current table. They are **not predefined RAGFlow fields**. Each column is one of three, chosen from a dropdown:
 
 | | Auto | Manual |
 |---|------|--------|
@@ -276,8 +276,8 @@ When a dataset uses **Table** as its built-in chunk method, **Column mode** (col
 | Role | Behavior | Columns it fits |
 |------|------|--------|
 | Indexing (index) | Column content enters the chunk text and takes part in vector retrieval and full-text retrieval | The column that carries the main retrieval content |
-| Metadata (metadata) | The column is stored only as metadata and does not enter the chunk text; it can be a filter field that narrows the retrieval range | Filter-condition columns such as category and year |
-| Both (both) | Enters the chunk text and takes part in retrieval, and can also filter as metadata | Columns such as a title, which "must be retrieved and must also be filterable" |
+| Metadata | The column is stored only as metadata and does not enter the chunk text; it can be a filter field that narrows the retrieval range | Filter-condition columns such as category and year |
+| Both | Enters the chunk text and takes part in retrieval, and can also filter as metadata | Columns such as a title, which "must be retrieved and must also be filterable" |
 
 The four-column example the official docs give can be applied directly to a product-FAQ table:
 
@@ -296,7 +296,7 @@ The effect: fields that do not need to take part in content retrieval do not ent
 
 However good the configuration is, it is only the "factory setting". The last mile of chunk quality is on the chunk management page. This section covers three things: manual correction at chunk level, parse logs and fault location, and reparse semantics. This set of governing actions is triggered again and again by retrieval testing in Chapter 7, and in Chapter 13 it is promoted to a routine item of operations inspection.
 
-**This book's position: the chunk management page is the buffer between "parsing quality" and "retrieval quality".** An imperfect parse is the normal case, and correcting chunk by chunk is much cheaper than tuning parameters and reparsing over and over. But a manual correction is a patch applied to a specific chunk. Reparsing generates the chunks again, and the patch does not migrate with them. So its place is "small repairs". A systematic problem still has to go back to the configuration layer.
+**Our recommendation: the chunk management page is the buffer between "parsing quality" and "retrieval quality".** An imperfect parse is the normal case, and correcting chunk by chunk is much cheaper than tuning parameters and reparsing over and over. But a manual correction is a patch applied to a specific chunk. Reparsing generates the chunks again, and the patch does not migrate with them. So its place is "small repairs". A systematic problem still has to go back to the configuration layer.
 
 ### 4.6.1 The chunk management page: view and correct at chunk level
 
@@ -313,11 +313,11 @@ After parsing finishes, click the document name on the **Files** page to enter t
 | Enable / disable | The enabled state decides whether this chunk takes part in dataset retrieval | For outdated, wrong, or temporarily unneeded content, **disable rather than delete**. A disabled chunk stays in the parse results; retrieval simply no longer recalls it |
 | Delete | Remove it from the current document's parse results | Use it only when you are sure it is no longer needed; to keep it out of retrieval for a while, use disable |
 
-On the interface, that capability table is the layout below. Screenshot measured on 2026-11-04 in the same environment: the parse-results page after `after-sales-policy.pdf` finished parsing. The left column is a preview of the PDF source, and the right column is the Chunk result chunk list.
+On the interface, that capability table is the layout below. Screenshot taken on 2026-11-04 in the same environment: the parse-results page after `after-sales-policy.pdf` finished parsing. The left column is a preview of the PDF source, and the right column is the Chunk result chunk list.
 
 ![On the parse-results page, the left side is a preview of the after-sales policy manual PDF and the right side is the Chunk result chunk list; each chunk has a source thumbnail, body text, and an enable switch, with Total 5 at the bottom](../assets/images/demo/ragflow-04-chunk-list.png)
 
-The "linked preview of the source" in the table above has a physical instance in this figure: the PDF source in the left column, the chunk list in the right column, each chunk with a source thumbnail and an enable switch. The Full text/Ellipse switch at the top is the "show the full long text / collapse" toggle, and Total 5 at the bottom is the chunk count of this small sample manual. Record one measured flaw honestly along the way: the end of the first chunk's text line in the right column is slightly truncated (「2.1 退货时」 is missing the character 「限」). Compare it with the source in the left column and it shows. The last mile of chunk quality has to be corrected chunk by chunk on the chunk management page, which is exactly the position stated at the start of this section.
+The "linked preview of the source" in the table above has a physical instance in this figure: the PDF source in the left column, the chunk list in the right column, each chunk with a source thumbnail and an enable switch. The Full text/Ellipse switch at the top is the "show the full long text / collapse" toggle, and Total 5 at the bottom is the chunk count of this small sample manual. Record one flaw confirmed in testing, honestly, along the way: the end of the first chunk's text line in the right column is slightly truncated ("2.1 退货时" ("2.1 When returning goods") is missing the character "限" ("the character for limit")). Compare it with the source in the left column and it shows. The last mile of chunk quality has to be corrected chunk by chunk on the chunk management page, which is exactly the position stated at the start of this section.
 
 ### 4.6.2 Parse logs and fault location
 
@@ -327,13 +327,13 @@ One high-frequency error is worth knowing on its own: **"File not found in objec
 
 ### 4.6.3 Reparse semantics: changing the configuration does not reach back on its own
 
-This section is the cognitive pit the whole book is easiest to step in. Nail it down here in advance. The update-process SOP in Chapter 13 will take it in again.
+This section is the cognitive pitfall the whole book most easily falls into. Nail it down here in advance. The update-process SOP in Chapter 13 will take it in again.
 
 **If you change the parsing configuration, do old documents update on their own?** Official wording: usually you have to reparse. The parsing configuration decides how a document is turned into chunks. For a document already parsed, changing the configuration **does not automatically rewrite the old chunks**. To make the new configuration act on documents you already have, you must reparse the related documents.
 
 Metadata is half an exception. After you edit it by hand, interface filters can usually use the new value directly. But if the metadata takes part in retrieval filtering or affects index results, you may need to combine a reparse, an index refresh, or a fresh retrieval test to confirm the final effect.
 
-**This book's position: treat "change the config → reparse → retrieval test" as one action, not three steps.** If you only change the configuration and do not reparse, you think you are tuning parameters, and you are actually comforting yourself. If you reparse and do not run a retrieval test, you think you fixed it, and you have not verified it.
+**Our recommendation: treat "change the config → reparse → retrieval test" as one action, not three steps.** If you only change the configuration and do not reparse, you think you are tuning parameters, and you are actually comforting yourself. If you reparse and do not run a retrieval test, you think you fixed it, and you have not verified it.
 
 ### 4.6.4 A quick lookup of common pitfalls
 
@@ -343,8 +343,8 @@ Metadata is half an exception. After you edit it by hand, interface filters can 
 | Parsing takes a long time overall | RAPTOR, knowledge graph (GraphRAG), automatic keywords, and automatic questions are all heavy-cost items | Turn them off as needed; keyword / question generation is in Chapter 5 |
 | Retrieval testing cannot retrieve the content | The document was not parsed, there is no usable chunk, metadata filtering is too strict, Similarity threshold is too high, or Top K is too small | Investigate in the order "document state → chunk → metadata → retrieval parameters" (see Chapter 7) |
 | An error that the source file is lost | The MinIO disk filled up and the upload failed, or the file was deleted | Repair storage → upload again → parse again |
-| Behavior did not change after the configuration changed | Reparse semantics: configuration does not reach back | Reparse the related documents (4.6.3) |
-| A column-role change did not take effect | It takes effect only for documents parsed later | Reparse tables that were already parsed (4.5) |
+| Behavior did not change after the configuration changed | Reparse semantics: configuration does not reach back | Reparse the related documents (Section 4.6.3) |
+| A column-role change did not take effect | It takes effect only for documents parsed later | Reparse tables that were already parsed (Section 4.5) |
 
 ## 4.7 Running case: chunking plans for three documents
 
@@ -359,31 +359,31 @@ Back to the dataset `after-sales-kb`. The three kinds of material differ sharply
 
 ### 4.7.1 The after-sales policy manual: Manual + Title Chunker (Hierarchy)
 
-**Why this choice.** The character of a policy manual is "the clause is the unit of knowledge". Support asks "who pays the shipping on a return of a cross-border order", and the hit you want is the clause under "After-sales policy > Returns and refunds > Who pays shipping", not a mixture of neighboring clauses. That is exactly where Hierarchy mode is at home. Each chunk keeps the full parent-heading path, and it can still be located when it is retrieved away from the original document. The accompanying action: give the heading rules a full set of H1-H5 regex for the manual's numbering system. Suppose this manual uses the three-level numbering 「第一章 / 1.1 / 1.1.1」. The rule set can look like this (Example in this book; adjust the regex to the actual numbering system):
+**Why this choice.** The character of a policy manual is "the clause is the unit of knowledge". Support asks "who pays the shipping on a return of a cross-border order", and the hit you want is the clause under "After-sales policy > Returns and refunds > Who pays shipping", not a mixture of neighboring clauses. That is exactly where Hierarchy mode is at home. Each chunk keeps the full parent-heading path, and it can still be located when it is retrieved away from the original document. The accompanying action: give the heading rules a full set of H1-H5 regex for the manual's numbering system. Suppose this manual uses the three-level numbering "第一章 / 1.1 / 1.1.1" ("Chapter 1 / 1.1 / 1.1.1, three levels of numbering"). The rule set can look like this (Example in this book; adjust the regex to the actual numbering system):
 
 | Level | Example regex | Match target |
 |------|---------|---------|
-| H1 | `^第[一二三四五六七八九十百]+章` | Chapter-level headings |
-| H2 | `^\d+\.\d+(?!\.)` | Section-level headings (negative lookahead, so the prefix of 1.1.1 is not matched by mistake) |
+| H1 | `^第[一二三四五六七八九十百]+章` | Chapter-level headings (a Chinese heading pattern) |
+| H2 | `^\d+\.\d+(?!\.)` | Section-level headings (negative lookahead, so the prefix of Section 1.1.1 is not matched by mistake) |
 | H3 | `^\d+\.\d+\.\d+(?!\.)` | Clause-level headings |
 
 Turn on two more switches. Turn **Set first chunk as global context** on, so the general provisions become document-level background for the chunks that follow. Turn **Separate parent heading content** on, so the lead-in under a chapter heading is not mixed into a chunk with the clauses. The compensation-standard table (such as "product category x compensation ratio") is a retrieval hot spot of this manual. Give the table context window the body text before and after, so the "applicable conditions" do not lose contact with the table.
 
-**Expected failure modes.** First, the heading regex misses a numbering system. If the manual mixes the two level systems 「三、」 and 「3.1」 and the rules only cover one of them, the headings that slip through are demoted to body text, the chapter path collapses, and the hit chunk loses its sense of position. Second, Chunk token limit is set too large, one chunk is stuffed with several unrelated clauses, and a hit is noise. Third, if the compensation table has no borders or contains merged cells, the built-in table parser struggles, and you need a vision model (4.3.2). Fourth, the contents page and the headers and footers were not removed, and "Chapter X ... page number" becomes a junk chunk that hits at high frequency.
+**Expected failure modes.** First, the heading regex misses a numbering system. If the manual mixes the two level systems "三、" ("a Chinese enumeration marker, like 3.") and "3.1" ("a sample heading number") and the rules only cover one of them, the headings that slip through are demoted to body text, the chapter path collapses, and the hit chunk loses its sense of position. Second, Chunk token limit is set too large, one chunk is stuffed with several unrelated clauses, and a hit is noise. Third, if the compensation table has no borders or contains merged cells, the built-in table parser struggles, and you need a vision model (Section 4.3.2). Fourth, the contents page and the headers and footers were not removed, and "Chapter X ... page number" becomes a junk chunk that hits at high frequency.
 
 ### 4.7.2 The product FAQ: Table + column roles
 
-**Why this choice.** An XLSX of about 200 rows of questions and answers, with the Table method at one row per chunk, lines up naturally with "one question and one answer is one unit of knowledge". Column roles go Manual, mapped on the official four-column pattern: the question column → Both (the user's question has to be matched against the prepared question, and a title-style column is also worth having as a filter dimension), the answer column → Indexing (pure retrieval content), the category column → Metadata (filter by product category, for example search only questions in the "shipping" category), the update-time column → Metadata (operations filters by new and old). The reason not to use the default Auto: **this book's position: mixing category and timestamps into the chunk text dilutes the vector representation**. On a small table of 200 rows the effect is still tolerable, but the discipline should be formed early.
+**Why this choice.** An XLSX of about 200 rows of questions and answers, with the Table method at one row per chunk, lines up naturally with "one question and one answer is one unit of knowledge". Column roles go Manual, mapped on the official four-column pattern: the question column → Both (the user's question has to be matched against the prepared question, and a title-style column is also worth having as a filter dimension), the answer column → Indexing (pure retrieval content), the category column → Metadata (filter by product category, for example search only questions in the "shipping" category), the update-time column → Metadata (operations filters by new and old). The reason not to use the default Auto: **our recommendation: mixing category and timestamps into the chunk text dilutes the vector representation**. On a small table of 200 rows the effect is still tolerable, but the discipline should be formed early.
 
-**Expected failure modes.** First, you change the column roles and forget to reparse, the old behavior remains, and you misjudge it as "the configuration is ineffective". That is the when-it-takes-effect clause in 4.5. Second, the answer column occasionally has an over-long row, and the behavior of "one row per chunk" when it meets over-long content has to be settled by measuring the interface (already on the review checklist). Third, the values in the category column are not disciplined (several spellings of the same category), and Metadata filtering might as well not be there. That is a data-governance problem. Chunking cannot save it.
+**Expected failure modes.** First, you change the column roles and forget to reparse, the old behavior remains, and you misjudge it as "the configuration is ineffective". That is the when-it-takes-effect clause in Section 4.5. Second, the answer column occasionally has an over-long row, and the behavior of "one row per chunk" when it meets over-long content has to be settled by measuring the interface (already on the review checklist). Third, the values in the category column are not disciplined (several spellings of the same category), and Metadata filtering might as well not be there. That is a data-governance problem. Chunking cannot save it.
 
 ### 4.7.3 The shipping timeliness notice: General and Email, each in its place
 
 **Why this choice.** An announcement is a short document. It does not need heading-structure chunking. General, starting from the default 512, is enough. The configuration weight for the saved HTML file is on the Parser: turn on removing the original table of contents (including navigation lists) and removing headers and footers. An announcement page often carries the site navigation bar and the copyright bar. If you do not clean them, that repeated text pollutes every chunk. The mail edition of the same announcement takes the Email method, and the method itself extracts sender, recipients, subject, body, and attachments.
 
-**Expected failure modes.** First, the HTML edition and the mail edition of the same content are both stored, the same announcement appears twice in the retrieval results, and it takes up Top N slots. **This book's position: when the same content enters the same dataset in more than one carrier, keep only one copy as the main retrieval source, and disable the other or build a separate dataset for it.** If you keep the mail edition, note that its attachments (which may be another complete PDF) are also extracted and turned into chunks. Judge whether that attachment should be stored on its own according to the form of the document. Second, the announcement is updated often and the old and new versions coexist, so the old version must be disabled or deleted. For "timeliness" knowledge, a freshness error is more dangerous than a gap. Leave this to the update process in Chapter 13.
+**Expected failure modes.** First, the HTML edition and the mail edition of the same content are both stored, the same announcement appears twice in the retrieval results, and it takes up Top N slots. **Our recommendation: when the same content enters the same dataset in more than one carrier, keep only one copy as the main retrieval source, and disable the other or build a separate dataset for it.** If you keep the mail edition, note that its attachments (which may be another complete PDF) are also extracted and turned into chunks. Judge whether that attachment should be stored on its own according to the form of the document. Second, the announcement is updated often and the old and new versions coexist, so the old version must be disabled or deleted. For "timeliness" knowledge, a freshness error is more dangerous than a gap. Leave this to the update process in Chapter 13.
 
-After the three documents finish parsing, spot-check chunk quality on the chunk management page first (4.6.1), then run a retrieval test together to verify (see Chapter 7). That is the next battlefield.
+After the three documents finish parsing, spot-check chunk quality on the chunk management page first (Section 4.6.1), then run a retrieval test together to verify (see Chapter 7). That is the next battlefield.
 
 ## Chapter summary
 
@@ -411,7 +411,7 @@ By the time you have read this far, you should be able to:
 
 | Item | Value |
 |----|----|
-| Parsing-type entry | Built-in (built-in) / Pipeline (custom ingestion pipeline, see Chapter 10) |
+| Parsing-type entry | Built-in / Pipeline (custom ingestion pipeline, see Chapter 10) |
 | Built-in chunk methods | General / Q&A / Manual / Table / Paper / Book / Laws / Presentation / One / Audio / Email |
 | PDF parsers | DeepDOC (default) / Naive / Docling / OpenDataLoader / TCADP Parser / MonkeyOCRv2 / external model |
 | Table / PPTX parsers | DeepDOC / TCADP Parser / external model |
@@ -436,10 +436,10 @@ By the time you have read this far, you should be able to:
 ## Review checklist (before publication)
 
 - [ ] Check the whole chapter against the original official configuration.md (v1.0.0-rc2, verified 2026-10-27)
-- [x] Some interface operations were measured on 2026-11-04 (screenshots in this chapter): the chunk-method template inventory (Built-in pipelines on the Agent page, 12 cards) and the chunk management page (preview on the left, chunks linked on the right). Both line up with the body
-- [ ] Still to be measured: switching PDF parsers, a comparison of parse results from tuning General/Title parameters one by one, and the three Manual column roles (the demo data passed with General chunking and did not take the Manual path)
+- [x] Some interface operations were confirmed in testing on 2026-11-04 (screenshots in this chapter): the chunk-method template inventory (Built-in pipelines on the Agent page, 12 cards) and the chunk management page (preview on the left, chunks linked on the right). Both line up with the body
+- [ ] Still to be confirmed in testing: switching PDF parsers, a comparison of parse results from tuning General/Title parameters one by one, and the three Manual column roles (the demo data passed with General chunking and did not take the Manual path)
 - [ ] The defaults for General Chunker's Overlap ratio, Table context window, and Image context window are not given in the documentation; fill them in from an interface measurement
 - [ ] "The correspondence between chunk method and Chunker configuration group" (for example, whether Manual/Book/Laws correspond to Title Chunker) is not stated in the official documentation; confirm it from an interface measurement
 - [ ] The split behavior of the Table method's "one row per chunk" when it meets an over-long row (>512 tokens); confirm it from an interface measurement
-- [ ] Actually produce the three documents of the running case, upload and parse them, and verify the heading-regex and column-role plans
+- [ ] Actually produce the three documents of our running example, upload and parse them, and verify the heading-regex and column-role plans
 - [ ] Check that the operation flowchart at the head of the chapter and the 4.1 pipeline diagram render natively on the GitHub web view

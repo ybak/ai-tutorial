@@ -6,18 +6,18 @@ source: docs/quickstart.mdx
 
 # Chapter 2 Deployment and model channels
 
-> Chapter guide: Chapter 1 made clear why it is RAGFlow. This chapter answers how to get it running. You have a machine with Docker installed, and three seed documents for 「售后知识底座」 (After-sales Knowledge Base): the After-sales Policy Manual, the Product FAQ, and the Shipping Time Notice. The goal is to deploy RAGFlow, connect the models, and pave the road for the dataset (Dataset) work in chapter 3. This chapter runs along three lines. Deployment: the container-family topology and the five Docker Compose steps. Configuration: how `docker/.env` and `service_conf.yaml.template` divide the work. Model channels: among seven model roles, a support scene that is just starting on "retrieval + generation" needs only chat and embedding. Leave rerank for chapter 7, when you tune. By the end of this chapter, you can: finish a deployment whose health check passes; say how a configuration change takes effect; connect an online or local model and set the defaults; and walk the After-sales Policy Manual through the first question-answering chain that carries citations.
+> Chapter guide: Chapter 1 made clear why it is RAGFlow. This chapter answers how to get it running. You have a machine with Docker installed, and three seed documents for "售后知识底座" ("After-sales Knowledge Base"): the After-sales Policy Manual, the Product FAQ, and the Shipping Time Notice. The goal is to deploy RAGFlow, connect the models, and pave the road for the dataset work in Chapter 3. This chapter runs along three lines. Deployment: the container-family topology and the five Docker Compose steps. Configuration: how `docker/.env` and `service_conf.yaml.template` divide the work. Model channels: among seven model roles, a support scene that is just starting on "retrieval + generation" needs only chat and embedding. Leave rerank for Chapter 7, when you tune. By the end of this chapter, you can: finish a deployment whose health check passes; say how a configuration change takes effect; connect an online or local model and set the defaults; and walk the After-sales Policy Manual through the first question-answering chain that carries citations.
 
 ```mermaid
 flowchart LR
-    A["五步启动容器族（2.2）<br/>max_map_count → clone → up -d<br/>tag 与 RAGFLOW_IMAGE 必须一致"] --> B["healthz 200 后再登录（2.2）<br/>改 .env → 全栈重启 → 复查（2.3）<br/>避开解析窗口"]
-    B --> C{"接入模型（2.4）<br/>按模型来源选路线"}
-    C -->|"在线 Provider"| D["建 Provider 实例（2.4.2）<br/>填 API Key 与 Base URL<br/>测试与生产分开建实例"]
-    C -->|"本地 · 内网或省费用"| E["Ollama / vLLM 起服务（2.4.3）<br/>容器内 localhost 不是宿主机<br/>Base URL 用 host.docker.internal"]
-    D --> F["验证后设默认模型（2.4.2）<br/>Default LLM 与 Default embedding<br/>rerank 留给第 7 章"]
+    A["Start the container family in five steps (2.2)<br/>max_map_count, then clone, then up -d<br/>The tag and RAGFLOW_IMAGE must match"] --> B["Log in only after healthz returns 200 (2.2)<br/>Change .env, restart the whole stack, check again (2.3)<br/>Stay out of a parsing window"]
+    B --> C{"Connect a model (2.4)<br/>Pick the route by where the model lives"}
+    C -->|"Online provider"| D["Create a provider instance (2.4.2)<br/>Fill the API key and the base URL<br/>Keep test and production instances apart"]
+    C -->|"Local, for the intranet or to save cost"| E["Start Ollama or vLLM (2.4.3)<br/>localhost inside the container is not the host<br/>Use host.docker.internal as the base URL"]
+    D --> F["After verification, set the default models (2.4.2)<br/>Default LLM and default embedding<br/>Leave rerank for Chapter 7"]
     E --> F
-    F --> G["建数据集、上传并解析（2.5）<br/>embedding 选定是单向门（2.4.4）<br/>after-sales-policy.pdf（50 页）"]
-    G --> H["建售后助手提问验收（2.5）<br/>Empty response 必设<br/>带引用可溯源 · 建库见第 3 章"]
+    F --> G["Create a dataset, upload, and parse (2.5)<br/>Choosing the embedding model is a one-way door (2.4.4)<br/>after-sales-policy.pdf (50 pages)"]
+    G --> H["Create the after-sales assistant and accept it with a question (2.5)<br/>Empty response is required<br/>Citations can be traced. Building the dataset is Chapter 3"]
 ```
 
 *Flowchart for this chapter*
@@ -26,13 +26,13 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**Installing RAGFlow on this machine for the first time.** Follow the five steps in 2.2. If you get stuck on startup or the health check, go back to 2.1 and use the container-family map to see which component did not come up. Finish by verifying with 2.5.
+**Installing RAGFlow on this machine for the first time.** Follow the five steps in Section 2.2. If you get stuck on startup or the health check, go back to Section 2.1 and use the container-family map to see which component did not come up. Finish by verifying with 2.5.
 
-**It is installed, but the model is not connected, or you want to change the Provider.** Go straight to 2.4. Nine times out of ten, an error from the verification button is the Base URL and whether the network can reach it: RAGFlow runs inside a container, and `localhost` is not your host.
+**It is installed, but the model is not connected, or you want to change the Provider.** Go straight to Section 2.4. Nine times out of ten, an error from the verification button is the Base URL and whether the network can reach it: RAGFlow runs inside a container, and `localhost` is not your host.
 
-**You need to change a port, switch the document engine, or start preparing to go live.** Read 2.3 to understand how the two configuration files divide the work and how a change takes effect. Password governance, backup, and upgrade management for production are developed in (see chapter 12).
+**You need to change a port, switch the document engine, or start preparing to go live.** Read Section 2.3 to understand how the two configuration files divide the work and how a change takes effect. Password governance, backup, and upgrade management for production are covered in Chapter 12.
 
-Prerequisite: a machine that meets the resource prerequisites in 2.2, and Docker. The basic RAG concepts from chapter 1. This chapter requires no programming background. Every operation is done on the command line and in the web UI.
+Prerequisite: a machine that meets the resource prerequisites in Section 2.2, and Docker. The basic RAG concepts from Chapter 1. This chapter requires no programming background. Every operation is done on the command line and in the web UI.
 
 ## 2.1 Overview: the unit of deployment is a family of containers
 
@@ -40,15 +40,15 @@ Set one conceptual position first: **understand RAGFlow as "a family of containe
 
 ```mermaid
 flowchart TB
-    U["浏览器 / HTTP 客户端"] --> N["nginx<br/>公共入口 80 / 443"]
-    N --> R["ragflow 容器<br/>API 9380 · Admin 9381<br/>ingestion workers · 数据同步"]
-    subgraph deps["依赖容器（docker-compose-base.yml）"]
-        ES["Elasticsearch<br/>文档引擎 1200"]
-        MY["MySQL<br/>业务元数据 3306"]
-        MO["MinIO<br/>对象存储 9000 / 9001"]
-        KV["Kvrocks<br/>Redis 兼容缓存 6379"]
-        NA["NATS JetStream<br/>消息队列 4222"]
-        CH["ClickHouse<br/>分析型存储"]
+    U["Browser / HTTP client"] --> N["nginx<br/>Public entry 80 / 443"]
+    N --> R["ragflow container<br/>API 9380, Admin 9381<br/>ingestion workers, data sync"]
+    subgraph deps["Dependency containers (docker-compose-base.yml)"]
+        ES["Elasticsearch<br/>Document engine 1200"]
+        MY["MySQL<br/>Business metadata 3306"]
+        MO["MinIO<br/>Object storage 9000 / 9001"]
+        KV["Kvrocks<br/>Redis-compatible cache 6379"]
+        NA["NATS JetStream<br/>Message queue 4222"]
+        CH["ClickHouse<br/>Analytical storage"]
     end
     R --> ES
     R --> MY
@@ -56,8 +56,8 @@ flowchart TB
     R --> KV
     R --> NA
     R --> CH
-    KB["Kibana（可选）<br/>6601"] -.-> ES
-    MD["模型通道（容器族之外）<br/>chat · embedding 等"] -.->|API 调用| R
+    KB["Kibana (optional)<br/>6601"] -.-> ES
+    MD["Model channel (outside the container family)<br/>chat, embedding, and the rest"] -.->|API calls| R
 ```
 
 *RAGFlow container-family topology (the ports are the host's external ports; the defaults are in the table below)*
@@ -78,7 +78,7 @@ A list of components and duties:
 
 Three data flows bring the table to life. Uploaded **original files** land in MinIO. The **chunk index** produced by parsing goes into Elasticsearch. **Business metadata** (datasets, document records, accounts) goes into MySQL. The ragflow container is the only one that does the business work. The quickstart's original wording is that it runs the API server, ingestion workers, and data sync, which from the source's point of view are four Go services: API, Admin, Ingestor, and Syncer (2.6 will meet them again).
 
-There is another kind of dependency that is not on a solid line in the figure: **models**. The quickstart states, in the prerequisites, that at runtime you need access to one LLM and one embedding model. They are either an online Provider's API or a local service you deploy yourself. That is the "model channel" of 2.4: the second supply line, outside the container family.
+There is another kind of dependency that is not on a solid line in the figure: **models**. The quickstart states, in the prerequisites, that at runtime you need access to one LLM and one embedding model. They are either an online Provider's API or a local service you deploy yourself. That is the "model channel" of Section 2.4: the second supply line, outside the container family.
 
 ## 2.2 Docker Compose deployment
 
@@ -93,9 +93,9 @@ The official standard path is Docker Compose bringing up a prebuilt image. From 
 | Disk | 50 GB of free space |
 | Docker | ≥ 24.0.0, Docker Compose ≥ v2.26.1, and BuildKit enabled |
 | Build-time network | Able to pull the dependency image `infiniflow/ragflow_deps:latest` |
-| Runtime dependencies | Able to reach one LLM and one embedding model (2.4) |
+| Runtime dependencies | Able to reach one LLM and one embedding model (Section 2.4) |
 
-The docs also remind you: the resources you actually need depend on the document engine, the volume of data, the parsing load, and concurrency. **Local models and OceanBase need extra resources.** If the after-sales base runs Ollama on the same machine, raise the memory budget (this book's position: 16 GB means "it can run"; once a local model is added, 32 GB means "comfortable").
+The docs also remind you: the resources you actually need depend on the document engine, the volume of data, the parsing load, and concurrency. **Local models and OceanBase need extra resources.** If the after-sales base runs Ollama on the same machine, raise the memory budget (our recommendation: 16 GB means "it can run"; once a local model is added, 32 GB means "comfortable").
 
 ### Five steps to start
 
@@ -122,7 +122,7 @@ git checkout v1.0.0-rc2
 docker compose -f docker-compose.yml up -d
 ```
 
-Watch the version correspondence. When you switch to another version, the tag in `git checkout` and the image tag of `RAGFLOW_IMAGE` in `docker/.env` must match. If pulling the image is difficult, the docs provide two mirror sources, Huawei Cloud and Alibaba Cloud (just change `RAGFLOW_IMAGE`; see 2.3). Two more points, said in advance. First, layout analysis, OCR, and table recognition in DeepDoc for open-source 1.0 use CPU inference and do not need a GPU. Second, before you deploy to any host the network can reach, change the default passwords in `docker/.env`.
+Watch the version correspondence. When you switch to another version, the tag in `git checkout` and the image tag of `RAGFLOW_IMAGE` in `docker/.env` must match. If pulling the image is difficult, the docs provide two mirror sources, Huawei Cloud and Alibaba Cloud (just change `RAGFLOW_IMAGE`; see Section 2.3). Two more points, said in advance. First, layout analysis, OCR, and table recognition in DeepDoc for open-source 1.0 use CPU inference and do not need a GPU. Second, before you deploy to any host the network can reach, change the default passwords in `docker/.env`.
 
 **Step 4: verify the service status.**
 
@@ -172,7 +172,7 @@ Changing a port, switching the document engine, and connecting an external datab
 | `ENABLE_REGISTER` | 1 | Whether user registration is open. For an internal deployment, set it to 0 |
 | `RAGFLOW_IMAGE` | — | The image and tag. It must match the release tag you checked out |
 
-At the `service_conf.yaml.template` layer, this chapter only needs you to remember two points. It is a template, not the final file (it is generated at startup; do not edit the generated file directly). When a proxy and the real IP are involved, watch `api.trusted_proxies` (by default it trusts only the loopback address of the nginx inside the image; an explicit list **replaces** rather than appends). The value of `MEM_LIMIT` is also defined among this layer's MySQL connection-pool parameters and the like (such as `max_connections`, which defaults to 900). Tuning the service surface is developed in chapter 12.
+At the `service_conf.yaml.template` layer, this chapter only needs you to remember two points. It is a template, not the final file (it is generated at startup; do not edit the generated file directly). When a proxy and the real IP are involved, watch `api.trusted_proxies` (by default it trusts only the loopback address of the nginx inside the image; an explicit list **replaces** rather than appends). The value of `MEM_LIMIT` is also defined among this layer's MySQL connection-pool parameters and the like (such as `max_connections`, which defaults to 900). Tuning the service surface is developed in Chapter 12.
 
 **How a change takes effect**: a change to any of the configuration above needs a restart of every container before it takes effect:
 
@@ -180,7 +180,7 @@ At the `service_conf.yaml.template` layer, this chapter only needs you to rememb
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
 ```
 
-This book's position: turn "edit `.env` → restart the full stack → recheck healthz" into muscle memory, and **change only one related group of settings at a time**. A full-stack restart interrupts parsing tasks that are in progress. Time a configuration change so that it avoids the parsing window (change management and upgrade migration in production are in chapter 12).
+Our recommendation: turn "edit `.env` → restart the full stack → recheck healthz" into muscle memory, and **change only one related group of settings at a time**. A full-stack restart interrupts parsing tasks that are in progress. Time a configuration change so that it avoids the parsing window (change management and upgrade migration in production are in Chapter 12).
 
 ## 2.4 Model channels
 
@@ -200,7 +200,7 @@ RAGFlow uses models by role. The official docs list seven:
 | TTS | Speech synthesis | Text to speech | Spoken announcements, voice interaction |
 | OCR | Optical character recognition | Recognize text in a picture or a scan | Scans, receipt recognition |
 
-The main chain of retrieval question answering is strung together from the first three: **the embedding model vectorizes the query and the chunks and recalls candidates by similarity, the rerank model reorders the candidates, and the LLM generates an answer from the knowledge that was selected**. Carried into the after-sales scene: support asks "退货时限是几天". The question is vectorized by the embedding model, policy entries are recalled from the chunks of `after-sales-kb`, and the chat model answers from that. The starter list follows from this: **to get "retrieval + generation" running, you need at least the two model types chat and embedding**. Rerank is an enhancement for when you tune in chapter 7. VLM/ASR/TTS/OCR are not used by the after-sales scene in this book (the tables and layout of the After-sales Policy Manual are carried by DeepDoc's CPU inference, and do not depend on you adding a vision model of your own). RAGFlow also supports exposing these abilities to external applications through the HTTP API. How to connect is in (see chapter 11).
+The main chain of retrieval question answering is strung together from the first three: **the embedding model vectorizes the query and the chunks and recalls candidates by similarity, the rerank model reorders the candidates, and the LLM generates an answer from the knowledge that was selected**. In the after-sales case: support asks "退货时限是几天" ("How many days is the return window?"). The question is vectorized by the embedding model, policy entries are recalled from the chunks of `after-sales-kb`, and the chat model answers from that. The starter list follows from this: **to get "retrieval + generation" running, you need at least the two model types chat and embedding**. Rerank is an enhancement for when you tune in Chapter 7. VLM/ASR/TTS/OCR are not used by the after-sales scenario in this book (the tables and layout of the After-sales Policy Manual are carried by DeepDoc's CPU inference, and do not depend on you adding a vision model of your own). RAGFlow also supports exposing these abilities to external applications through the HTTP API. Chapter 11 covers how to connect.
 
 ### 2.4.2 Connecting an online Provider
 
@@ -213,7 +213,7 @@ Taking an online large model as the case, the quickstart gives four steps:
 
 When that set of four steps lands on a real screen, the first thing you see is often the page of the last step. This screenshot is from a hands-on run on 2026-11-04 of RAGFlow v1.0.0-rc2 deployed with Docker on this machine (User settings → Model providers). The first time a new account enters Set default models, the dropdowns for all six default-model types are empty:
 
-![Measured Set default models page: the dropdowns for the six default models LLM, Embedding, VLM, ASR, Rerank, and TTS are all empty, LLM carries a red required asterisk, and Available models on the left lists providers including OpenAI-API-Compatible, OpenAI, Anthropic, and Gemini](../assets/images/demo/ragflow-02-default-models.png)
+![Confirmed in testing: Set default models page: the dropdowns for the six default models LLM, Embedding, VLM, ASR, Rerank, and TTS are all empty, LLM carries a red required asterisk, and Available models on the left lists providers including OpenAI-API-Compatible, OpenAI, Anthropic, and Gemini](../assets/images/demo/ragflow-02-default-models.png)
 
 The prompt at the top of the page says "Please complete these settings before beginning", and the LLM item also carries a red required asterisk. If the default models are not set, the business pages have no model they can use. Available models on the left lines up a long row of providers, OpenAI, Anthropic, Gemini, but the models you can pick in a dropdown come only from instances that have already been created (the green dot beside OpenAI-API-Compatible is the mark that the demo-gateway instance is ready; this screenshot was taken after the instance was created and before the defaults were set). Create the Provider instance first, then come back and set the defaults. On the screen, that order is a hard constraint.
 
@@ -223,26 +223,26 @@ A few details the docs emphasize are worth copying into the way you operate:
 - **Base URL.** An official Provider generally keeps the default. When you go through a compatible API, a proxy, or a gateway, fill in the real address, and confirm whether the path needs to include `/v1`.
 - **Verification.** Verify one by one, or use **Verify all models**. On failure, check in this order: credentials, Base URL, network, quota, model name, and availability.
 - **Set at least two default models:** Default LLM and Default embedding (after rerank is configured, add a default rerank as well). When a business page does not name a model, it takes the default automatically. Setting the defaults first avoids picking a model that is not available.
-- **Custom models.** When the list does not have it but the Provider actually supports it, add it by hand. The model name must be exactly the same as the model ID the Provider API exposes, and the model type must be chosen correctly. A model that supports tool calls can turn on **Tool calling** (this bears on the Agent capability in chapter 10).
+- **Custom models.** When the list does not have it but the Provider actually supports it, add it by hand. The model name must be exactly the same as the model ID the Provider API exposes, and the model type must be chosen correctly. A model that supports tool calls can turn on **Tool calling** (this bears on the Agent capability in Chapter 10).
 - **API Key discipline.** Do not leak it. A few Providers have role limits (such as Bedrock's API key authentication, which does not support rerank models). Production prefers short-lived credentials.
 
 Steps 2 and 3 of the four, choosing a Provider and creating an instance, then filling in the connection information, land on the screen as the form below. In the same hands-on run (2026-11-04, RAGFlow v1.0.0-rc2), OpenAI-API-Compatible was selected from Available models and a new instance was created:
 
-![Measured OpenAI-API-Compatible instance form: Instance name is filled with demo-gateway, API Key is shown as dots, the Base URL field is masked, the Models area is empty (All models 0), and the buttons List models, Verify all models, and Add all models are offered](../assets/images/demo/ragflow-02-provider-instance.png)
+![Confirmed in testing: OpenAI-API-Compatible instance form: Instance name is filled with demo-gateway, API Key is shown as dots, the Base URL field is masked, the Models area is empty (All models 0), and the buttons List models, Verify all models, and Add all models are offered](../assets/images/demo/ragflow-02-provider-instance.png)
 
 Instance name is demo-gateway, which matches the habit of "create separate instances for test, production, and a proxy gateway". The API Key is echoed as dots. The whole Base URL is covered by a black bar (the gateway address is hidden as sensitive information). The Models area is empty at this moment: All models 0, No models available. List models, Verify all models, and Add all models beside it are the three buttons the next step uses to load models and run verification.
 
 After the instance is saved and you open it again, the form has become an archive view:
 
-![Measured read-only view after the instance demo-gateway is saved: the title line shows demo-gateway, a green dot appears beside the provider name, and the Models area has three model cards, deepseek-flash (LLM) plus doubao-embedding-vision and text-embedding-v4 (Embedding)](../assets/images/demo/ragflow-02-provider-saved.png)
+![Confirmed in testing: read-only view after the instance demo-gateway is saved: the title line shows demo-gateway, a green dot appears beside the provider name, and the Models area has three model cards, deepseek-flash (LLM) plus doubao-embedding-vision and text-embedding-v4 (Embedding)](../assets/images/demo/ragflow-02-provider-saved.png)
 
 The title line has changed to the instance name demo-gateway, and a green dot has appeared beside the provider name. The Models area now has three cards. The category counts are All models 3 / LLM 1 / Embedding 2. The two embedding cards (text-embedding-v4 and doubao-embedding-vision) were pulled from the gateway by List models. The deepseek-flash LLM card was added by hand with "+": fill in the model name, choose Chat as the type, then fill in Max context length. That is exactly the "custom model" path in the body text.
 
 With the instance and the models ready, go back and fill in the empty form from the opening of this section:
 
-![Measured Set default models page after the settings are done: LLM is deepseek-flash (demo-gateway), Embedding is text-embedding-v4 (demo-gateway), the other four types stay empty, and a green Modified notice appears at the top](../assets/images/demo/ragflow-02-default-set.png)
+![Confirmed in testing: Set default models page after the settings are done: LLM is deepseek-flash (demo-gateway), Embedding is text-embedding-v4 (demo-gateway), the other four types stay empty, and a green Modified notice appears at the top](../assets/images/demo/ragflow-02-default-set.png)
 
-Of the six types, the hands-on run touched only two, LLM and Embedding, which is exactly "set at least two default models". Leaving VLM, ASR, Rerank, and TTS empty does not affect the "retrieval + generation" main chain. On this book's pace, rerank is left for chapter 7. A dropdown item is displayed as the pair "model name + instance name" (deepseek-flash demo-gateway). A model belongs to an instance, and you can see at a glance which instance a default landed on.
+Of the six types, the hands-on run touched only two, LLM and Embedding, which is exactly "set at least two default models". Leaving VLM, ASR, Rerank, and TTS empty does not affect the "retrieval + generation" main chain. On this book's pace, rerank is left for Chapter 7. A dropdown item is displayed as the pair "model name + instance name" (deepseek-flash demo-gateway). A model belongs to an instance, and you can see at a glance which instance a default landed on.
 
 ### 2.4.3 Local models
 
@@ -261,13 +261,13 @@ Connect it to RAGFlow. In **Model providers**, select **Ollama** and create an i
 
 In the hands-on run, the Ollama connection form looks like this. In the same run a new Ollama instance was created. The host was running Ollama 0.20.5:
 
-![Measured Ollama provider instance form: Instance name is local-ollama, API Key is left empty, the Base URL field offers http://host.docker.internal:11434, and the Models area has not pulled any models yet](../assets/images/demo/ragflow-02-ollama-instance.png)
+![Confirmed in testing: Ollama provider instance form: Instance name is local-ollama, API Key is left empty, the Base URL field offers http://host.docker.internal:11434, and the Models area has not pulled any models yet](../assets/images/demo/ragflow-02-ollama-instance.png)
 
 The address the Base URL field offers is `http://host.docker.internal:11434`. RAGFlow is in a container and Ollama is on the host, and the iron rule "localhost inside the container is not the host" is already headed off for you inside the input box. Leave the API Key empty. Ollama on this machine does not authenticate.
 
 Click List models once, and the local models go straight into the instance:
 
-![Measured Models area of the Ollama instance local-ollama: gemma4:26b is marked LLM, qwen3-embedding:0.6b is marked Embedding, and the category counts are All models 2 / LLM 1 / Embedding 1](../assets/images/demo/ragflow-02-ollama-models.png)
+![Confirmed in testing: Models area of the Ollama instance local-ollama: gemma4:26b is marked LLM, qwen3-embedding:0.6b is marked Embedding, and the category counts are All models 2 / LLM 1 / Embedding 1](../assets/images/demo/ragflow-02-ollama-models.png)
 
 List models pulled two models from the local Ollama (0.20.5). The names are exactly the same as the output of `ollama list`: gemma4:26b is classed as LLM, and qwen3-embedding:0.6b is classed as Embedding. The `qwen3-embedding:0.6b` from the Example in the body appears unchanged. The chat model in the hands-on run is the gemma4:26b already on this machine, standing in for the Example in this book, `openbmb/minicpm5-2b`.
 
@@ -288,7 +288,7 @@ The two sources can be mixed. A vLLM chat model paired with an Ollama embedding 
 |----------|----------------------------------------------|
 | RAGFlow in Docker, the model on the same host | `http://host.docker.internal:11434` / `http://host.docker.internal:8000/v1` |
 | RAGFlow and the model both running directly on the host | `http://localhost:11434` / `http://localhost:8000/v1` |
-| The model on another machine | `http://<模型机 IP>:11434` / `http://<模型机 IP>:8000/v1` |
+| The model on another machine | `http://<模型机 IP>:11434` / `http://<模型机 IP>:8000/v1` ("<模型机 IP>" is the model machine's IP) |
 
 **The connectivity iron rule: RAGFlow runs inside a container, and `localhost` inside the container is not the host.** For the same-host scene, always use `host.docker.internal`. If you are not sure, go into the container and measure it. First find the ragflow container name, then curl once from inside the container:
 
@@ -305,7 +305,7 @@ Among the seven roles, a chat model can be swapped at any time. It is stateless,
 
 > Choose the embedding model when you create the dataset. Before the dataset has any chunks (Chunk), you can change it directly. Once there are chunks, changing the model triggers a compatibility check: the vector dimensions must match, and the average cosine similarity of a sample of the existing vectors must not be below 0.9. If the check does not pass, the original choice is restored. Saving a model change does **not** automatically re-embed the existing chunks.
 
-Turn that paragraph into the language of a decision: **choosing an embedding model is a one-way door. Changing the model ≈ the hidden cost of rebuilding the dataset.** Vectors come from the model. Change the model, and the old vectors and the new queries are not in the same semantic space. The retrieval results cannot be trusted. So this book's position is: before chapter 3 builds the `after-sales-kb` dataset, treat the embedding choice as a formal decision. For Chinese after-sales corpus, prefer a model that does well in Chinese and has a moderate dimension. If the requirement is to run locally, starting with Ollama's `qwen3-embedding:0.6b` is enough, and accept the pace of "verify on a small scale first, then parse in full". The selection detail on the dataset creation page is in (see chapter 3).
+Turn that paragraph into the language of a decision: **choosing an embedding model is a one-way door. Changing the model ≈ the hidden cost of rebuilding the dataset.** Vectors come from the model. Change the model, and the old vectors and the new queries are not in the same semantic space. The retrieval results cannot be trusted. So our recommendation is: before Chapter 3 builds the `after-sales-kb` dataset, treat the embedding choice as a formal decision. For Chinese after-sales corpus, prefer a model that does well in Chinese and has a moderate dimension. If the requirement is to run locally, starting with Ollama's `qwen3-embedding:0.6b` is enough, and accept the pace of "verify on a small scale first, then parse in full". The selection detail on the dataset creation page is in (see Chapter 3).
 
 ## 2.5 Verifying the first chain
 
@@ -313,30 +313,30 @@ Once the deployment is healthy (healthz returns 200) and model verification has 
 
 | Step | Operation (following the quickstart) | What it verifies |
 |------|----------------------|----------|
-| ① Create a dataset | **Datasets** → **Create dataset**: fill in **Name**, choose **Embedding model** and **Parse type** (the first time, choose **Built-in** and pick a parsing method that fits) | The dataset was created, and the embedding model is already locked. This is the last window before the one-way door in 2.4.4 closes |
+| ① Create a dataset | **Datasets** → **Create dataset**: fill in **Name**, choose **Embedding model** and **Parse type** (the first time, choose **Built-in** and pick a parsing method that fits) | The dataset was created, and the embedding model is already locked. This is the last window before the one-way door in Section 2.4.4 closes |
 | ② Upload documents | On the dataset **Files** page, **Add file > Upload file**. You can check **Parse on creation** to parse automatically. Otherwise select the document and click **Run** | The parsing status advances to complete. When it sticks, look at the document **Logs** and the `ragflow-cpu` service logs |
 | ③ Intervene in parsing | Open a file whose parsing has finished and enter the **Chunk** page: hover for a snapshot preview, and double-click the text to edit it by hand or add keywords. Then try a question in **Test text** under **Retrieval Testing** | A chunk is not a black box: you can see it, you can change it, and you can test it. Whether the tables in the After-sales Policy Manual were cut into usable chunks is something you see with your own eyes at this step |
-| ④ Create a chat assistant | **Chat** → **Create chat**. In **Chat setting**, select the dataset you just parsed, choose the chat model, check the **System prompt**, and set **Empty response** | The binding of the chat assistant (Chat Assistant) to the dataset and the model takes effect. Empty response is the fallback wording for "there is no answer in the knowledge base" |
-| ⑤ Ask a question | Open the chat window and ask about the document's content. For a question you can answer directly, choose **Naive**. For one that needs a deeper investigation, choose **Agentic** | **The answer carries a real citation, and the source can be traced.** That is what RAGFlow stands on, and it is the only authoritative test that the chain is through |
+| ④ Create a chat assistant | **Chat** → **Create chat**. In **Chat setting**, select the dataset you just parsed, choose the chat model, check the **System prompt**, and set **Empty response** | The binding of the chat assistant to the dataset and the model takes effect. Empty response is the fallback wording for "there is no answer in the knowledge base" |
+| ⑤ Ask a question | Open the chat window and ask about the document's content. For a question you can answer directly, choose **Naive**. For one that needs a deeper investigation, choose **Agentic** | **The answer carries a real citation, and the source can be traced.** That is what RAGFlow stands on, and it is the one reliable sign that the whole pipeline works |
 
-Land it on the running case. ① Create a dataset (name it `after-sales-kb`). ② Upload only `after-sales-policy.pdf` (50 pages, with tables; the first parse is a good moment to feel the time scale of CPU inference). ③ In **Retrieval Testing**, ask "退货时限是几天" and look at the policy chunks that are recalled. ④ Create the assistant 「售后助手」 (After-sales Assistant). ⑤ Ask "跨境订单的退货时限和运费承担". When you get one answer that carries citations, this chapter's acceptance is done. Two additions. First, choosing a parsing method (which one for a 50-page PDF, which one for XLSX) is the subject of chapter 4. This chapter starts with the default recommendation under Built-in. Second, **after-sales policy question answering must set Empty response**. A wrong answer to a policy question is worse than no answer. Leaving it empty means allowing the model to improvise when it has nothing to go on (this book's position: this item is not allowed to stay empty before knowledge-base question answering goes live). Deeper intervention in parsing and chunking is in (see chapter 4). The full configuration of a chat assistant is in (see chapter 8).
+Applied to our running example: ① Create a dataset (name it `after-sales-kb`). ② Upload only `after-sales-policy.pdf` (50 pages, with tables; the first parse is a good moment to feel the time scale of CPU inference). ③ In **Retrieval Testing**, ask "退货时限是几天" and look at the policy chunks that are recalled. ④ Create the assistant "售后助手" ("After-sales Assistant") (After-sales Assistant). ⑤ Ask "跨境订单的退货时限和运费承担". When you get one answer that carries citations, this chapter's acceptance is done. Two additions. First, choosing a parsing method (which one for a 50-page PDF, which one for XLSX) is the subject of Chapter 4. This chapter starts with the default recommendation under Built-in. Second, **after-sales policy question answering must set Empty response**. A wrong answer to a policy question is worse than no answer. Leaving it empty means allowing the model to improvise when it has nothing to go on (our recommendation: this item is not allowed to stay empty before knowledge-base question answering goes live). Deeper intervention in parsing and chunking is in (see Chapter 4). The full configuration of a chat assistant is in (see Chapter 8).
 
-> The UI operations in this chapter were measured on 2026-11-04 on a v1.0.0-rc2 instance deployed with Docker on this machine (the screenshots are the figures in each section). The deployment and operations commands are written from the official docs. The measured scope is in the review checklist at the end of the chapter.
+> The UI operations in this chapter were confirmed in testing on 2026-11-04 on a v1.0.0-rc2 instance deployed with Docker on this machine (the screenshots are the figures in each section). The deployment and operations commands are written from the official docs. The hands-on scope is in the review checklist at the end of the chapter.
 
 ## 2.6 Starting from source: which scenes actually need it
 
-The conclusion in one sentence: **simply using RAGFlow (deploying, building a knowledge base, tuning, integrating) does not require starting from source.** Docker Compose is the path the official docs recommend. Only three scenes need a source start: you are going to change the Go backend or the frontend source, you need to debug DeepDoc's internal behavior in depth, or the target platform has no prebuilt image. When that time comes, read the official `launch_ragflow_from_source` guide. Here, only a piece of expectation-setting: it is much heavier than a Docker deployment. It supports only Linux x86_64 (macOS does not support the Go backend for now). It depends on Go ≥ 1.27, Clang 20 / LLD 20, CMake ≥ 4.0, Node.js ≥ 18.20.4, and Python ≥ 3.10. The build order is "the dependency download script → `build.sh --all` → Docker brings up the supporting services → `--migrate` → start the four processes Admin, API, Ingestor, and Syncer separately → the frontend `npm run dev` (port 9222)". The good news is that the container-family map in 2.1 still holds in the source form. The supporting services are still that family of containers. Only the ragflow container is replaced by four processes on the host. The development-mode switch and version management in the source form are in (see chapter 12).
+The conclusion in one sentence: **simply using RAGFlow (deploying, building a knowledge base, tuning, integrating) does not require starting from source.** Docker Compose is the path the official docs recommend. Only three scenarios need a source start: you are going to change the Go backend or the frontend source, you need to debug DeepDoc's internal behavior in depth, or the target platform has no prebuilt image. When that time comes, read the official `launch_ragflow_from_source` guide. Here, only a piece of expectation-setting: it is much heavier than a Docker deployment. It supports only Linux x86_64 (macOS does not support the Go backend for now). It depends on Go ≥ 1.27, Clang 20 / LLD 20, CMake ≥ 4.0, Node.js ≥ 18.20.4, and Python ≥ 3.10. The build order is "the dependency download script → `build.sh --all` → Docker brings up the supporting services → `--migrate` → start the four processes Admin, API, Ingestor, and Syncer separately → the frontend `npm run dev` (port 9222)". The good news is that the container-family map in Section 2.1 still holds in the source form. The supporting services are still that family of containers. Only the ragflow container is replaced by four processes on the host. The development-mode switch and version management in the source form are in (see Chapter 12).
 
 ## Chapter summary
 
 1. **The unit of deployment is a family of containers**: nginx is one entry (80/443), the ragflow container does the business work (API 9380 / Admin 9381), and six kinds of dependencies each do their own job: retrieval (ES), metadata (MySQL), object storage (MinIO), cache (Kvrocks), the queue (NATS), and analytics (ClickHouse). The model channel is the second supply line, outside the container family.
 2. **In the five deployment steps there are only two real pitfalls**: `vm.max_map_count ≥ 262144` (Docker Desktop has to apply it inside the Linux VM) and "wait for healthz 200 before opening the UI". The tag and `RAGFLOW_IMAGE` must correspond.
 3. **Configuration is split across two layers**: `.env` governs the deployment surface (ports, credentials, `DOC_ENGINE`), and `service_conf.yaml.template` governs the service surface. Any change takes effect only after a full-stack restart. Avoid the parsing window.
-4. **Models are managed as seven roles**: the main chain of retrieval question answering is embedding → rerank → LLM. A support scene needs only chat + embedding to start. Leave rerank for chapter 7.
-5. **Choosing the embedding is a one-way door**: a chat model can be swapped at any time. After there are chunks, an embedding is constrained twice, by dimension and by similarity. It is the first decision before chapter 3 builds a dataset.
+4. **Models are managed as seven roles**: the main chain of retrieval question answering is embedding → rerank → LLM. A support scene needs only chat + embedding to start. Leave rerank for Chapter 7.
+5. **Choosing the embedding is a one-way door**: a chat model can be swapped at any time. After there are chunks, an embedding is constrained twice, by dimension and by similarity. It is the first decision before Chapter 3 builds a dataset.
 6. **Each of the five steps of the first chain has a verification point**: from creating the dataset to an answer that carries citations. Question answering over `after-sales-policy.pdf` can be traced to a source. That is the acceptance state this chapter delivers.
 
-Next: with the embedding model already locked, enter chapter 3 and formally build the three seed documents into the dataset `after-sales-kb`.
+Next: with the embedding model already locked, enter Chapter 3 and formally build the three seed documents into the dataset `after-sales-kb`.
 
 ## Acceptance checklist
 
@@ -352,16 +352,16 @@ By the time you have read this far, you should be able to:
 ## Further reading
 
 - **Chapter 3 (Datasets: the carrier of a knowledge base)**: where the embedding one-way door lands on the dataset creation page. The formal creation of `after-sales-kb`, and connecting the three seed documents.
-- **Chapter 7 (Retrieval testing and tuning)**: the full form of Retrieval Testing from step ③ of 2.5. Hybrid retrieval weights, and when rerank is added.
-- **Chapter 8 (Chat assistants and sessions)**: the expansion of step ④ of 2.5. System Prompt, the parameters, and Agentic mode.
-- **Chapter 12 (Production operations)**: taking the configuration system of 2.3 into production. Password governance, monitoring and tracing (the Langfuse book), backup, and upgrade migration. Version management of the source form in 2.6.
+- **Chapter 7 (Retrieval testing and tuning)**: the full form of Retrieval Testing from step ③ of Section 2.5. Hybrid retrieval weights, and when rerank is added.
+- **Chapter 8 (Chat assistants and sessions)**: the expansion of step ④ of Section 2.5. System Prompt, the parameters, and Agentic mode.
+- **Chapter 12 (Production operations)**: taking the configuration system of Section 2.3 into production. Password governance, monitoring and tracing (the Langfuse book), backup, and upgrade migration. Version management of the source form in Section 2.6.
 - **The official Ollama and vLLM docs**: this chapter only covers the minimum set required to connect them to RAGFlow. A full local-model deployment (GPU acceleration, quantization, concurrency) follows the official docs of the two projects.
 
 ## Review checklist (before publication)
 
-- [x] **Model-channel UI operations were measured on 2026-11-04** (screenshots in this chapter): creating an instance against an OpenAI-compatible gateway, List models, adding a chat model by hand, connecting Ollama (host.docker.internal:11434), and Set default models. Consistent with the flow in the body. The five deployment steps (sysctl / clone / checkout / compose up) are written to the official standard compose. This machine was an in-place upgrade of a custom compose and was not re-run item by item. The commands themselves still follow the official docs
-- [x] The UI operation paths (User settings > Model providers, Create dataset, the Chunk page, Create chat) were measured on 2026-11-04 and match the v1.0.0-rc2 UI
-- [ ] The component-duty table in 2.1 and the topology figure in 2.1 checked against what `docker-compose-base.yml` actually renders (currently summarized from the prose of configuration.md)
-- [ ] The `MEM_LIMIT` default of 8073741824 bytes (about 7.52 GiB) checked against a measured `docker stats` value
+- [x] **Model-channel UI operations were confirmed in testing on 2026-11-04** (screenshots in this chapter): creating an instance against an OpenAI-compatible gateway, List models, adding a chat model by hand, connecting Ollama (host.docker.internal:11434), and Set default models. Consistent with the flow in the body. The five deployment steps (sysctl / clone / checkout / compose up) are written to the official standard compose. This machine was an in-place upgrade of a custom compose and was not re-run item by item. The commands themselves still follow the official docs
+- [x] The UI operation paths (User settings > Model providers, Create dataset, the Chunk page, Create chat) were confirmed in testing on 2026-11-04 and match the v1.0.0-rc2 UI
+- [ ] The component-duty table in Section 2.1 and the topology figure in Section 2.1 checked against what `docker-compose-base.yml` actually renders (currently summarized from the prose of configuration.md)
+- [ ] The `MEM_LIMIT` default of 8073741824 bytes (about 7.52 GiB) checked against a `docker stats` value from the hands-on run
 - [ ] Availability and naming of the Ollama / vLLM Example models (`openbmb/minicpm5-2b`, `qwen3-embedding:0.6b`) follow the two repositories at the time of measurement
-- [ ] Whether `shipping-notice.eml` (the original mail) is inside the supported-format list was not verified. The quickstart format list does not include eml. Verify it empirically when chapter 3 connects a data source
+- [ ] Whether `shipping-notice.eml` (the original mail) is inside the supported-format list was not verified. The quickstart format list does not include eml. Verify it empirically when Chapter 3 connects a data source

@@ -426,7 +426,7 @@ test("litellm 英文章节引用的实拍图与中文那 13 张相同", async ()
   assert.match(logs, /Usage later showed more requests/);
 });
 
-test("ragflow 中英文章节文件名一一对应,命令与输出围栏保持原样", async () => {
+test("ragflow 中英文章节文件名一一对应,命令与配置一致,图和注释可译", async () => {
   const fs = await import("node:fs");
   const path = await import("node:path");
   const { book: ragflow } = await import("./books/ragflow.mjs");
@@ -442,11 +442,13 @@ test("ragflow 中英文章节文件名一一对应,命令与输出围栏保持�
   assert.equal(zhFiles.length, 13);
 
   const root = path.resolve(import.meta.dirname, "..");
+  const fenceTags = (text) => [...text.matchAll(/```([^\n]*)\n/g)].map((m) => m[1]);
   const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  // 英文图、text 示意、以及 bash/python/yaml 注释允许翻译。命令、代码和配置去掉注释后仍须与中文一致。
   const stripComments = (body, lang) => body.split("\n").map((line) => {
-    if (lang === "yaml" && /^\s*#/.test(line)) return "";
+    if ((lang === "yaml" || lang === "bash" || lang === "python") && /^\s*#/.test(line)) return "";
     if (lang === "java" && /^\s*\/\//.test(line)) return "";
-    if (lang === "yaml") return line.replace(/\s+#.*$/, "");
+    if (lang === "yaml" || lang === "bash" || lang === "python") return line.replace(/\s+#.*$/, "");
     if (lang === "java") return line.replace(/\s+\/\/.*$/, "");
     return line;
   }).filter((line) => line !== "").join("\n");
@@ -454,17 +456,17 @@ test("ragflow 中英文章节文件名一一对应,命令与输出围栏保持�
   for (const file of zhFiles) {
     const zh = fs.readFileSync(path.join(root, ragflow.chaptersDir, file), "utf8");
     const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
-    for (const lang of ["bash", "json", "text", "python"]) {
-      assert.deepEqual(fences(enText, lang), fences(zh, lang), `${file} ${lang} fences`);
-    }
-    for (const lang of ["yaml", "java"]) {
+    assert.deepEqual(fenceTags(enText), fenceTags(zh), `${file} fence tags`);
+    for (const lang of ["bash", "json", "python", "yaml"]) {
       assert.deepEqual(
         fences(enText, lang).map((body) => stripComments(body, lang)),
         fences(zh, lang).map((body) => stripComments(body, lang)),
         `${file} ${lang} code`,
       );
     }
-    assert.equal(fences(enText, "mermaid").length, fences(zh, "mermaid").length, `${file} mermaid count`);
+    for (const lang of ["text", "mermaid"]) {
+      assert.equal(fences(enText, lang).length, fences(zh, lang).length, `${file} ${lang} count`);
+    }
     assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
   }
 });

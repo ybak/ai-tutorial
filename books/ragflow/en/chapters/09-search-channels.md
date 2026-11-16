@@ -6,16 +6,16 @@ source: docs/guides/search/create_search.md
 
 # Chapter 9 Search apps and access channels
 
-> Chapter guide: the After-sales Assistant (「售后助手」) was tuned in chapter 8, and retrieval quality was verified in chapter 7. But it still lives only inside the RAGFlow interface: log in, enter the Chat page, select a session, and only then can you use it. Finished knowledge needs an "exit", and there is more than one kind of exit. Support wants to look up the original wording of a policy precisely. A user in the help center wants a window they can ask. A colleague in Feishu does not want to switch apps. This chapter covers RAGFlow's three outward forms: a retrieval-style search page (the Search app), a conversation channel (Chat Channel), and web embedding. For each, the scenarios it fits, how to configure it, and the access steps. The running case then finishes one three-way publish of the After-sales Assistant. When you finish this chapter, you can: choose among the three forms for a publishing need; create a Search app and adjust the retrieval settings for the scenario; connect Chat into a third-party IM and finish a connectivity check; and embed an Agent into your own web page as a full page or a floating window.
+> Chapter guide: the After-sales Assistant ("售后助手" ("After-sales Assistant")) was tuned in Chapter 8, and retrieval quality was verified in Chapter 7. But it still lives only inside the RAGFlow interface: log in, enter the Chat page, select a session, and only then can you use it. Finished knowledge needs an "exit", and there is more than one kind of exit. Support wants to look up the original wording of a policy precisely. A user in the help center wants a window they can ask. A colleague in Feishu does not want to switch apps. This chapter covers RAGFlow's three outward forms: a retrieval-style search page (the Search app), a conversation channel (Chat Channel), and web embedding. For each, the scenarios it fits, how to configure it, and the access steps. Our running example then finishes one three-way publish of the After-sales Assistant. When you finish this chapter, you can: choose among the three forms for a publishing need; create a Search app and adjust the retrieval settings for the scenario; connect Chat into a third-party IM and finish a connectivity check; and embed an Agent into your own web page as a full page or a floating window.
 
 ```mermaid
 flowchart LR
-    A{"为发布需求选形态（9.1）<br/>按用户是谁、在哪、要什么"}
-    A -->|"要原文与出处"| B["内部检索入口（9.2 · 9.5）<br/>五步创建 Search，绑 after-sales-kb<br/>开切片元数据 · 向量权重调低"]
-    A -->|"用户在 IM 里"| C["客服工作台（9.3 · 9.5）<br/>建飞书渠道：AppID + AppSecret<br/>Domain 选 Feishu(mainland)"]
-    A -->|"用户在自有网页上"| D["帮助中心页（9.4 · 9.5）<br/>取 API key，选浮窗或整页<br/>勾 Published 再复制 Embed code"]
-    C --> E["连接「售后助手」，发测试消息（9.3）<br/>无回复按四查排查<br/>连接 → bot 在线 → 权限 → Chat"]
-    B --> F["三路发布完成（9.5）<br/>逐出口验证：发消息 · @bot · 跑测试问题集<br/>知识底座改一处全生效 · 运维见第 12 章"]
+    A{"Pick the form for the publishing need (9.1)<br/>By who the user is, where they are, and what they want"}
+    A -->|"They want the original text and the source"| B["Internal retrieval entry (9.2 and 9.5)<br/>Create a Search in five steps, bind after-sales-kb<br/>Turn chunk metadata on. Lower the vector weight"]
+    A -->|"The user is in an IM app"| C["Support workbench (9.3 and 9.5)<br/>Create a Feishu channel: AppID plus AppSecret<br/>Domain: Feishu (mainland)"]
+    A -->|"The user is on your own web page"| D["Help-center page (9.4 and 9.5)<br/>Take the API key. Choose a floating window or a full page<br/>Check Published, then copy the embed code"]
+    C --> E["Connect the After-sales Assistant and send a test message (9.3)<br/>If there is no reply, check four things<br/>Connection, bot online, permission, Chat"]
+    B --> F["Three routes published (9.5)<br/>Check each exit: send a message, mention the bot, run the test set<br/>One change to the knowledge base reaches every exit. Operations are Chapter 12"]
     D --> F
     E --> F
 ```
@@ -26,17 +26,17 @@ flowchart LR
 
 Three typical situations, and three ways to use this chapter.
 
-**You want to give the team an entry for "looking up documents", rather than yet another chat window.** See 9.2. Needs such as support checking the original wording of a policy, or looking up a clause by order number, want the original text and the source. A Search app is more direct than a conversation.
+**You want to give the team an entry for "looking up documents", rather than yet another chat window.** See Section 9.2. Needs such as support checking the original wording of a policy, or looking up a clause by order number, want the original text and the source. A Search app is more direct than a conversation.
 
-**You want users or colleagues to ask directly inside the chat tool they already have.** See 9.3. After the channel is connected, a user @bot in Feishu, WeCom, or Discord and gets an answer, with no need to log in to RAGFlow.
+**You want users or colleagues to ask directly inside the chat tool they already have.** See Section 9.3. After the channel is connected, a user @bot in Feishu, WeCom, or Discord and gets an answer, with no need to log in to RAGFlow.
 
-**You want to put the assistant into your own website or product page.** See 9.4. A help center, and the floating window at the bottom right of an official site, both belong to this class. If you are not sure which form to choose, look first at the comparison table and the selection decision in 9.1.
+**You want to put the assistant into your own website or product page.** See Section 9.4. A help center, and the floating window at the bottom right of an official site, both belong to this class. If you are not sure which form to choose, look first at the comparison table and the selection decision in Section 9.1.
 
-Prerequisites: the dataset (Dataset) built in chapter 3 is the shared granary of the three exits. What a channel hangs behind it is the chat assistant (Chat Assistant) configured in chapter 8.
+Prerequisites: the dataset built in Chapter 3 is the shared granary of the three exits. What a channel hangs behind it is the chat assistant configured in Chapter 8.
 
 ## 9.1 Overview: finished knowledge needs an "exit"
 
-The end of chapter 7 tuned retrieval quality to something you can trust, and chapter 8 tuned the After-sales Assistant until it can hold a conversation. But all of that is the work of "coming in". The value of a knowledge base is fulfilled at the moment a person uses it, and "being used" happens outside RAGFlow: on a help-center web page, inside a support agent's chat tool, at an internal team's retrieval entry. What this chapter covers is "going out". RAGFlow provides three outward forms, corresponding to three completely different scenarios of use.
+The end of Chapter 7 tuned retrieval quality to something you can trust, and Chapter 8 tuned the After-sales Assistant until it can hold a conversation. But all of that is the work of "coming in". The value of a knowledge base shows up at the moment a person uses it, and "being used" happens outside RAGFlow: on a help-center web page, inside a support agent's chat tool, at an internal team's retrieval entry. What this chapter covers is "going out". RAGFlow provides three outward forms, corresponding to three completely different scenarios of use.
 
 A comparison of the three forms:
 
@@ -44,7 +44,7 @@ A comparison of the three forms:
 |------|------------|-------------------|---------------------|----------------------|
 | Search app | A retrieval-style search page | RAGFlow's **Search** page | A natural-language question, plus document filtering | Datasets + retrieval settings |
 | Chat Channel (conversation channel) | A passage into a third-party chat app | IMs such as Feishu, WeCom, Discord, and Telegram | Conversational multi-turn Q&A | The bound Chat (a WeCom channel can also bind an Agent) |
-| Web embedding | Embed an assistant or an Agent into your own site | Your web page (a full page, or a floating window) | Conversational multi-turn Q&A | An Agent (see chapter 10) or a chat assistant |
+| Web embedding | Embed an assistant or an Agent into your own site | Your web page (a full page, or a floating window) | Conversational multi-turn Q&A | An Agent (see Chapter 10) or a chat assistant |
 
 The three forms divide the work cleanly, and the choice follows "who the user is, where they are, and what they want":
 
@@ -54,7 +54,7 @@ The three forms divide the work cleanly, and the choice follows "who the user is
 | The user is in an IM and does not want to switch apps | Chat Channel | The channel carries the message in, and sends the answer back to the original chat window |
 | The user is on your own web page (a help center, an official site) | Web embedding | A full-page chat or a floating window, embedded in a page you control |
 
-**This book's position: first use the form to pin down the need, then talk about parameter tuning.** The three forms share the same knowledge base, and the cost of switching is not high. But the decision "conversation or retrieval" affects what the user expects. Forcing a conversation onto an occasion that should have been given the original text always produces a rewritten answer, and that adds confusion. The other face of outward integration, letting an external program consume this knowledge through an API or MCP, does not belong to this chapter. See chapter 11.
+**Our recommendation: first use the form to pin down the need, then talk about parameter tuning.** The three forms share the same knowledge base, and the cost of switching is not high. But the decision "conversation or retrieval" affects what the user expects. Forcing a conversation onto an occasion that should have been given the original text always produces a rewritten answer, and that adds confusion. The other face of outward integration, letting an external program consume this knowledge through an API or MCP, does not belong to this chapter. See Chapter 11.
 
 ## 9.2 The Search app: a retrieval-style search page
 
@@ -86,13 +86,13 @@ Search Settings configures the knowledge source, the retrieval strategy, and how
 | Result presentation | **Enable related search** | Whether to generate related-search suggestions from the current query | Content exploration, research, and open-ended search: enable it. You only look at the current results: turn it off |
 | Result presentation | **Show query mindmap** | Whether to present the topic structure of the query as a mind map | Knowledge exploration and complex topics: enable it. A simple factual query: unnecessary |
 
-The four retrieval-strategy parameters share their origin with the Retrieval Testing page in chapter 7. The principles of the threshold and the weights, and "bare ranking first, then rerank", are already covered in chapter 7 (see chapter 7). This section does not repeat them. It only stresses two differences on the application side. One: **Rerank candidates** is an extra knob on the application side. What it controls is the size of the candidate pool, not the final number of rows returned. Two: Search settings are persisted configuration, different in kind from the lab-bench nature of Retrieval Testing, where "test parameters are not persisted". Tuning here affects everyone who uses this Search. Verify on the test page before you change it.
+The four retrieval-strategy parameters share their origin with the Retrieval Testing page in Chapter 7. The principles of the threshold and the weights, and "ranking without a reranker first, then rerank", are already covered in Chapter 7. This section does not repeat them. It only stresses two differences on the application side. One: **Rerank candidates** is an extra knob on the application side. What it controls is the size of the candidate pool, not the final number of rows returned. Two: Search settings are persisted configuration, different in kind from the lab-bench nature of Retrieval Testing, where "test parameters are not persisted". Tuning here affects everyone who uses this Search. Verify on the test page before you change it.
 
-The nine parameters, landed on the real panel, look like what follows. This screenshot was measured on 2026-11-04 on RAGFlow v1.0.0-rc2 deployed with Docker on this machine. A Search app newly named 「售后检索」, with its Search settings panel on the right:
+The nine parameters, landed on the real panel, look like what follows. This screenshot was taken on 2026-11-04 on RAGFlow v1.0.0-rc2 deployed with Docker on this machine. A Search app newly named "售后检索" ("After-sales Search"), with its Search settings panel on the right:
 
-![Search settings panel of a Search app: the app name 「售后检索」, the required Datasets selector, the Similarity threshold slider (20), Keyword similarity weight (full-text 0.70 / vector 0.30), Rerank candidates (100), and the Rerank model switch; below that, a Model selector and the three switches AI summary, Enable related search, and Show query mindmap, with Save at the bottom; on the left is the query interface of the Search app page](../assets/images/demo/ragflow-09-search-settings.png)
+![Search settings panel of a Search app: the app name After-sales Search, the required Datasets selector, the Similarity threshold slider (20), Keyword similarity weight (full-text 0.70 / vector 0.30), Rerank candidates (100), and the Rerank model switch; below that, a Model selector and the three switches AI summary, Enable related search, and Show query mindmap, with Save at the bottom; on the left is the query interface of the Search app page](../assets/images/demo/ragflow-09-search-settings.png)
 
-The correspondence between the panel and the nine-parameter table is plain at a glance. Two measured details are worth pointing out. First, the weight field on the rc2 interface is called **Keyword similarity weight**, presented as two numbers, full-text and vector (0.70 / 0.30). It is the same knob as the official documentation's Vector similarity weight. Only the wording runs the other way. Second, Datasets carries a required asterisk. Bind a dataset after creation, before you use it outward. That is exactly the last of the five creation steps at the start of this section. Similarity threshold shows 20, which is the percentage wording of the threshold 0.2, and it shares its origin with the settled parameters in chapter 7.
+The correspondence between the panel and the nine-parameter table is plain at a glance. Two details confirmed in testing are worth pointing out. First, the weight field on the rc2 interface is called **Keyword similarity weight**, presented as two numbers, full-text and vector (0.70 / 0.30). It is the same knob as the official documentation's Vector similarity weight. Only the wording runs the other way. Second, Datasets carries a required asterisk. Bind a dataset after creation, before you use it outward. That is exactly the last of the five creation steps at the start of this section. Similarity threshold shows 20, which is the percentage wording of the threshold 0.2, and it shares its origin with the settled parameters in Chapter 7.
 
 ### Where it fits
 
@@ -101,15 +101,15 @@ A Search app fits occasions where "you want to find the content itself". Two typ
 - **Document retrieval**: support checks the original text of "the compensation standard for damage in transit". What they want is the original clause and the source, not a model's retelling. Turn **Show chunk metadata** on, and lower the vector weight to strengthen full-text match on clause numbers.
 - **Ticket assistance**: while handling a ticket, retrieve historical solutions by product model and fault code. What they want is an exact hit. The same approach.
 
-The other way around, an occasion where the question is open and needs a clarifying follow-up (「我的耳机充不进电怎么办」) is conversation's territory. Do not force Search to take it.
+The other way around, an occasion where the question is open and needs a clarifying follow-up ("我的耳机充不进电怎么办" ("What do I do if my earbuds will not charge?")) is conversation's territory. Do not force Search to take it.
 
-The typical scene "support checks the original text of the compensation standard for damage in transit", run on a real instance, looks like what follows. This screenshot was measured on 2026-11-04 on RAGFlow v1.0.0-rc2 deployed with Docker on this machine. The Search app queries 「运输破损的赔偿标准是多少」 and returns 9 chunks:
+The typical scenario "support checks the original text of the compensation standard for damage in transit", run on a real instance, looks like what follows. This screenshot was taken on 2026-11-04 on RAGFlow v1.0.0-rc2 deployed with Docker on this machine. The Search app queries "运输破损的赔偿标准是多少" ("What is the compensation standard for damage in transit?") and returns 9 chunks:
 
-![Search page result list for the query 「运输破损的赔偿标准是多少」 (Total: 9): the section 4.1 compensation-standard chunk, the complete table 「表 4-1 运输破损赔偿标准」 (数码电子 30% cap USD 120/单, 家居日用 20%, 服饰配件 15%, 易碎品 50%, and the evidence requirement of each band), and the shipping-time notice's chunk stating the time-limit boundary; each row carries a source-document badge (after-sales-policy.pdf, shipping-notice.html) and keyword highlighting](../assets/images/demo/ragflow-09-search-result.png)
+![Search page result list for the query "运输破损的赔偿标准是多少" ("What is the compensation standard for damage in transit?") (Total: 9): the Section 4.1 compensation-standard chunk, the complete table "表 4-1 运输破损赔偿标准" ("Table 4-1, compensation standard for damage in transit") (数码电子 30% cap USD 120/单, 家居日用 20%, 服饰配件 15%, 易碎品 50%, and the evidence requirement of each band), and the shipping-time notice's chunk stating the time-limit boundary; each row carries a source-document badge (after-sales-policy.pdf, shipping-notice.html) and keyword highlighting](../assets/images/demo/ragflow-09-search-result.png)
 
-The largest difference from Chat is visible at a glance. What comes back is the original chunk itself, with no model retelling: compensation table 4-1 keeps its row-and-column structure, each band's cap, and the evidence requirements intact. That is direct evidence, on the retrieval side, of the DeepDoc table recognition in chapter 4. The bottom of each chunk is labeled with a source-document badge, and the query terms are highlighted inside the hit chunks. The reason for choosing "original text and source" (9.1) is, in this figure, the product form itself.
+The largest difference from Chat is visible at a glance. What comes back is the original chunk itself, with no model retelling: compensation table 4-1 keeps its row-and-column structure, each band's cap, and the evidence requirements intact. That is direct evidence, on the retrieval side, of the DeepDoc table recognition in Chapter 4. The bottom of each chunk is labeled with a source-document badge, and the query terms are highlighted inside the hit chunks. The reason for choosing "original text and source" (Section 9.1) is, in this figure, the product form itself.
 
-The internal retrieval exit of the running case is configured along this line of thought (expanded in 9.5): bind after-sales-kb; turn **Show chunk metadata** on, because support has to check the source; turn **Vector similarity weight** down, because model numbers and codes depend on full-text match; leave **Rerank model** off at first, and compare against the bare-ranking baseline from chapter 7. If the accuracy is not enough, turn it on then.
+The internal retrieval exit of our running example is configured along this line of thought (expanded in Section 9.5): bind after-sales-kb; turn **Show chunk metadata** on, because support has to check the source; turn **Vector similarity weight** down, because model numbers and codes depend on full-text match; leave **Rerank model** off at first, and compare against the bare-ranking baseline from Chapter 7. If the accuracy is not enough, turn it on then.
 
 ## 9.3 Chat Channel: connect the assistant into a chat app
 
@@ -159,16 +159,16 @@ Once it is connected, the full journey of one message (the data flow the officia
 
 ```mermaid
 sequenceDiagram
-    participant U as 用户
-    participant P as 第三方平台
-    participant C as RAGFlow 渠道
-    participant A as 绑定的 Chat
-    U->>P: 在聊天应用里给 bot 发消息
-    P->>C: 平台事件把消息带入 RAGFlow
-    C->>A: 消息进入绑定的 Chat
-    A-->>C: 生成回复
-    C-->>P: 回复送回原聊天窗口
-    P-->>U: bot 答复出现
+    participant U as User
+    participant P as Third-party platform
+    participant C as RAGFlow channel
+    participant A as Bound Chat
+    U->>P: Send the bot a message in the chat app
+    P->>C: A platform event brings the message into RAGFlow
+    C->>A: The message enters the bound Chat
+    A-->>C: A reply is generated
+    C-->>P: The reply is sent back to the original chat window
+    P-->>U: The bot's reply appears
 ```
 
 *Channel message flow: the channel carries, Chat answers*
@@ -190,9 +190,9 @@ Each platform's credentials are obtained from its own open platform / developer 
 
 ### Binding a channel to an Agent: the WeCom special case
 
-According to the official documentation, a WeCom channel can bind a custom Flow Agent in addition to a Chat. Incoming messages are answered by the workflow you designed on the Agent canvas, rather than by an ordinary Chat (the canvas and workflows are in chapter 10). The connection dialog is a single dropdown, and entries carry a type prefix: `[Chat assistant]` is a Chat of the current tenant, and `[Agent]` is a Flow Agent the current tenant can access. Selecting one fills in the corresponding id automatically. No external credential is needed. Three binding rules: only one target can be bound at a time, and selecting another replaces it; clearing the selection disconnects it; if a component of the selected Agent has no model configured, it replies with an error message at runtime. The precondition is that the Agent belongs to the tenant the channel belongs to, or is shared to that tenant with `team` permission.
+According to the official documentation, a WeCom channel can bind a custom Flow Agent in addition to a Chat. Incoming messages are answered by the workflow you designed on the Agent canvas, rather than by an ordinary Chat (the canvas and workflows are in Chapter 10). The connection dialog is a single dropdown, and entries carry a type prefix: `[Chat assistant]` is a Chat of the current tenant, and `[Agent]` is a Flow Agent the current tenant can access. Selecting one fills in the corresponding id automatically. No external credential is needed. Three binding rules: only one target can be bound at a time, and selecting another replaces it; clearing the selection disconnects it; if a component of the selected Agent has no model configured, it replies with an error message at runtime. The precondition is that the Agent belongs to the tenant the channel belongs to, or is shared to that tenant with `team` permission.
 
-**This book's position:** "a channel can bind an Agent" is so far seen in the material only for the WeCom channel. Do not casually generalize it to every channel. But the direction is worth noticing. It means what can run inside an IM is no longer only "question answering". It is "a flow".
+**Our recommendation:** "a channel can bind an Agent" is so far seen in the material only for the WeCom channel. Do not casually generalize it to every channel. But the direction is worth noticing. It means what can run inside an IM is no longer only "question answering". It is "a flow".
 
 ## 9.4 Web embedding: embed the assistant or Agent into your own site
 
@@ -205,11 +205,11 @@ Web embedding puts conversation capability into a page you control. Two forms (t
 | **Fullscreen chat(traditional iframe)** | A full-page chat | A standalone conversation page. The page is the conversation |
 | **Floating widget(Intercom-style)** | A floating window | "Ask any time" in a corner of a help center or an official site, without interrupting browsing |
 
-The material for this chapter (v1.0.0-rc2) gives the embed entry with a **Workflow Agent** as the example, aimed at a self-managed deployment (self-managed deployment). The embed entry on the chat-assistant side has not been measured by this book, and it is on the review checklist at the end of the chapter.
+The material for this chapter (v1.0.0-rc2) gives the embed entry with a **Workflow Agent** as the example, aimed at a self-managed deployment. The embed entry on the chat-assistant side has not been verified hands-on by this book, and it is on the review checklist at the end of the chapter.
 
 ### Embedding steps
 
-Prerequisite: obtain an API key at **User settings > API** (the API Key system is in chapter 11). Then six steps:
+Prerequisite: obtain an API key at **User settings > API** (the API Key system is in Chapter 11). Then six steps:
 
 1. On the Agent page, open the edit page of the target Agent;
 2. Click **Management > Embed into webpage** at the top right of the canvas, and open the embed settings;
@@ -218,19 +218,19 @@ Prerequisite: obtain an API key at **User settings > API** (the API Key system i
 5. For the floating-window form, use **Widget Customization** to adjust the title, text, and colors, and click **Save widget settings** to save;
 6. Copy the **Embed code** into your web page. Use **Open in new tab** to preview the effect.
 
-The **Published** switch is worth a sentence of its own: once it is checked, what is embedded is the published version. This book's position: this means a draft change on the canvas does not appear on the embedded page automatically. "Publish" is the gate that makes an embed take effect (the publish mechanism is in chapter 10). After you change an Agent, remember to publish again, or the window on the web page keeps performing the previous version's script.
+The **Published** switch is worth a sentence of its own: once it is checked, what is embedded is the published version. Our recommendation: this means a draft change on the canvas does not appear on the embedded page automatically. "Publish" is the gate that makes an embed take effect (the publish mechanism is in Chapter 10). After you change an Agent, remember to publish again, or the window on the web page keeps performing the previous version's script.
 
 ## 9.5 Running case: publishing the After-sales Assistant
 
-The After-sales Assistant (chapter 8) now has to be published to three exits, each taking one form:
+The After-sales Assistant (Chapter 8) now has to be published to three exits, each taking one form:
 
 | Exit | Form and configuration | Reason for the choice |
 |------|------------------------|-----------------------|
-| Help center page | Web embedding: an Agent embedded as a **Floating widget** floating window. Bind the After-sales Assistant first. After it is turned into a flow, upgrade it to the canvas Agent "After-sales support Agent" (see chapter 10) | The user self-serves on a web page, and a floating window does not interrupt browsing. The question is open (「耳机充不进电」), and a conversation form can clarify with a follow-up |
-| Support workbench | Chat Channel: a Feishu channel, `AppID` + `AppSecret`, **Domain** set to **Feishu(mainland)**, bound to the After-sales Assistant | Support spends the day in Feishu. Zero training, zero switching. The channel only forwards. Answer quality is guaranteed by the Chat tuned in chapters 7 and 8 |
+| Help center page | Web embedding: an Agent embedded as a **Floating widget** floating window. Bind the After-sales Assistant first. After it is turned into a flow, upgrade it to the canvas Agent "After-sales support Agent" (see Chapter 10) | The user self-serves on a web page, and a floating window does not interrupt browsing. The question is open ("耳机充不进电" ("earbuds will not charge")), and a conversation form can clarify with a follow-up |
+| Support workbench | Chat Channel: a Feishu channel, `AppID` + `AppSecret`, **Domain** set to **Feishu(mainland)**, bound to the After-sales Assistant | Support spends the day in Feishu. Zero training, zero switching. The channel only forwards. Answer quality is guaranteed by the Chat tuned in Chapters 7 and 8 |
 | Internal retrieval entry | Search app: bind after-sales-kb, turn **Show chunk metadata** on, and turn the vector weight down to strengthen full-text match on model numbers and codes | When support checks the original text of a policy, or looks up a historical solution by model number, what they want is the original text and the source, not a model's retelling |
 
-After the three-way publish, there are two disciplines. First, **the three exits share the same dataset**. The chunks tuned in chapter 4 and the retrieval parameters tuned in chapter 7 take effect on all three exits at the same time. Change the foundation in one place, and all three exits benefit together. That is the architectural point of separating the forms and unifying the knowledge. Second, **verify each exit on its own**: send a test message on the help center, @bot in Feishu, and run the test question set settled in chapter 7 on the Search page. The exits differ, and the failure surfaces differ (a web embed may stick on the API key, and a channel may stick on platform permissions). One exit's verification cannot stand in for another's. Operations and monitoring after launch are in chapter 12.
+After the three-way publish, there are two disciplines. First, **the three exits share the same dataset**. The chunks tuned in Chapter 4 and the retrieval parameters tuned in Chapter 7 take effect on all three exits at the same time. Change the foundation in one place, and all three exits benefit together. That is the architectural point of separating the forms and unifying the knowledge. Second, **verify each exit on its own**: send a test message on the help center, @bot in Feishu, and run the test question set settled in Chapter 7 on the Search page. The exits differ, and the failure surfaces differ (a web embed may stick on the API key, and a channel may stick on platform permissions). One exit's verification cannot stand in for another's. Operations and monitoring after launch are in Chapter 12.
 
 ## Chapter summary
 
@@ -239,7 +239,7 @@ After the three-way publish, there are two disciplines. First, **the three exits
 3. **A channel only carries. Quality is in the Chat.** A channel is responsible for platform access and message forwarding. Reply content, knowledge range, and answer quality are decided by the bound Chat. A channel not connected to a Chat "receives, and does not reply".
 4. **Access verification is one chain**: credentials -> save -> connect Chat -> test message. When there is no reply, check the connection first, then whether the bot is online, the platform permissions, and the Chat itself.
 5. **Embedding uses publish as the gate.** The **Published** switch decides which version of the Agent runs on the web page. Choose a floating window or a full page by the scenario.
-6. **Forms separated, knowledge unified.** The running case's three-way publish shares after-sales-kb. Change the base in one place, and all three exits benefit together.
+6. **Forms separated, knowledge unified.** Our running example's three-way publish shares after-sales-kb. Change the base in one place, and all three exits benefit together.
 
 ## Acceptance checklist
 
@@ -253,7 +253,7 @@ By the time you reach here, you should be able to:
 
 ## Further reading
 
-- **Chapter 7 (retrieval testing and tuning).** The principles and the tuning method of the four retrieval-strategy parameters of a Search app. The Search page can use the test question set settled in chapter 7 directly, for an exit-level regression.
+- **Chapter 7 (retrieval testing and tuning).** The principles and the tuning method of the four retrieval-strategy parameters of a Search app. The Search page can use the test question set settled in Chapter 7 directly, for an exit-level regression.
 - **Chapter 8 (chat assistants and sessions).** The object that answers questions behind a channel. Tune the Chat itself before you connect a channel.
 - **Chapter 10 (Agents and workflows).** The Workflow Agent that web embedding supports, and the Flow Agent a WeCom channel can bind. Their canvas and publish mechanism are expanded in this chapter.
 - **Chapter 11 (outward integration: API and MCP).** The program side of outward integration: let an external system consume the same knowledge base through an API or MCP.
@@ -262,8 +262,8 @@ By the time you reach here, you should be able to:
 ## Review checklist (before publication)
 
 - [ ] Check the whole chapter against the official documentation v1.0.0-rc2 (search/create_search, search/search_settings, the three chatchannel pieces, and agent/embed_into_web_pages), verified 2026-10-27
-- [x] Search app creation and dataset binding were measured on 2026-11-04 (screenshot in 9.2): creation, binding after-sales-kb, and retrieving results, the whole path goes through
-- [ ] Not measured: the full flow of any one channel (planned to use Feishu or WeCom as the reference), from creating the channel to a test message
-- [ ] Not measured: the connection dialog for a WeCom channel binding a Flow Agent, and the `[Chat assistant]` / `[Agent]` prefixes
-- [ ] Not measured: Agent embedding (Embed Setup, Widget Customization, Embed code). The embed entry and parameters on the chat-assistant side are still to be added
+- [x] Search app creation and dataset binding were confirmed in testing on 2026-11-04 (screenshot in Section 9.2): creation, binding after-sales-kb, and retrieving results, the whole path goes through
+- [ ] Not confirmed in testing: the full flow of any one channel (planned to use Feishu or WeCom as the reference), from creating the channel to a test message
+- [ ] Not confirmed in testing: the connection dialog for a WeCom channel binding a Flow Agent, and the `[Chat assistant]` / `[Agent]` prefixes
+- [ ] Not confirmed in testing: Agent embedding (Embed Setup, Widget Customization, Embed code). The embed entry and parameters on the chat-assistant side are still to be added
 - [ ] "A channel is only responsible for access and forwarding, and quality is decided by the bound Chat" is a paraphrase of the source material's intent. Before publication, check the wording against the English original
