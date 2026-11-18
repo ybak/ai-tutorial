@@ -12,8 +12,8 @@
 **[打开文档站](https://ybak.github.io/ai-tutorial/)** · **[English docs](https://ybak.github.io/ai-tutorial/en/)** · [English README](README.en.md)
 
 <p align="center">
-  <a href="https://ybak.github.io/ai-tutorial/litellm/">
-    <img src="books/litellm/assets/images/02-home.png" alt="LiteLLM 本机实测：控制台首页" width="800">
+  <a href="https://ybak.github.io/ai-tutorial/">
+    <img src="assets/images/capability-map.zh.png" alt="ai-tutorial 中文 AI 应用实战书架能力地图" width="860">
   </a>
 </p>
 
