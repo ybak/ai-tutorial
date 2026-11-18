@@ -14,8 +14,8 @@ The Chinese shelf is the source of record. This page is the English entry. Most 
 **[Chinese docs](https://ybak.github.io/ai-tutorial/)** · **[English docs](https://ybak.github.io/ai-tutorial/en/)** · [Chinese README](README.md)
 
 <p align="center">
-  <a href="https://ybak.github.io/ai-tutorial/en/litellm/">
-    <img src="books/litellm/assets/images/02-home.png" alt="LiteLLM, tested locally: proxy console home" width="800">
+  <a href="https://ybak.github.io/ai-tutorial/en/">
+    <img src="assets/images/capability-map.en.png" alt="ai-tutorial hands-on AI engineering bookshelf capability map" width="860">
   </a>
 </p>
 
