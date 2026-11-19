@@ -25,7 +25,7 @@
 | [MCP:跨框架工具接入协议](books/mcp/README.md) | 从核心协议到中台规模化 | 4 篇 12 章 | [/mcp/](https://ybak.github.io/ai-tutorial/mcp/) |
 | [RAGFlow:从入门到进阶](books/ragflow/README.md) | 从搭建知识库到生产级检索调优 | 4 篇 13 章 | [/ragflow/](https://ybak.github.io/ai-tutorial/ragflow/) · [English](https://ybak.github.io/ai-tutorial/en/ragflow/) |
 | [CopilotKit:从前端接入 AI Agent](books/copilotkit/README.md) | 在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | 4 篇 8 章 | [/copilotkit/](https://ybak.github.io/ai-tutorial/copilotkit/) |
-| [FastGPT:从入门到进阶](books/fastgpt/README.md) | 知识库与工作流,从搭建到生产运营 | 4 篇 13 章 | [/fastgpt/](https://ybak.github.io/ai-tutorial/fastgpt/) |
+| [FastGPT:从入门到进阶](books/fastgpt/README.md) | 知识库与工作流,从搭建到生产运营 | 4 篇 13 章 | [/fastgpt/](https://ybak.github.io/ai-tutorial/fastgpt/) · [English](https://ybak.github.io/ai-tutorial/en/fastgpt/) |
 | [Super-agent 设计探索——以 Grok Bot 为例深度探索](books/super-agent/README.md) | 解读四特征五模块，并以 Grok Bot 对照落地连续、高效、主动、持久的助手形态 | 3 篇 3 章 | [/super-agent/](https://ybak.github.io/ai-tutorial/super-agent/) |
 | [Langfuse:LLM 可观测与评估](books/langfuse/README.md) | LLM 应用的追踪、评估与 Prompt 管理,从自托管部署到质量工程(本机实测配图) | 4 篇 13 章 | [/langfuse/](https://ybak.github.io/ai-tutorial/langfuse/) |
 | [LiteLLM：多模型网关、配额与降级](books/litellm/README.md) | 虚拟密钥、租户配额与降级；AgentScope / Spring AI / Langfuse 接到同一开源网关（模拟上游实测，无厂商密钥） | 4 篇 10 章 | [/litellm/](https://ybak.github.io/ai-tutorial/litellm/) · [English](https://ybak.github.io/ai-tutorial/en/litellm/) |
