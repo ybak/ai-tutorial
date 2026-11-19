@@ -6,7 +6,7 @@ source: guide/dataset/rag
 
 # Chapter 3 Knowledge bases: from documents to knowledge
 
-> Chapter guide: Chapter 2 deploy is done and model channels work—how does after-sales knowledge get in? This chapter creates knowledge base `after-sales-kb` for the thread-through case: After-sales Policy Manual (quarterly revisions), Product FAQ (weekly updates), Shipping Time Notice (time-sensitive). In order: RAG principles and library → collection → data structure; index model and file-processing model; import routes and formats; data (Chunk) training and management; three document types ingested with update rhythms labeled. After this chapter you can: build a well-configured knowledge base, pick the right import route per document shape, complete upload → parse → ready, and explain update rhythms for all three types.
+> Chapter guide: Chapter 2 deploy is done and model channels work—how does after-sales knowledge get in? This chapter creates knowledge base `after-sales-kb` for the our running example: After-sales Policy Manual (quarterly revisions), Product FAQ (weekly updates), Shipping Time Notice (time-sensitive). In order: RAG principles and library → collection → data structure; index model and file-processing model; import routes and formats; data (Chunk) training and management; three document types ingested with update rhythms labeled. After this chapter you can: build a well-configured knowledge base, pick the right import route per document shape, complete upload → parse → ready, and explain update rhythms for all three types.
 
 ```mermaid
 flowchart LR
@@ -26,7 +26,7 @@ flowchart LR
 
 Three typical situations, three ways to use this chapter.
 
-**You have documents to turn into a Q&amp;A knowledge base and do not know where to start**—follow Sections 3.2 → 3.3 → 3.4: create KB and confirm index model, pick import route by document shape, wait for training. Skip any step and you will take the long way when content is not found.
+**You have documents to turn into a Q&A knowledge base and do not know where to start**—follow Sections 3.2 → 3.3 → 3.4: create KB and confirm index model, pick import route by document shape, wait for training. Skip any step and you will take the long way when content is not found.
 
 **Many file formats—which can upload, how**—see Section 3.3 format table and template import; three frequent issues "abnormal file format", "garbled Chinese", "parse failed" are there too.
 
@@ -36,7 +36,7 @@ Prerequisite: Chapter 2 deploy complete and at least one index model available (
 
 ## 3.1 Overview: gates from document to knowledge
 
-FastGPT knowledge bases rest on retrieval-augmented generation (RAG)—retrieval plus generation: a retriever pulls relevant fragments from an external knowledge base, then a generator answers using those fragments. Official value summary: pull real-time information from external knowledge into generation so output stays coherent and factually grounded. Compared to ragflow's "dataset (Dataset)", same technical domain, different product names—this book follows FastGPT official terms.
+FastGPT knowledge bases rest on retrieval-augmented generation (RAG)—retrieval plus generation: a retriever pulls relevant fragments from an external knowledge base, then a generator answers using those fragments. Official value summary: pull real-time information from external knowledge into generation so output stays coherent and factually grounded. Compared to ragflow's "dataset", same technical domain, different product names—this book follows FastGPT official terms.
 
 Two modules map to two objects:
 
@@ -45,7 +45,7 @@ Two modules map to two objects:
 | Retriever | Fetch most relevant fragments from external KB or corpus; vector and classic retrieval (e.g. BM25) | Knowledge base and search (plan and params Chapter 4) |
 | Generator | Use retrieved fragments as context with the user question to produce natural language answers | Apps and workflow AI chat (Chapters 6, 7) |
 
-Full Q&amp;A is four steps: query in → document retrieval → generate answer → output. This chapter fixes prerequisites for retrieval—documents become searchable data; generation side from Chapter 6.
+Full Q&A is four steps: query in → document retrieval → generate answer → output. This chapter fixes prerequisites for retrieval—documents become searchable data; generation side from Chapter 6.
 
 Official also lists "knowledge base update and maintenance" as a major RAG limitation: stale content undermines trust; manual updates are slow and error-prone. That foreshadows update rhythm labeling here and sync routes in Chapter 5—getting in is only start; keeping up is operations.
 
@@ -62,7 +62,7 @@ flowchart LR
 
 *Knowledge base → collection → data (Chunk) → indexes*
 
-Mapped to the thread-through case:
+Mapped to the our running example:
 
 | Layer | Official meaning | `after-sales-kb` instance |
 |----|---------|------------------------|
@@ -74,7 +74,7 @@ Why three collections if search is library-wide?—for management, not retrieval
 
 ### Shared foundation: index model
 
-Data must be embedded before semantic search. The **index model** embeds text; query and library data share vector space. Official: vector search is the most important step in KB Q&amp;A; precision depends on embedding model quality, data quality (length, completeness, diversity), and retriever precision—data quality is what Sections 3.3–3.4 cultivate (retriever and query quality in Chapter 4).
+Data must be embedded before semantic search. The **index model** embeds text; query and library data share vector space. Official: vector search is the most important step in KB Q&A; precision depends on embedding model quality, data quality (length, completeness, diversity), and retriever precision—data quality is what Sections 3.3–3.4 cultivate (retriever and query quality in Chapter 4).
 
 ## 3.2 Create knowledge base: index model ready first
 
@@ -95,15 +95,15 @@ Easy to confuse; official FAQ separates them:
 | Model | Official definition | When used | Missing signal |
 |------|---------|-------------|-----------|
 | Index model | Vectorizes text to build fast-query structures | All data entering the KB | Knowledge base page flickers—FAQ fix is configure index model |
-| File-processing model | "Enhanced processing" and "Q&amp;A split" on ingest: related questions/summary, Q&amp;A pair generation | Only when enhanced processing or Q&amp;A split selected on import | Does not affect normal chunk import |
+| File-processing model | "Enhanced processing" and "Q&A split" on ingest: related questions/summary, Q&A pair generation | Only when enhanced processing or Q&A split selected on import | Does not affect normal chunk import |
 
-**Index model is mandatory—confirm available in Chapter 2 model channels before create; file-processing model only when enhanced processing or Q&amp;A split is used.**
+**Index model is mandatory—confirm available in Chapter 2 model channels before create; file-processing model only when enhanced processing or Q&A split is used.**
 
 One metering rule: FastGPT tokens use gpt3.5 standard. Section 3.3 chunk conditions and Chapter 4 quote limits use this standard—do not use another model's tokenizer mentally.
 
 ### Limits and common mistakes
 
-Index model fixes vector space—different model, different space. **This book's stance: treat index model as one-time choice at create; switching means re-embedding the whole library**; materials do not describe "hot switch with checks"—do not assume RAGFlow behavior (→ ragflow book Chapter 3 compatibility is RAGFlow-specific). Another mistake is order: models before create and import—page flicker often means reversed order.
+Index model fixes vector space—different model, different space. **Our recommendation: treat index model as one-time choice at create; switching means re-embedding the whole library**; materials do not describe "hot switch with checks"—do not assume RAGFlow behavior (→ ragflow book Chapter 3 compatibility is RAGFlow-specific). Another mistake is order: models before create and import—page flicker often means reversed order.
 
 ## 3.3 File import: routes, formats, parse parameters
 
@@ -112,7 +112,7 @@ Index model fixes vector space—different model, different space. **This book's
 | Route | Entry | Fits | `after-sales-kb` |
 |------|------|---------|------------------------|
 | Local upload | New text dataset in library → upload files (multi-select) | Finished documents, low-frequency updates | Policy PDF, time notices |
-| Template import | Import menu → template import | Tabular Q&amp;A or content batch write | Product FAQ xlsx |
+| Template import | Import menu → template import | Tabular Q&A or content batch write | Product FAQ xlsx |
 | Web sync | Web sync config | Site content keeps updating | Chapter 5 |
 | API write | Knowledge base API | Programmatic batch, system integration | Chapter 10 |
 
@@ -139,11 +139,11 @@ After upload, parameter page—official guidance:
 | Chunk condition | Tokens per chunk; default for quick test | Default first, tune after Section 3.4 preview |
 | Index enhancement | Plain text usually first two; images if doc has images | Policy has tables—decide by preview |
 
-Alternate path **Q&amp;A split**—file-processing model turns doc into Q&amp;A pairs (Section 3.2). **This book's stance: FAQ already structured in a table—template import is more controllable and does not spend file-processing model calls**; reserve Q&amp;A split for unstructured long text wanting Q&amp;A-shaped data.
+Alternate path **Q&A split**—file-processing model turns doc into Q&A pairs (Section 3.2). **Our recommendation: FAQ already structured in a table—template import is more controllable and does not spend file-processing model calls**; reserve Q&A split for unstructured long text wanting Q&A-shaped data.
 
 ### Template import: q, a, index, metadata
 
-Template import for prepared content or Q&amp;A batch; `.csv` and `.xlsx`. First row must be headers:
+Template import for prepared content or Q&A batch; `.csv` and `.xlsx`. First row must be headers:
 
 | Header | Required | Count | Note |
 |------|------|------|------|
@@ -219,7 +219,7 @@ Three documents, three collections—Section 3.1: collections for management, no
 | Collection | Content | Why separate |
 |------|------|-----------------|
 | After-sales policy manual | Full `after-sales-policy.pdf` chunks | Quarterly revision = full re-import; clear boundary |
-| Product FAQ | All `product-faq.xlsx` Q&amp;A pairs | Weekly updates visible in one collection |
+| Product FAQ | All `product-faq.xlsx` Q&A pairs | Weekly updates visible in one collection |
 | Shipping time notices | Per-notice rows | Time-sensitive; smallest grain to retire expired |
 
 ### Per-type ingest
@@ -255,7 +255,7 @@ Section 3.1 cited official RAG limitation on maintenance. This chapter does not 
 
 1. **RAG two modules, four steps**: retriever fetches, generator answers; this chapter fixes retriever path—documents become searchable.
 2. **Three layers**: library → collection → data (Chunk), multiple indexes under data; smallest search unit is library; collections for management only.
-3. **Two models**: index mandatory (flicker = missing index); file-processing only for enhanced processing and Q&amp;A split; tokens on gpt3.5 standard.
+3. **Two models**: index mandatory (flicker = missing index); file-processing only for enhanced processing and Q&A split; tokens on gpt3.5 standard.
 4. **Four import routes, two this chapter**: local upload and template; headers `q`, `a`, `index`, `metadata` are hard rules; valid JSON `metadata`.
 5. **Import ≠ retrievable**: train to "ready"; preview three checks; one data row, multiple indexes.
 6. **Three rhythms**: policy quarterly, FAQ weekly, notices time-sensitive—label rhythm now, sync in Chapter 5.

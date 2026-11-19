@@ -6,7 +6,7 @@ source: self-host/deploy/docker
 
 # Chapter 2 Deployment and model channels
 
-> Chapter guide: Chapter 1 chose community edition—now put the real base under "售后客服" ("After-sales Support"). This chapter follows one operation line end to end: pick vector store and machine sizing by knowledge-base index volume, then official one-shot script for Docker Compose deploy; enter the config system—env vars grouped in place, model channels through AI Proxy, and when data must stay inside the network add an Ollama local channel; finally activate the root account, change the initial password, and verify deploy quality with one real Q&amp;A exchange. Deploy pain is never "does it start" but configs in the right buckets, model channel wired once, and knowing mistakes before you hit them. After this chapter you can: deploy community FastGPT for the support team, configure at least one language model and one index model, complete root password activation, and declare the base ready with one first question—leave knowledge-base work to Chapter 3.
+> Chapter guide: Chapter 1 chose community edition—now put the real base under "售后客服" ("After-sales Support"). This chapter follows one operation line end to end: pick vector store and machine sizing by knowledge-base index volume, then official one-shot script for Docker Compose deploy; enter the config system—env vars grouped in place, model channels through AI Proxy, and when data must stay inside the network add an Ollama local channel; finally activate the root account, change the initial password, and verify deploy quality with one real Q&A exchange. Deploy pain is never "does it start" but configs in the right buckets, model channel wired once, and knowing mistakes before you hit them. After this chapter you can: deploy community FastGPT for the support team, configure at least one language model and one index model, complete root password activation, and declare the base ready with one first question—leave knowledge-base work to Chapter 3.
 
 ```mermaid
 flowchart LR
@@ -81,7 +81,7 @@ One difference that does not bite until Chapter 4: **only the Milvus option ship
 
 ### Base sizing for After-sales Support
 
-The thread-through case `after-sales-kb` has three document types—50-page policy manual, ~200-row product FAQ, several logistics notices—index volume is orders of magnitude below 50 million groups. **In business terms, start on PgVector**: light, stable, enough; test tier 2c4g covers this chapter; at 100M scale or when you need BM25 hybrid retrieval, migrate to Milvus (vector DB migration is Chapter 11).
+The our running example `after-sales-kb` has three document types—50-page policy manual, ~200-row product FAQ, several logistics notices—index volume is orders of magnitude below 50 million groups. **In business terms, start on PgVector**: light, stable, enough; test tier 2c4g covers this chapter; at 100M scale or when you need BM25 hybrid retrieval, migrate to Milvus (vector DB migration is Chapter 11).
 
 ### Limits and common mistakes
 
@@ -284,7 +284,7 @@ Call logs show input/output tokens, time, error payload—first stop for model i
 
 ### When you need local models
 
-**This book's stance: run the chain on cloud API first, then decide on localization.** Local models save call cost and data egress concerns; you pay machine, VRAM, and ops. For after-sales support, policy corpus is sensitive; common start is **index model local first**—only vectorizes, much lighter than language model (engineering judgment; final word is Chapter 4 recall quality).
+**Our recommendation: run the chain on cloud API first, then decide on localization.** Local models save call cost and data egress concerns; you pay machine, VRAM, and ops. For after-sales support, policy corpus is sensitive; common start is **index model local first**—only vectorizes, much lighter than language model (engineering judgment; final word is Chapter 4 recall quality).
 
 [Ollama](https://ollama.com/) is open-source one-click model deploy. Official recommends Docker—host install adds container-to-host access hassle.
 
@@ -368,7 +368,7 @@ After initial password login, activate window immediately—no close, no progres
 
 ### First-question verification: deploy done signal
 
-Base quality is not "containers up" but "Q&amp;A works." Five steps:
+Base quality is not "containers up" but "Q&A works." Five steps:
 
 1. Browser `FE_DOMAIN`, `root` and new password login OK;
 2. Admin → Model provider: at least one language and one index model enabled and model test pass;

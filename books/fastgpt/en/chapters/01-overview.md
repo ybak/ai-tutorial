@@ -10,7 +10,7 @@ source: guide/getting-started
 
 ```mermaid
 flowchart LR
-    A["Needs<br/>After-sales Q&amp;A tied to knowledge · ticket lookup for repairs<br/>Reach users via DingTalk and your own platform"] --> B["Chapter 1 Getting to know FastGPT<br/>Positioning · concepts · form choice · first question"]
+    A["Needs<br/>After-sales Q&A tied to knowledge · ticket lookup for repairs<br/>Reach users via DingTalk and your own platform"] --> B["Chapter 1 Getting to know FastGPT<br/>Positioning · concepts · form choice · first question"]
     B --> C["What FastGPT is (1.1)<br/>Knowledge base + workflow<br/>+ app orchestration platform"]
     B --> D["Core concept map (1.2)<br/>App · knowledge base · workflow<br/>Tools · skills"]
     B --> E["Three forms (1.3)<br/>Cloud · commercial · community<br/>Sized to scale and governance"]
@@ -39,32 +39,32 @@ This chapter has no prerequisites: Section 1.5 only needs a browser (cloud is re
 
 ## 1.1 What FastGPT is: knowledge base, workflow, and app orchestration in one platform
 
-The official one-liner (v4.17.3 user guide "Quick look at FastGPT", verified 2026-11-01): FastGPT is **an AI Agent application development platform based on large language models (LLM), integrating knowledge-base Q&amp;A, visual workflows, Agent orchestration, tool calling, and skill extension**, so developers and business users can quickly build dedicated AI applications.
+The official one-liner (v4.17.3 user guide "Quick look at FastGPT", verified 2026-11-01): FastGPT is **an AI Agent application development platform based on large language models (LLM), integrating knowledge-base Q&A, visual workflows, Agent orchestration, tool calling, and skill extension**, so developers and business users can quickly build dedicated AI applications.
 
 Split the definition and you get a capability map:
 
 | Capability block | Official one-liner | Plain reading | Chapters |
 |--------|-----------|---------|---------|
-| Knowledge-base Q&amp;A | All-round knowledge base: import varied documents with automatic knowledge structuring; smart Q&amp;A with multi-turn context | Documents in, answers with evidence out | Chapters 3–5 |
+| Knowledge-base Q&A | All-round knowledge base: import varied documents with automatic knowledge structuring; smart Q&A with multi-turn context | Documents in, answers with evidence out | Chapters 3–5 |
 | Visual workflow | Drag-and-drop UI to build complex business flows with rich functional nodes | Business flows on a canvas | Chapter 7 |
 | App orchestration | Agent orchestration: four forms—conversational Agent, workflow, plugin, Agent V2 | Different task complexity on different carriers | Chapter 6 |
 | Tool calling | System tools, custom tools, and MCP tools | Apps answer and also "act" | Chapter 8 |
 | Skill extension | Versioned "document + code" capability packs, bound to agents, sandbox execution | Turn tuned playbooks into reusable team assets | Chapter 8 |
 | Publish and integrate | Fully aligned with the official OpenAI API; one-click enterprise WeChat, official account, Feishu, DingTalk | Ship orchestrated capability outward | Chapters 9–10 |
 
-### What matters most for the thread-through case: intelligent data parsing
+### What matters most for the our running example: intelligent data parsing
 
 The official knowledge-base section on data processing deserves attention: intelligently handle complex PDF structure—keep images, tables, and LaTeX formulas; recognize scans; structure content as clear Markdown; support automatic image captioning and indexing so visual content can be understood and retrieved. That is exactly what the After-sales Policy Manual (`after-sales-policy.pdf`, 50 pages with tables) needs—whether compensation tables keep row/column structure shows up in Chapter 3 at ingest time; the HTML form of the Shipping Time Notice and the spreadsheet form of the Product FAQ (`product-faq.xlsx`) also fall under "all kinds of documents."
 
 ### Strength in the chain, not a single point
 
-Look at each piece alone—vector retrieval, workflow engine, channel access—and there are standalone open-source options. **FastGPT's strength is not any single technology; it is packing "build knowledge base, orchestrate flow, publish app" into one product**: developers and business users collaborate on one UI, config page equals debug page—the hardest gap on the DIY path (Section 1.4). The official three advantages point the same way: simple and flexible like building blocks (drag to implement complex flows), smarter data (import, preprocess, match knowledge, full Q&amp;A automation), open and easy to integrate (standard API without changing source; supports ChatGPT, Claude, DeepSeek, ERNIE Bot, and other mainstream models).
+Look at each piece alone—vector retrieval, workflow engine, channel access—and there are standalone open-source options. **FastGPT's strength is not any single technology; it is packing "build knowledge base, orchestrate flow, publish app" into one product**: developers and business users collaborate on one UI, config page equals debug page—the hardest gap on the DIY path (Section 1.4). The official three advantages point the same way: simple and flexible like building blocks (drag to implement complex flows), smarter data (import, preprocess, match knowledge, full Q&A automation), open and easy to integrate (standard API without changing source; supports ChatGPT, Claude, DeepSeek, ERNIE Bot, and other mainstream models).
 
 ## 1.2 Core concept map: app, knowledge base, workflow, tool, skill
 
-Five concepts recur in the next twelve chapters. This table gives each a one-line definition and the object in the thread-through case—skim now, expand in later chapters:
+Five concepts recur in the next twelve chapters. This table gives each a one-line definition and the object in the our running example—skim now, expand in later chapters:
 
-| Concept | English | One-line definition | Object in the thread-through case | Chapters |
+| Concept | English | One-line definition | Object in the our running example | Chapters |
 |------|------|-----------|----------------|---------|
 | App | App | User-facing dialog and flow carrier; four forms: simple configuration, workflow, plugin, Agent V2 | "售后客服" ("After-sales Support") app: simple configuration in Chapter 6, workflow as main line in Chapter 7 | Chapters 6, 7 |
 | Knowledge base | Knowledge Base | RAG carrier; hierarchy knowledge base → collection → data (Chunk) | `after-sales-kb`: three after-sales document types | Chapters 3–5 |
@@ -100,18 +100,18 @@ Beyond the five main concepts, later chapters introduce more "sub-concepts." You
 
 ### Four app forms: from dialog to autonomous planning
 
-The official quick start shows four cases of increasing capability—enterprise email assistant (conversational Agent), civil code Q&amp;A (knowledge base + conversational Agent), content review and rewrite (workflow), smart data analysis (Agent V2)—plus a selection recap table:
+The official quick start shows four cases of increasing capability—enterprise email assistant (conversational Agent), civil code Q&A (knowledge base + conversational Agent), content review and rewrite (workflow), smart data analysis (Agent V2)—plus a selection recap table:
 
 | App type (quick start) | Fit | Core capability |
 |---------------------|---------|---------|
-| Conversational Agent | Light Q&amp;A, copy generation, standardized output | Prompt, model config, tool calling |
-| Knowledge base + conversational Agent | Q&amp;A on materials, policies, statutes, product manuals | File import, knowledge retrieval, cite source |
+| Conversational Agent | Light Q&A, copy generation, standardized output | Prompt, model config, tool calling |
+| Knowledge base + conversational Agent | Q&A on materials, policies, statutes, product manuals | File import, knowledge retrieval, cite source |
 | Workflow | Fixed steps, branches, review flows, automation | Node orchestration, deciders, human confirm |
 | Agent V2 | Data analysis, complex tasks, multi-step reasoning, dynamic planning | Autonomous planning, tools, VM execution |
 
 (Transcribed from v4.17.3 quick start "Four types selection recap", verified 2026-11-01.)
 
-Four selection sentences from the same source: light dialog or standardized copy → conversational Agent first; answers must be grounded in existing materials → knowledge base + conversational Agent; fixed flow with branches, human confirm, or automation → workflow; open task, non-fixed steps, autonomous analysis or code execution → Agent V2. The official text also stresses **capabilities can be combined**—a support assistant answers product questions from the knowledge base, then queries orders via tools. The thread-through case "售后客服" ("After-sales Support") is the full combo: knowledge base + workflow + ticket tool, landed in Chapter 7.
+Four selection sentences from the same source: light dialog or standardized copy → conversational Agent first; answers must be grounded in existing materials → knowledge base + conversational Agent; fixed flow with branches, human confirm, or automation → workflow; open task, non-fixed steps, autonomous analysis or code execution → Agent V2. The official text also stresses **capabilities can be combined**—a support assistant answers product questions from the knowledge base, then queries orders via tools. The our running example "售后客服" ("After-sales Support") is the full combo: knowledge base + workflow + ticket tool, landed in Chapter 7.
 
 Two extra judgments reused in Chapters 6 and 7: a task fits workflow when it has "stable steps, clear rules, repeatable execution" (quick start wording); Agent V2 code runs in a VM, isolated from the local environment.
 
@@ -153,7 +153,7 @@ Worth knowing for secondary development: you may modify some community code, not
 
 ### Form choice for After-sales Support and one open item
 
-**This book's stance: the thread-through case "售后客服" ("After-sales Support") starts on community**—knowledge base, workflow, share link, and API are in community core; Chapter 2 deploy and Chapter 3 build are not blocked by form. Two exceptions upfront: publish to official account/Feishu channels, app evaluation and run log dashboard need commercial or cloud; **DingTalk is not listed with "third-party publish (Feishu, official account)" in the official diff table—community availability to be confirmed hands-on in Chapter 9** (on this chapter's review list).
+**Our recommendation: the our running example "售后客服" ("After-sales Support") starts on community**—knowledge base, workflow, share link, and API are in community core; Chapter 2 deploy and Chapter 3 build are not blocked by form. Two exceptions upfront: publish to official account/Feishu channels, app evaluation and run log dashboard need commercial or cloud; **DingTalk is not listed with "third-party publish (Feishu, official account)" in the official diff table—community availability to be confirmed hands-on in Chapter 9** (on this chapter's review list).
 
 **In business terms: personal learning and small internal teams start on community (deploy in Chapter 2); for multi-tenant external service, SSO/team governance/evaluation dashboard, evaluate commercial and cloud; to try only, register cloud and follow Section 1.5 for ten-minute first question.**
 
@@ -169,11 +169,11 @@ After-sales support needs are three beats: documents to knowledge, knowledge to 
 | External delivery | Custom API and channels | API and MCP Server | Share link, IM channels, OpenAPI, publish as MCP Server |
 | Best when | Deep custom retrieval chain, existing platform, strong compliance self-host | Main pain is "complex documents → reliable answers" | Main pain is "wire knowledge, flow, channels into a shippable app fast" |
 
-**In business terms: if retrieval and parsing quality is the main pain, choose ragflow; if app orchestration and delivery speed is the main pain, choose FastGPT; if retrieval must be deeply custom or infra fully self-held, go DIY.** They are not exclusive—same after-sales domain can split knowledge base and app layer; chunk governance and quality inspection methodology transfers between the two books (see Chapter 13) (→ ragflow book).
+**In business terms: if retrieval and parsing quality is the main pain, choose ragflow; if app orchestration and delivery speed is the main pain, choose FastGPT; if retrieval must be deeply custom or infra fully self-held, go DIY.** They are not exclusive—same after-sales domain can split knowledge base and app layer; Chapter 13 of this book and the RAGFlow book share the methods of chunk governance and quality inspection.
 
 ### When FastGPT is faster
 
-This book's stance—any one of three reasons warrants serious consideration: **business and engineering build apps on one platform** (support ops can change prompt and opening line without a dev ticket); **flows must hit business systems** (after-sales support checks tickets before reply—HTTP tool to middle-platform ticket API); **multi-channel delivery** (login-free share for the team, DingTalk for users, OpenAPI for the platform, Chapter 9 MCP Server publish). Conversely, if the pain is only retrieval quality, see (→ ragflow book); if every link must be fully self-held, DIY—engineering detail (vector DB choice, retrieval assembly, Agent consumption) is outside this book (→ agentscope-java book).
+Our recommendation—any one of three reasons warrants serious consideration: **business and engineering build apps on one platform** (support ops can change prompt and opening line without a dev ticket); **flows must hit business systems** (after-sales support checks tickets before reply—HTTP tool to middle-platform ticket API); **multi-channel delivery** (login-free share for the team, DingTalk for users, OpenAPI for the platform, Chapter 9 MCP Server publish). Conversely, if the pain is only retrieval quality, see (→ ragflow book); if every link must be fully self-held, DIY—engineering detail (vector DB choice, retrieval assembly, Agent consumption) is outside this book (→ agentscope-java book).
 
 ### Same domain, different names: a terminology crosswalk
 
@@ -224,7 +224,7 @@ flowchart LR
 5. **Write Prompt**: organize as "role + output format + rules"—role fixes identity, format constrains structure, rules bound risk; this triple repeats in all book prompts;
 6. **Opening line and first ask**: opening tells users what the app does; put `[问题内容]` in the opening so users can one-click ask (official tip). Then ask the first question in debug preview.
 
-Do not validate first ask only by "does it sound right"—official knowledge-base Q&amp;A advice applies to no-KB play too: test three input types—**in-corpus** should answer with evidence, **out-of-corpus** should say cannot confirm, **vague** should ask for facts. An app that only agrees is not worth shipping.
+Do not validate first ask only by "does it sound right"—official knowledge-base Q&A advice applies to no-KB play too: test three input types—**in-corpus** should answer with evidence, **out-of-corpus** should say cannot confirm, **vague** should ask for facts. An app that only agrees is not worth shipping.
 
 ### After first ask: link a knowledge base
 
@@ -237,20 +237,20 @@ Effect difference between the two configs is the key split between official case
 | Dimension | No knowledge base (case 1) | Linked knowledge base (case 2) |
 |------|--------------------------|--------------------------|
 | Answer basis | Model memory | Knowledge retrieval |
-| Strong at | Generation, formatted output | Policy, manual, statute Q&amp;A |
+| Strong at | Generation, formatted output | Policy, manual, statute Q&A |
 | Key config | Prompt triple + tools | Parse params + citation and disclaimer |
 | Main risk | Private fact hallucination | Chunk quality drives evidence quality |
 
 ### Limits and common mistakes
 
-- **Conversational Agent is not knowledge-base Q&amp;A**: without KB, app answers from model memory—private facts will be wrong; link first, then judge quality;
+- **Conversational Agent is not knowledge-base Q&A**: without KB, app answers from model memory—private facts will be wrong; link first, then judge quality;
 - **Chunks too large → verbose answers; too small → shattered evidence**: defaults in quick start; tune after enterprise materials (Chapter 4 params);
 - **High-risk prompts need boundaries**: compensation, legal questions should follow the civil code case—rules say answer from materials, state uncertainty, suggest professionals;
 - **External credential tools need permission thinking**: official email tool test uses SMTP app password—minimal permission test accounts, not production secrets.
 
 ## Chapter summary
 
-1. **FastGPT is an LLM-based AI Agent app development platform**: knowledge Q&amp;A, visual workflow, Agent orchestration, tools, skills in one product; strength is the full chain in one product, not a single tech point.
+1. **FastGPT is an LLM-based AI Agent app development platform**: knowledge Q&A, visual workflow, Agent orchestration, tools, skills in one product; strength is the full chain in one product, not a single tech point.
 2. **Five core concepts** (app, knowledge base, workflow, tool, skill) and **four app forms** (conversational Agent → knowledge base + conversational Agent → workflow → Agent V2); choose by task complexity; capabilities combine.
 3. **Three forms**: cloud register-and-use; commercial = community image + commercial image, enterprise extras; community free with all core features, self-deploy. Thread-through case starts community; DingTalk community availability pending Chapter 9 hands-on check.
 4. **Three-way comparison**: retrieval/parsing main pain → ragflow; app orchestration and delivery speed → FastGPT; deep custom or strong compliance self-host → DIY—judgment is which chain segment holds the main pain.
@@ -261,8 +261,8 @@ Effect difference between the two configs is the key split between official case
 You should be able to:
 
 - ☐ Explain FastGPT positioning in one sentence to a colleague and map each capability block to book chapters;
-- ☐ State roles of app, knowledge base, workflow, tool, skill and point to objects in the thread-through case;
-- ☐ Use the official four-form table to pick an app type for three needs: policy Q&amp;A, reply after ticket lookup, open-ended data analysis;
+- ☐ State roles of app, knowledge base, workflow, tool, skill and point to objects in the our running example;
+- ☐ Use the official four-form table to pick an app type for three needs: policy Q&A, reply after ticket lookup, open-ended data analysis;
 - ☐ Write form choice (cloud/commercial/community) for after-sales support with at least two reasons;
 - ☐ Answer "FastGPT or ragflow" in one stance sentence and which chain segment holds the main pain;
 - ☐ Complete one first question on cloud: model and opening, one in-corpus question with evidenced answer.

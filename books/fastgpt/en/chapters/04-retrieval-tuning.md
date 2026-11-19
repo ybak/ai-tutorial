@@ -30,7 +30,7 @@ Three typical situations, three ways to use this chapter.
 
 **Users ask with ticket numbers, error codes, SKUs—semantic search misses**—Section 4.4: keyword full-text fits exact queries; backend follows vector DB; Milvus needs BM25 migration step.
 
-**Library mixes Q&amp;A pairs and long docs—sometimes miss, sometimes flood**—Section 4.5 hybrid plus rerank for precision; quote limits by tokens for stability—official avoids topk for quotes because chunk lengths vary wildly in mixed libraries.
+**Library mixes Q&A pairs and long docs—sometimes miss, sometimes flood**—Section 4.5 hybrid plus rerank for precision; quote limits by tokens for stability—official avoids topk for quotes because chunk lengths vary wildly in mixed libraries.
 
 Prerequisite: Chapter 3 three types "ready", index model available (not ready → Section 3.4).
 
@@ -81,7 +81,7 @@ RRF (Reciprocal Rank Fusion) merges paths—final quotes **not strictly single-c
 
 ### Pick plan by document shape
 
-Official: semantic for natural language; full-text for IDs and codes; both → hybrid. Thread-through: policy manual natural language plus "article N" citations; FAQ is Q&amp;A shaped. **This book's stance: `after-sales-kb` default hybrid—half colloquial half coded; semantic alone for light FAQ-only libraries.**
+Official: semantic for natural language; full-text for IDs and codes; both → hybrid. Thread-through: policy manual natural language plus "article N" citations; FAQ is Q&A shaped. **Our recommendation: `after-sales-kb` default hybrid—half colloquial half coded; semantic alone for light FAQ-only libraries.**
 
 ## 4.3 Semantic search: embedding model and similarity filter
 
@@ -252,7 +252,7 @@ No universal defaults—stance table by document shape (**book stance**, verify 
 | Document | Dominant questions | Plan | Parameter lean | Rationale |
 |------|---------|------|---------|---------|
 | After-sales Policy Manual | Natural language clauses + "article N" cites | Hybrid + rerank | Strict minimum relevance; optimization on | Official: hybrid richer; rerank usually helps |
-| Product FAQ | Colloquial near Q&amp;A text | Semantic start | Optimization as needed; quote limit low impact | Semantic fits natural language |
+| Product FAQ | Colloquial near Q&A text | Semantic start | Optimization as needed; quote limit low impact | Semantic fits natural language |
 | Shipping time notices | Carrier names, day counts | Hybrid, full-text lean | Looser minimum relevance; quote limit caps duplicates | Full-text for proper nouns |
 
 Three shared rules from official table:

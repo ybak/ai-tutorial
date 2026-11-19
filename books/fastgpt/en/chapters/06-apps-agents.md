@@ -45,7 +45,7 @@ Chapter 1 listed four forms: simple configuration, workflow, plugin, Agent V2. S
 
 | Form | Fit | Orchestration | Complexity | Book coverage |
 |------|---------|---------|--------|---------|
-| Simple configuration (conversational Agent) | Light Q&amp;A, generation, standardized output; KB-linked grounded Q&amp;A | Form config: left AI, right debug | Low | Sections 6.2–6.4 |
+| Simple configuration (conversational Agent) | Light Q&A, generation, standardized output; KB-linked grounded Q&A | Form config: left AI, right debug | Low | Sections 6.2–6.4 |
 | Workflow | Fixed steps, branches, review, automation | Canvas nodes | Medium to high | Chapter 7 |
 | Plugin | Reusable unit: run alone or from workflow | Input/output declaration (UI detail not in materials) | Medium | Chapter 8 |
 | Agent V2 | Open tasks, multi-step reasoning, planning, code | Panel sets persona/capability; model plans; VM runs | High | Section 6.5 |
@@ -59,17 +59,17 @@ Official quick start four cases; Chapter 1 left four-case vs four-form mapping o
 | Quick start case | Form (book mapping) | Basis |
 |-------------|---------------------|---------|
 | Case 1: conversational Agent—email assistant | Simple configuration | New "conversational Agent" is Section 6.2 form page |
-| Case 2: KB + conversational Agent—civil code Q&amp;A | Simple + KB link | Same form plus KB, not separate form |
+| Case 2: KB + conversational Agent—civil code Q&A | Simple + KB link | Same form plus KB, not separate form |
 | Case 3: workflow—content review and rewrite | Workflow | New workflow canvas |
 | Case 4: Agent V2—smart data analysis | Agent V2 | New conversational Agent V2 with VM |
 
-Plugin not in quick start—it is reused capability, Chapter 8. Official: combine capabilities—support answers from KB plus order tool; thread-through "售后客服" ("After-sales Support") is full combo in Chapter 7.
+Plugin not in quick start—it is reused capability, Chapter 8. Official: combine capabilities—support answers from KB plus order tool; our running example "售后客服" ("After-sales Support") is full combo in Chapter 7.
 
 ### After-sales Support form path
 
 **In business terms: support apps start simple configuration—ship in a day, expose flow gaps, inform workflow upgrade.** This chapter creates "售后客服" in simple configuration (Chapter 1 reserved name); Chapter 7 workflow reuses same prompt and KB in nodes.
 
-## 6.2 Simple-configuration After-sales Support: thread-through start
+## 6.2 Simple-configuration After-sales Support: the start of our running example
 
 ### Six steps to create app
 
@@ -130,7 +130,7 @@ Three quick questions map to three `after-sales-kb` collections. Official openin
 
 ### Verification: three input types
 
-Before publish—official KB Q&amp;A validation—all three:
+Before publish—official KB Q&A validation—all three:
 
 | Input type | After-sales test | Expected |
 |---------|-------------|---------|
@@ -167,7 +167,7 @@ AI config adjusts model, reply length, multimodal, format, reasoning display. Sa
 | Parameter | Governs | Official note and After-sales Support |
 |------|--------|--------------------------|
 | AI model | Base model; shows price, context, tools, multimodal | Stable Chinese and format |
-| Memory turns | Prior chat turns referenced | Default; KB Q&amp;A needs few turns |
+| Memory turns | Prior chat turns referenced | Default; KB Q&A needs few turns |
 | Reply cap | Max length toggle + slider | Lower for brevity; too low truncates |
 | Temperature | Randomness | Lower for support/KB |
 | Top_p | Overlaps temperature | Do not tune both; default Top_p if temperature set |
@@ -358,7 +358,7 @@ Debug is live test pre-publish. "New chat" clears history. Per AI message bar:
 |------|------|
 | Copy | Copy reply text |
 | Read aloud | TTS |
-| Annotate | Save Q&amp;A to KB with expected answer (Chapter 13 quality base) |
+| Annotate | Save Q&A to KB with expected answer (Chapter 13 quality base) |
 | Retry | Regenerate last user input |
 | Run details | Tree: thinking, internal actions, tool logs, request id, model, credits |
 | Response time | Seconds to complete |

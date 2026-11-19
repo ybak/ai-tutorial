@@ -46,7 +46,7 @@ Chapter 3 foreshadow: KB maintenance is a major RAG limit—stale content breaks
 | API knowledge base | Connect existing library, no duplicate storage | Form not stated in materials (review) |
 | Third-party KB | Feishu, DingTalk, Yuque direct | Feishu/Yuque v4.8.16+ commercial; DingTalk not stated (review) |
 
-Chapter 1 table puts web sync, third-party scheduled sync, file permissions on commercial side—heaviest form chapter. **This book's stance: capability list may force form choice earlier than expected—Chapter 1 community start still holds for core build and orchestrate; when sync and governance appear, re-check diff table before scheduling.**
+Chapter 1 table puts web sync, third-party scheduled sync, file permissions on commercial side—heaviest form chapter. **Our recommendation: capability list may force form choice earlier than expected—Chapter 1 community start still holds for core build and orchestrate; when sync and governance appear, re-check diff table before scheduling.**
 
 Link to Chapter 3: three rhythms (policy quarterly, FAQ weekly, notices time-sensitive) are inputs; Section 5.7 decision table turns 3.5 labels into routes.
 
@@ -164,7 +164,7 @@ flowchart LR
 
 Custom operators by attribute; system: create time ≥/≤, collection ID in (recursive children).
 
-Empty binding rules: **positive match** (equals, contains, in, greater, not empty)—untagged file fails, not recalled; **negative/empty** (is empty, not equals, not in)—untagged passes. **This book's stance: positive match dominates—tag on import becomes discipline or tagged-out files vanish from answers.**
+Empty binding rules: **positive match** (equals, contains, in, greater, not empty)—untagged file fails, not recalled; **negative/empty** (is empty, not equals, not in)—untagged passes. **Our recommendation: positive match dominates—tag on import becomes discipline or tagged-out files vanish from answers.**
 
 ### Advanced: variable JSON
 
@@ -347,7 +347,7 @@ Two questions in order: **update frequency** (low manual, high automate), **sour
 
 Also: help center static sites → web sync (commercial); cross-dept/version issues → tags (not web-sync KB); per-person isolation → file permissions with member auth.
 
-> **This book's stance**: sync automates "moving bytes"; who approves when to update is process—add owners and triggers per type; SOP and quality inspection Chapter 13.
+> **Our recommendation**: sync automates "moving bytes"; who approves when to update is process—add owners and triggers per type; SOP and quality inspection Chapter 13.
 
 ## Chapter summary
 
