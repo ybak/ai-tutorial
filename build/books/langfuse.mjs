@@ -55,6 +55,30 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: "part-1", title: "Part 1 Getting Started", chapters: [
+    { file: "01-overview.md", chapter: 1, title: "Getting to know Langfuse", sources: ["docs/index.mdx", "docs/observability/overview.mdx", "docs/compatibility.mdx", "docs/v4.mdx"] },
+    { file: "02-deploy.md", chapter: 2, title: "Local deployment", sources: ["self-hosting/index.mdx", "self-hosting/deployment/docker-compose.mdx", "self-hosting/configuration/index.mdx", "self-hosting/upgrade/versioning.mdx"] },
+    { file: "03-quickstart.md", chapter: 3, title: "Quick start", sources: ["docs/observability/sdk/overview.mdx", "docs/languages/python/index.mdx", "docs/observability/sdk/upgrade-path.mdx"] },
+  ]},
+  { id: "part-2", title: "Part 2 Tracing and Monitoring", chapters: [
+    { file: "04-tracing.md", chapter: 4, title: "The trace model and tracing", sources: ["docs/observability/concepts/traces.mdx", "docs/observability/concepts/sessions.mdx", "docs/observability/best-practices.mdx", "docs/observability/features/log-levels.mdx", "docs/observability/features/tags.mdx"] },
+    { file: "05-cost-metrics.md", chapter: 5, title: "Cost and performance monitoring", sources: ["docs/observability/features/token-cost.mdx", "docs/observability/analytics/overview.mdx", "docs/observability/features/alerts.mdx", "docs/observability/metrics-api/overview.mdx"] },
+  ]},
+  { id: "part-3", title: "Part 3 Prompts and Evaluation", chapters: [
+    { file: "06-prompt-mgmt.md", chapter: 6, title: "Prompt management", sources: ["docs/prompt-management/overview.mdx", "docs/prompt-management/features/version-control.mdx", "docs/prompt-management/features/variables.mdx", "docs/prompt-management/features/playground.mdx", "docs/prompt-management/features/caching.mdx"] },
+    { file: "07-datasets-scores.md", chapter: 7, title: "Datasets and scores", sources: ["docs/evaluation/evaluation-methods/overview.mdx", "docs/evaluation/datasets.mdx", "docs/scores/overview.mdx", "docs/scores/annotation.mdx"] },
+    { file: "08-experiments.md", chapter: 8, title: "Experiments and A/B tests", sources: ["docs/evaluation/experiments/overview.mdx", "docs/evaluation/experiments/experiments-via-sdk.mdx", "docs/prompt-management/features/ab-testing.mdx", "docs/evaluation/experiments/compare-experiments.mdx"] },
+    { file: "09-evals.md", chapter: 9, title: "Automated evaluation", sources: ["docs/evaluation/evaluation-methods/llm-judge.mdx", "docs/evaluation/evaluation-methods/code-evaluators.mdx", "docs/evaluation/evaluate-production.mdx"] },
+  ]},
+  { id: "part-4", title: "Part 4 Production and Quality Engineering", chapters: [
+    { file: "10-integrations.md", chapter: 10, title: "Connecting existing systems", sources: ["integrations/ragflow.md", "docs/integrations/openai.mdx", "docs/integrations/langchain.mdx", "docs/opentelemetry/overview.mdx", "docs/observability/sdk/migrate-custom-ingestion-to-v4.mdx"] },
+    { file: "11-org-admin.md", chapter: 11, title: "Multi-project and team administration", sources: ["docs/organisations/overview.mdx", "docs/rbac/overview.mdx", "docs/administration/auth.mdx"] },
+    { file: "12-regression.md", chapter: 12, title: "Prompt regression and quality gates", sources: ["docs/evaluation/experiments/experiments-ci-cd.mdx", "docs/evaluation/experiments/compare-experiments.mdx"] },
+    { file: "13-redteam.md", chapter: 13, title: "Red teaming and security evaluation", sources: ["Original (based on the OWASP LLM Top 10 and Langfuse evaluation capabilities)"] },
+  ]},
+];
+
 /**
  * 无源文档链接映射,返回空 Map(接口与 agentscope-java.book.buildLinkMap 对齐)。
  * @returns {Map<string, string>} 空 Map
@@ -64,4 +88,22 @@ function buildLinkMap() {
 }
 
 // 构建映射类字段收敛为 book 字段(与 agentscope-java.mjs / mcp.mjs / ragflow.mjs 同款,所有消费方从 book 出发)
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'Langfuse: LLM Observability and Evaluation',
+      subtitle: 'Tracing, evaluation, and prompt management, from self-hosting to quality engineering',
+      tagline: 'Tracing, evaluation, and prompt management for LLM apps, one handbook for testing, operations, and product ops',
+      sourceNote: 'Written from the Langfuse official docs (v4.76.0) and verified hands-on on a Docker self-hosted instance on a local machine. The main path was confirmed in testing and illustrated. Compatibility boundaries (such as the RAGFlow rc2 integration) are recorded as they stand',
+      sourceDescription: 'Langfuse official docs at langfuse.com/docs (v4.76.0) and the langfuse/langfuse repository',
+      licenseNote: 'The Langfuse core is published under the MIT license (some features are EE). This book is study notes, distributed under this repository\'s license.',
+      trademarkNote: 'Langfuse and related trademarks belong to the Langfuse project. This book is not affiliated with Langfuse.',
+      date: '2026-11-08',
+      chaptersDir: 'books/langfuse/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});

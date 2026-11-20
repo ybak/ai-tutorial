@@ -52,3 +52,5 @@ agentscope-java 的上游文档在只读仓库 `../agentscope-java/docs/v2/zh`�
 `build.mjs` 的 `EDGE_PATH` 硬编码本机 Edge 路径（`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`），换机器需按实际安装位置调整；打印走 CDP `Page.printToPDF`（`preferCSSPageSize` 跟随 A4），不用 `--print-to-pdf` CLI（纸张恒为 Letter 会截断页面盒）。
 
 FastGPT 的英文稿在 `books/fastgpt/en/chapters/`，站点路径是 `/en/fastgpt/`。截图仍用 `books/fastgpt/assets/`，章节写 `../assets/images/`。
+
+Langfuse 的英文稿在 `books/langfuse/en/chapters/`，站点路径是 `/en/langfuse/`。截图仍用 `books/langfuse/assets/`，章节写 `../assets/images/`。
