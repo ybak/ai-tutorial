@@ -55,6 +55,30 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: "part-1", title: "Part 1 Getting Started and Going Live", chapters: [
+    { file: "01-overview.md", chapter: 1, title: "Getting to know FastGPT", sources: ["guide/index.mdx", "guide/getting-started/index.mdx", "guide/getting-started/quick-start.mdx", "guide/version/opensource/intro.mdx", "guide/version/commercial.mdx", "guide/version/cloud/intro.mdx"] },
+    { file: "02-deploy-models.md", chapter: 2, title: "Deployment and model channels", sources: ["self-host/index.mdx", "self-host/deploy/docker.mdx", "self-host/config/env.mdx", "self-host/config/model/intro.mdx", "self-host/custom-models/ollama.mdx", "self-host/config/root-password.mdx"] },
+  ]},
+  { id: "part-2", title: "Part 2 Building the Knowledge Base", chapters: [
+    { file: "03-dataset-basics.md", chapter: 3, title: "Knowledge bases: from documents to knowledge", sources: ["guide/dataset/rag.mdx", "guide/dataset/faq.mdx"] },
+    { file: "04-retrieval-tuning.md", chapter: 4, title: "Retrieval plans and tuning", sources: ["guide/dataset/dataset_engine.mdx", "self-host/milvus-bm25.mdx", "guide/dataset/faq.mdx"] },
+    { file: "05-dataset-advanced.md", chapter: 5, title: "Knowledge bases, further: sync, tags, and permissions", sources: ["guide/dataset/websync.mdx", "guide/dataset/collection_tags.mdx", "guide/dataset/collection_permission.mdx", "guide/dataset/third-party/api_dataset.mdx", "guide/dataset/third-party/dingtalk_dataset.mdx", "guide/dataset/third-party/lark_dataset.mdx", "guide/dataset/third-party/yuque_dataset.mdx", "guide/dataset/third-party/third_dataset.mdx"] },
+  ]},
+  { id: "part-3", title: "Part 3 Building and Using Apps", chapters: [
+    { file: "06-apps-agents.md", chapter: 6, title: "Apps and conversational agents", sources: ["guide/build/general/ai_settings.mdx", "guide/build/general/welcomeText.mdx", "guide/build/general/chat_input_guide.mdx", "guide/build/general/fileInput.mdx", "guide/build/general/voiceInput.mdx", "guide/build/agentv2/settings.mdx", "guide/build/agentv2/debug.mdx", "guide/build/agentv2/vm.mdx"] },
+    { file: "07-workflow.md", chapter: 7, title: "Workflow orchestration", sources: ["guide/build/workflow/intro.mdx", "guide/build/workflow/rules.mdx", "guide/build/workflow/assisted-generation.mdx", "guide/build/workflow/nodes/ai_chat.mdx", "guide/build/workflow/nodes/dataset_search.mdx", "guide/build/workflow/nodes/question_classify.mdx", "guide/build/workflow/nodes/tfswitch.mdx", "guide/build/workflow/nodes/http.mdx", "guide/build/workflow/nodes/loop.mdx", "guide/build/workflow/nodes/form_input.mdx", "guide/build/workflow/nodes/reply.mdx", "guide/build/workflow/nodes/text_editor.mdx", "guide/build/workflow/nodes/variable_update.mdx"] },
+    { file: "08-tools-skills.md", chapter: 8, title: "Tools and skills", sources: ["guide/build/tools/mcp_tools.mdx", "guide/build/skill/intro.mdx", "guide/build/skill/initialization.mdx", "guide/build/skill/development.mdx", "guide/build/skill/integration.mdx", "guide/build/skill/version.mdx", "plugin/index.mdx", "plugin/intro.mdx", "plugin/team-installation.mdx", "plugin/system-tool-development.mdx"] },
+    { file: "09-publish-channels.md", chapter: 9, title: "Publishing apps and channels", sources: ["guide/build/publish/link.mdx", "guide/build/publish/dingtalk.mdx", "guide/build/publish/feishu.mdx", "guide/build/publish/wecom.mdx", "guide/build/publish/wechat.mdx", "guide/build/publish/official_account.mdx", "guide/build/publish/mcp_server.mdx"] },
+    { file: "10-openapi.md", chapter: 10, title: "External integration: OpenAPI", sources: ["openapi/intro.mdx", "openapi/app.mdx", "openapi/chat.mdx", "openapi/dataset.mdx", "guide/build/publish/openapi.mdx"] },
+  ]},
+  { id: "part-4", title: "Part 4 Production and Operations", chapters: [
+    { file: "11-operations.md", chapter: 11, title: "Production operations", sources: ["self-host/config/object-storage.mdx", "self-host/config/sandbox/opensandbox.mdx", "self-host/config/signoz.mdx", "self-host/config/remote-debug-suite.mdx", "self-host/migration/docker_db.mdx", "self-host/migration/docker_mongo.mdx", "self-host/troubleshooting/attention.mdx", "self-host/troubleshooting/faq.mdx", "self-host/troubleshooting/methods.mdx", "self-host/troubleshooting/model-errors.mdx", "self-host/upgrading/4-17/4173.mdx"] },
+    { file: "12-team-governance.md", chapter: 12, title: "Team collaboration and permission governance", sources: ["guide/workspace/team/team_roles_permissions.mdx", "guide/workspace/team/invitation_link.mdx", "guide/admin/sso.mdx", "guide/admin/teamMode.mdx"] },
+    { file: "13-chat-operations-eval.md", chapter: 13, title: "Conversation operations and evaluation", sources: ["guide/chat/quoteList.mdx", "guide/chat/html.mdx", "guide/chat/htmlRendering.mdx", "guide/build/evaluation.mdx", "guide/build/faq.mdx", "faq/chat.mdx"] },
+  ]},
+];
+
 /**
  * 无源文档链接映射,返回空 Map(接口与 agentscope-java.book.buildLinkMap 对齐)。
  * @returns {Map<string, string>} 空 Map
@@ -64,4 +88,22 @@ function buildLinkMap() {
 }
 
 // 构建映射类字段收敛为 book 字段(与 agentscope-java.mjs / mcp.mjs / ragflow.mjs 同款,所有消费方从 book 出发)
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'FastGPT: From First Steps to Production',
+      subtitle: 'Knowledge bases and workflows, from setup to production operations',
+      tagline: 'Hands-on knowledge-base Q&A and workflow orchestration, from setup to production operations',
+      sourceNote: 'Written from the FastGPT official repository docs (v4.17.3), with an operations angle. Key screens and the main path were verified hands-on and illustrated. Some advanced items remain open; see the review list in each chapter',
+      sourceDescription: 'The document/content/ directory of the official FastGPT repository labring/FastGPT (v4.17.3)',
+      licenseNote: 'FastGPT is published under the Apache-2.0 license with additional conditions. This book is study notes, distributed under this repository\'s license.',
+      trademarkNote: 'FastGPT and related trademarks belong to their owners. This book is not affiliated with the FastGPT project or labring.',
+      date: '2026-11-01',
+      chaptersDir: 'books/fastgpt/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});

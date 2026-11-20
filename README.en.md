@@ -9,7 +9,7 @@
 
 Hands-on, Chinese-first AI application tutorials. Every book is tested locally, covering MCP, RAG, RAGFlow, FastGPT, Langfuse, LiteLLM, CopilotKit, and AgentScope Java.
 
-The Chinese shelf is the source of record. This page is the English entry. Most books are Chinese only today. LiteLLM and RAGFlow have English editions.
+The Chinese shelf is the source of record. This page is the English entry. Most books are Chinese only today. LiteLLM, RAGFlow, and FastGPT have English editions.
 
 **[Chinese docs](https://ybak.github.io/ai-tutorial/)** · **[English docs](https://ybak.github.io/ai-tutorial/en/)** · [Chinese README](README.md)
 
@@ -27,7 +27,7 @@ The Chinese shelf is the source of record. This page is the English entry. Most 
 | MCP: A Cross-Framework Tool Protocol | Four parts, from the core protocol to platform-scale tool access | 12 | [mcp](https://ybak.github.io/ai-tutorial/mcp/) | Chinese only |
 | RAGFlow: From First Steps to Production | Four parts, from standing up a knowledge base to production retrieval tuning. The English edition keeps the commands, config, captured output, and the 30 local screenshots of the Chinese chapters | 13 | [/en/ragflow/](https://ybak.github.io/ai-tutorial/en/ragflow/) · [中文](https://ybak.github.io/ai-tutorial/ragflow/) | English edition available |
 | CopilotKit: Bringing an AI Agent into the Frontend | Four parts on a copilot inside a React app, from components to an autonomous agent, with a runnable demo and screenshots from local runs | 8 | [copilotkit](https://ybak.github.io/ai-tutorial/copilotkit/) | Chinese only |
-| FastGPT: From First Steps to Production | Four parts on knowledge bases and workflows, from setup to production operations | 13 | [fastgpt](https://ybak.github.io/ai-tutorial/fastgpt/) | Chinese only |
+| FastGPT: From First Steps to Production | Four parts on knowledge bases and workflows, from setup to production operations. The English edition keeps the commands, config, captured output, and the 15 local screenshots of the Chinese chapters | 13 | [/en/fastgpt/](https://ybak.github.io/ai-tutorial/en/fastgpt/) · [中文](https://ybak.github.io/ai-tutorial/fastgpt/) | English edition available |
 | Super-agent Design, Explored through Grok Bot | The four traits and five modules, with Grok Bot as the comparison for a continuous, efficient, proactive, persistent assistant | 3 | [super-agent](https://ybak.github.io/ai-tutorial/super-agent/) | Chinese only |
 | Langfuse: LLM Observability and Evaluation | Four parts on tracing, evaluation, and prompt management, from self-hosting to quality engineering, with screenshots from a local run | 13 | [langfuse](https://ybak.github.io/ai-tutorial/langfuse/) | Chinese only |
 | LiteLLM: Multi-Model Gateway, Quotas, and Fallback | Virtual keys, tenant quotas, and fallback. Puts AgentScope, Spring AI, and Langfuse behind one open-source gateway. Runs with docker compose (official image, Postgres 16, mock upstreams, no vendor keys) and includes 13 Admin UI screenshots | 10 | [/en/litellm/](https://ybak.github.io/ai-tutorial/en/litellm/) · [中文](https://ybak.github.io/ai-tutorial/litellm/) | English edition available |
@@ -52,7 +52,7 @@ The shelf is not one long course. Pick the book that matches the gap you are fil
 | Operations | **langfuse**: trace and cost (chapters 4–5), local deploy and troubleshooting (chapter 2), prompt versions and A/B (chapters 6 and 8). |
 | Knowledge-base and prompt operations | Chunk and update practice in **ragflow**. Conversation review in **fastgpt**. Prompt versions and A/B in **langfuse** chapters 6 and 8. |
 
-Cross-links inside a chapter point at another book on this shelf. Those targets are still Chinese, except LiteLLM and RAGFlow, which have both languages.
+Cross-links inside a chapter point at another book on this shelf. Those targets are still Chinese, except LiteLLM, RAGFlow, and FastGPT, which have both languages.
 
 A few topics are named in the Chinese README as not written yet: **ai-platform** (the gateway slice of auth, quotas, and model fallback is the LiteLLM book; isolation policy, billing product, and the merchant console are not), **spring-ai** (LiteLLM chapter 8 only points a Spring AI OpenAI client at the gateway), **dify**, and **vercel-ai-sdk**.
 
@@ -61,3 +61,7 @@ A few topics are named in the Chinese README as not written yet: **ai-platform**
 Site and PDF build instructions are in [build/README.md](build/README.md). Source, license, and use of each book are in [NOTICE.md](NOTICE.md). The shelf is for learning and technical sharing, not for commercial use.
 
 Author and community notes are in the [Chinese README](README.md).
+
+## FastGPT English edition
+
+FastGPT has an English edition at [/en/fastgpt/](https://ybak.github.io/ai-tutorial/en/fastgpt/). Read the thirteen chapters in order. The header switches between 中文 and English on the same chapter. Commands, config, captured output, and the 15 screenshots match the Chinese chapters. The English chapter files are `books/fastgpt/en/chapters/`. Names that stay fixed are in [books/fastgpt/en/README.md](books/fastgpt/en/README.md). Building the site also writes `output/site/en/fastgpt/`.

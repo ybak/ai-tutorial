@@ -321,7 +321,8 @@ test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => 
   assert.ok(html.includes('aria-current="page"'));
   assert.ok(html.includes(">English</span>"));
   assert.ok(html.includes('href="../index.html" hreflang="zh-CN"'));
-  assert.ok(!html.includes('href="fastgpt/'));
+  assert.ok(html.includes('href="fastgpt/index.html"'));
+  assert.ok(html.includes("FastGPT: From First Steps to Production"));
   assert.ok(!html.includes('href="mcp/'));
 });
 
@@ -639,23 +640,20 @@ test("英文下一本只链到已有英文页：LiteLLM 落到英文首页并注
   assert.ok(!translatedHtml.includes("currently includes LiteLLM"));
 });
 
-test("英文下一本：RAGFlow 的下一本没有英文版，只链到英文首页和中文书架", async () => {
+test("英文下一本：RAGFlow 的下一本 FastGPT 已有英文版，链到英文分册", async () => {
   const { book: ragflow } = await import("./books/ragflow.mjs");
   const en = localizedBook(ragflow, "en");
   const rec = resolveNextBook(en);
-  assert.equal(rec.kind, "en-home");
-  assert.equal(rec.bookId, null);
-  assert.equal(rec.href, "../../index.html");
-  assert.equal(rec.shelfHref, "../../../index.html");
-  assert.ok(rec.blurb.includes("LiteLLM"));
-  assert.ok(rec.blurb.includes("RAGFlow"));
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "fastgpt");
+  assert.equal(rec.href, "../../fastgpt/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "FastGPT: From First Steps to Production");
   const html = renderNextBookFooter(en);
   assert.ok(html.includes("Next book"));
-  assert.ok(html.includes('href="../../index.html"'));
-  assert.ok(html.includes('href="../../../index.html"'));
-  assert.ok(html.includes(">Chinese shelf</a>"));
-  assert.ok(!html.includes('href="../../fastgpt/'));
-  assert.ok(!html.includes("/en/fastgpt"));
+  assert.ok(html.includes('href="../../fastgpt/index.html"'));
+  assert.ok(!html.includes('href="../../../index.html"'));
+  assert.ok(!html.includes("/en/copilotkit"));
   assert.ok(!html.includes("下一本"));
   assert.ok(!HARD_SELL.test(html));
 
@@ -665,5 +663,102 @@ test("英文下一本：RAGFlow 的下一本没有英文版，只链到英文首
   assert.equal(fromMcp.href, "../../ragflow/index.html");
   assert.equal(fromMcp.title, "RAGFlow: From First Steps to Production");
   assert.equal(fromMcp.shelfHref, null);
+});
+
+test("fastgpt 中英文章节文件名一一对应,命令与配置一致,图和注释可译", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: fastgpt } = await import("./books/fastgpt.mjs");
+  const en = localizedBook(fastgpt, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "fastgpt");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/fastgpt/en/chapters");
+  assert.equal(en.assetsDir, fastgpt.assetsDir);
+  const zhFiles = fastgpt.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 13);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fencePairs = (text) => [...text.matchAll(/```([^\n]*)\n([\s\S]*?)```/g)].map((m) => [m[1].trim(), m[2]]);
+  const hashLangs = new Set(["bash", "dotenv", "yaml", "yml", "nginx"]);
+  const slashLangs = new Set(["js", "ts", "typescript", "jsonc"]);
+  const skipBody = new Set(["mermaid", "text"]);
+  const stripComments = (body, lang) => body.split("\n").flatMap((line) => {
+    if (hashLangs.has(lang) && /^\s*#/.test(line)) return [];
+    if (slashLangs.has(lang) && /^\s*\/\//.test(line)) return [];
+    if (hashLangs.has(lang)) return [line.replace(/\s+#.*$/, "")];
+    if (slashLangs.has(lang)) return [line.replace(/\s+\/\/.*$/, "")];
+    return [line];
+  }).join("\n");
+
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, fastgpt.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    const zhFences = fencePairs(zh);
+    const enFences = fencePairs(enText);
+    assert.deepEqual(enFences.map(([lang]) => lang), zhFences.map(([lang]) => lang), `${file} fence tags`);
+    assert.equal(enFences.length, zhFences.length, `${file} fence count`);
+    for (let i = 0; i < zhFences.length; i++) {
+      const [lang, zhBody] = zhFences[i];
+      const [, enBody] = enFences[i];
+      if (skipBody.has(lang)) continue;
+      assert.equal(stripComments(enBody, lang), stripComments(zhBody, lang), `${file} fence ${i} (${lang || "unlabeled"})`);
+    }
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+  }
+});
+
+test("fastgpt 英文章节引用的实拍图与中文相同,且都能解析到中文 assets", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (dir) => {
+    const byFile = {};
+    const all = new Set();
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md")).sort()) {
+      const text = fs.readFileSync(path.join(dir, file), "utf8");
+      const refs = [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+      assert.equal(text.includes("../../assets/"), false, `${file} must not use ../../assets/`);
+      assert.equal(text.includes("/en/assets/"), false, `${file} must not point at /en/assets/`);
+      byFile[file] = refs;
+      for (const ref of refs) all.add(ref);
+    }
+    return { byFile, all };
+  };
+  const zh = imageRefs(path.join(root, "books/fastgpt/chapters"));
+  const en = imageRefs(path.join(root, "books/fastgpt/en/chapters"));
+  assert.deepEqual([...en.all].sort(), [...zh.all].sort());
+  assert.equal(en.all.size, 15);
+  for (const file of Object.keys(zh.byFile)) {
+    assert.deepEqual(en.byFile[file], zh.byFile[file], `${file} image order`);
+  }
+  for (const ref of en.all) {
+    const abs = path.join(root, "books/fastgpt", ref.replace(/^\.\.\//, ""));
+    assert.equal(fs.existsSync(abs), true, `${ref} resolves under books/fastgpt/assets`);
+  }
+});
+
+test("英文下一本：FastGPT 的下一本没有英文版，只链到英文首页和中文书架", async () => {
+  const { book: fastgpt } = await import("./books/fastgpt.mjs");
+  const en = localizedBook(fastgpt, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "en-home");
+  assert.equal(rec.bookId, null);
+  assert.equal(rec.href, "../../index.html");
+  assert.equal(rec.shelfHref, "../../../index.html");
+  assert.ok(rec.blurb.includes("LiteLLM"));
+  assert.ok(rec.blurb.includes("RAGFlow"));
+  assert.ok(rec.blurb.includes("FastGPT"));
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes('href="../../index.html"'));
+  assert.ok(html.includes('href="../../../index.html"'));
+  assert.ok(html.includes(">Chinese shelf</a>"));
+  assert.ok(!html.includes('href="../../copilotkit/'));
+  assert.ok(!html.includes("/en/copilotkit"));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!HARD_SELL.test(html));
 });
 
