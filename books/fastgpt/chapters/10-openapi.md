@@ -143,11 +143,11 @@ curl --location --request POST 'http://localhost:3000/api/v1/chat/completions' \
   }'
 ```
 
-响应里 `choices[0].message.content` 是给用户的最终回答，`usage` 给出 prompt_tokens、completion_tokens、total_tokens 三项计数。
+响应里 `choices[0].message.content` 是给用户的最终回答。`usage` 带上 prompt_tokens、completion_tokens、total_tokens 三项，是兼容字段，不代表实际消耗；后文已写明响应不返回实际消耗的 Token，需要时用 detail=true，从 responseData 里累加各节点 tokens。
 
 ### 流式事件：event 全集
 
-stream=true 时返回服务器发送事件（Server-Sent Events，SSE）格式文本流，每条事件由 event 行与 data 行组成，`[DONE]` 标记收尾；detail=true 时事件类型（event）把进度、正文与明细拆开。event 全集以素材为准：
+stream=true 时返回服务器发送事件（Server-Sent Events，SSE）格式文本流，每条事件由 event 行与 data 行组成。`[DONE]` 结束正文，解析器不要在这里退出：后文记录 flowResponses 在 `[DONE]` 之后才到，以连接关闭为准。detail=true 时事件类型（event）把进度、正文与明细拆开。event 全集以素材为准：
 
 | event | 含义 |
 |-------|------|

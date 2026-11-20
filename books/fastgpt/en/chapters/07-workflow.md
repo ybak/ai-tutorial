@@ -158,9 +158,9 @@ Official nodes are numerous; this book’s approach: go deep on six backbone nod
 | Knowledge retrieval | Knowledge base search | Core module; may link multiple knowledge bases | 7.4 |
 | Classification & branch | Question classification, IF/ELSE | function_call module; IF/ELSE logic | 7.4 · 7.5 |
 | Reply output | Designated reply | Outputs results to the client | 7.4 |
-| System interaction | HTTP request, batch run, form input, variable update | Core-of-core; added V4.8.11; user interaction | 7.5 |
+| System interaction | HTTP request, batch run, form input, variable update | HTTP request: core-of-core; batch run: added in V4.8.11; form input: user interaction; variable update: update a node output or a global variable | 7.5 |
 | Text processing | Text concat | Fixed processing on input text | 7.5 |
-| Tools & containers | Tool call (and tool-call stop), loop, parallel run, user choice | This material only covers boundaries and wiring | 7.2 · Chapter 8 |
+| Tools & containers | Tool call (and tool-call stop), loop, parallel run, user choice | This material only covers boundaries and wiring | Tool call: 7.2 · Chapter 8; loop, parallel run, user choice: 7.2 (Chapter 8 does not cover these three) |
 
 Also, official batch-run examples mention code run and search thesaurus nodes (cited as examples only; no dedicated pages pulled this round—not expanded).
 
@@ -409,7 +409,7 @@ By now you should be able to:
 
 ### Review checklist (before publish)
 
-None of the following verified hands-on; verify before publish:
+Not all of the following are verified hands-on—the same list already records that the template canvas was built. Verify the rest before publish:
 
 - [ ] All UI items vs. official v4.17.3 (guide/build/workflow), verified as of 2026-11-01;
 - [ ] After-sales Support workflow full-path: create app (2026-11-03 template “question classification + knowledge base” done, Section 7.7 figure), seven node types, edit-page test chat four inputs;

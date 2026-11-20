@@ -141,11 +141,11 @@ curl --location --request POST 'http://localhost:3000/api/v1/chat/completions' \
   }'
 ```
 
-`choices[0].message.content` is user-facing answer; `usage` has prompt_tokens, completion_tokens, total_tokens.
+`choices[0].message.content` is the user-facing answer. `usage` carries prompt_tokens, completion_tokens, and total_tokens as a compatibility field; it does not stand for actual consumption. Later text already states the response does not return actual token usage—set detail=true and sum node tokens from `responseData`.
 
 ### Streaming events: full event set
 
-With stream=true, Server-Sent Events (SSE) text stream; each event has `event` and `data` lines; `[DONE]` ends; with detail=true, `event` separates progress, body, detail. Full set per source:
+With stream=true, Server-Sent Events (SSE) text stream; each event has `event` and `data` lines. `[DONE]` ends the answer body; the parser must not exit there, because the later record has flowResponses arriving after `[DONE]`—close on the connection end. With detail=true, `event` separates progress, body, and detail. Full set per source:
 
 | event | Meaning |
 |-------|------|

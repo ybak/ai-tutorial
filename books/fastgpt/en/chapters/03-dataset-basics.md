@@ -80,13 +80,13 @@ Data must be embedded before semantic search. The **index model** embeds text; q
 
 ### Create entry and general config
 
-Official quick path: left sidebar knowledge base → New, name, create; inside library New → text dataset for local documents. For the case study, defaults except name—`after-sales-kb` built this way; wire the pipeline first, tune later.
+Official quick path: left sidebar knowledge base → New, name, create; inside library New → text dataset for local documents. Required fields must be selected: the name, plus the index model and the text-understanding model (embedding-3 and glm-5.3-flash in the figure below). Defaults apply only to optional slots—image understanding stays unset. `after-sales-kb` was built this way; wire the pipeline first, tune later.
 
 Create dialog as confirmed in testing—screenshot from local FastGPT community v4.17.3 (2026-11-03, glm-5.3-flash + embedding-3):
 
 ![Taken on a local deployment: "Create general knowledge base" dialog—name after-sales-kb, index model and text understanding model required, embedding-3 and glm-5.3-flash selected, image understanding unset](../assets/images/shot-dataset-create.png)
 
-Three model slots: index and text understanding required—Section 3.2's two model types; image understanding default unset—after-sales domain is text-only. "Index model before create" becomes UI action.
+Three model slots: index model and text-understanding model carry required marks and must be selected—Section 3.2's two model types; image understanding is optional and stays unset—after-sales domain is text-only. "Index model before create" becomes UI action.
 
 ### Two model types: index model and file-processing model
 
@@ -206,7 +206,7 @@ In testing UI:
 
 ![Taken on a local deployment: product-faq.xlsx collection—header "1 data row, 2 indexes" with ready tag; body is Markdown table with Title, Content, Category, Year; indexed badge; metadata chunk size 1000, index size 512](../assets/images/shot-dataset-chunks.png)
 
-Product FAQ sample is one data block as Markdown table—preview three checks for table readability; "1 data row, 2 indexes" is multi-vector count.
+Product FAQ sample is one data block as Markdown table—preview three checks for table readability; "1 data row, 2 indexes" is multi-vector count. This is the file-upload measurement: the whole table is one data row (Title, Content, Category, Year), not the row-by-row `q`/`a` template import in Section 3.5. That template route is described below and is not separately verified (review list).
 
 "Lean index for precision" vs "rich index for recall" is retrieval tuning—Chapter 4.
 
@@ -219,7 +219,7 @@ Three documents, three collections—Section 3.1: collections for management, no
 | Collection | Content | Why separate |
 |------|------|-----------------|
 | After-sales policy manual | Full `after-sales-policy.pdf` chunks | Quarterly revision = full re-import; clear boundary |
-| Product FAQ | All `product-faq.xlsx` Q&A pairs | Weekly updates visible in one collection |
+| Product FAQ | File upload, measured: `product-faq.xlsx` as one data row for the whole table (Section 3.4). Row-by-row template import (`q`/`a` mapping) is below and not separately verified | Weekly updates visible in one collection |
 | Shipping time notices | Per-notice rows | Time-sensitive; smallest grain to retire expired |
 
 ### Per-type ingest
@@ -237,7 +237,7 @@ Three documents, three collections—Section 3.1: collections for management, no
 
 Only one `metadata` column—merge Category and Year into one JSON object. Each FAQ carries category and year for Chapter 4 filters and Chapter 5 tags. ~200 rows: test 10 rows first per official advice.
 
-**Shipping time notices—local upload.** One notice one data row, one collection per notice type; short text, default chunks. Time-sensitive: pair every import with retiring old data or support sees conflicting timelines. `shipping-notice.eml` direct upload undocumented—convert to PDF or TXT if unsupported (review list).
+**Shipping time notices—local upload.** One notice one data row, one collection per notice type; short text, default chunks. Time-sensitive: pair every import with retiring old data or support sees conflicting timelines. The path that was walked through is a local upload of `shipping-notice.html` (verified 2026-11-03: import, chunk, training complete; Section 3.4 and the review list). Whether `shipping-notice.eml` can be uploaded directly is still unverified and stays on the review list; do not treat "convert to PDF or TXT" as a path already taken.
 
 ### Update rhythm and sync routes
 

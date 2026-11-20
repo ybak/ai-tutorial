@@ -6,14 +6,14 @@ source: guide/build/tools/mcp_tools
 
 # Chapter 8 Tools and skills
 
-> Chapter guide: Chapter 7 put ticket lookup on the workflow canvas as an HTTP node—it works, but that config belongs to one canvas only; a second app that needs tickets must configure again. This chapter solves capability reuse: a three-way tool taxonomy and selection stance; MCP tool set URL onboarding; Skill’s four lifecycle stages; the plugin system and team install. Hands-on: wrap the ticket API as a reusable tool and swap it into Chapter 7’s workflow. After this chapter you can: pick a tool shape for an external call; complete MCP onboarding and plugin packaging; develop and publish a Skill; explain what happens to existing workflows when a plugin is deleted.
+> Chapter guide: Chapter 7 writes ticket lookup on the workflow canvas as an HTTP node—that is a designed connection, and the full chain is unverified (Chapter 7 review list). Even on that canvas, the config belongs to one canvas only; a second app that needs tickets must configure again. This chapter solves capability reuse: a three-way tool taxonomy and selection stance; MCP tool set URL onboarding; Skill’s four lifecycle stages; the plugin system and team install. The hands-on section writes the ticket API as a reusable-tool design for Chapter 7’s workflow to swap in; that packaging is also unverified. After this chapter you can: pick a tool shape for an external call; complete MCP onboarding and plugin packaging; develop and publish a Skill; explain what happens to existing workflows when a plugin is deleted.
 
 ```mermaid
 flowchart LR
     A["Inventory gaps (8.1)<br/>Simple version cannot answer<br/>where is my ticket"] --> B{"Pick route by upstream (8.1)"}
     B -->|"Upstream has MCP Server"| C["Build MCP tool set (8.2)<br/>Paste URL, parse tools<br/>Read-only first, then model"]
     B -->|"Upstream is REST only"| D["Plugin packaging (8.4 · 8.5)<br/>SDK schema & secrets<br/>CLI debug, pack .pkg"]
-    B -->|"One-off in one workflow"| E["HTTP node direct<br/>Chapter 7 done"]
+    B -->|"One-off in one workflow"| E["HTTP node direct<br/>Chapter 7 design, unverified"]
     C --> F["Model call verify (8.2)<br/>Single tool or whole set<br/>Check run details"]
     D --> G["Team install & swap (8.4 · 8.5)<br/>.pkg in team list<br/>HTTP → tool on canvas"]
     F --> H["Optional Skill (8.3)<br/>Init → dev/debug<br/>Publish → bind Agent"]
@@ -32,7 +32,7 @@ Three typical situations map to three ways of using this chapter.
 
 **The Agent must be re-taught every time**—fixed accounting steps, fixed report templates—prompts cannot hold it all. Section 8.3 Skill: develop once, versioned publish, bind and use.
 
-Prerequisites: Chapter 7 workflow with HTTP ticket API; plugin dev needs Node.js and pnpm; Skill needs sandbox ready (Chapter 2 deploy and Chapter 6 Section 6.5 VM; production Chapter 11).
+Prerequisites: Chapter 7 already writes the HTTP ticket-lookup connection as a design (full chain unverified); plugin dev needs Node.js and pnpm; Skill needs sandbox ready (Chapter 2 deploy and Chapter 6 Section 6.5 VM; production Chapter 11).
 
 ## 8.1 Overview: three-way tool taxonomy
 
@@ -123,7 +123,7 @@ FastGPT gives Skills a dedicated code space; four designs:
 |------|------|
 | Isolated sandbox | Each Skill edits in isolated sandbox (Sealos Devbox, OpenSandbox, etc.) |
 | Live debug | File tree, editor, terminal; Agent debug panel left; hot reload |
-| Prod vs. debug isolation | Edits only in debug zone; “Publish” applies to production Agent/workflow |
+| Prod vs. debug isolation | Edits only in debug zone; “Publish” applies to production Agents. Only Agents can bind a Skill, so publish does not attach the Skill to a workflow |
 | Auto sleep & wake | Idle Skills cleaned and cold-archived; edit or call wakes backend; no billing while asleep |
 
 Four lifecycle stages pipeline:
@@ -164,7 +164,7 @@ Left Agent debug panel: **live effect**—save, next message runs latest; **conv
 
 ### Version and publish: outside debug is versioned
 
-Why publish: editor changes debug only; workflow/Agent needs “Publish” for deployment—prod isolation. Three steps: Publish top-right; version name (default time, e.g. `v1.0.0`); confirm freezes release.
+Why publish: editor changes stay in the debug zone; to use the Skill on an Agent you must click “Publish” for a deployment version—debug and production stay isolated, so edits do not touch Agents already running. Only Agent apps can bind a Skill (next section); a published Skill is not for workflows. Three steps: Publish top-right; version name (default time, e.g. `v1.0.0`); confirm freezes release.
 
 `.gitignore`: auto on publish (create default `node_modules`, `.venv`, `dist`, etc.); only non-ignored packed—**oversize pack may fail**. Rollback: Version history clock icon, hover “Switch,” workspace and prod **together**; ignored files not restored (reinstall deps).
 
@@ -276,7 +276,7 @@ Global `POOL_*` env vars (Pod total, queue, idle recycle, startup backoff—full
 
 ### Need and packaging motive
 
-Chapter 7 HTTP on canvas to mid-platform `GET /api/after-sale/tickets` with `phone`. Worked until a second consumer: Agent assistant and Chapter 9 published apps. HTTP is per canvas—timeout and errors per canvas. Plugin tool: one implementation per team—change once, everywhere; secret hosting; workflow and Agent share.
+Chapter 7 HTTP on canvas to mid-platform `GET /api/after-sale/tickets` with `phone`. That is a designed connection, and the full chain is unverified: Chapter 7 records that the form-input and HTTP ticket branch were not added and debug did not finish. There is no pass record. A second consumer still appears in the design: an Agent assistant, and apps published in Chapter 9, would also look up tickets. HTTP is per canvas—timeout and errors per canvas. Plugin tool: one implementation per team—change once, everywhere; secret hosting; workflow and Agent share. This packaging is still a design; the Section 8.5 chain is unverified.
 
 ### Before coding
 
@@ -413,7 +413,7 @@ Chapter 7 canvas: add “售后工单查询” / After-sale ticket query in tool
 2. **MCP set four steps**: get URL, create, parse, create; Bearer vs custom header, no double prefix; read-only before prod, mind write permissions.
 3. **Skill is doc + code in sandbox**: `entrypoint.sh` (dedup, 30s, non-blocking), Web IDE live debug, publish/rollback (`.gitignore`), Agent-only bind (VM forced).
 4. **Plugins as assets**: system/team tiers, three states, `local-pool` Pods; delete does not rewrite nodes—next run fails—top pitfall.
-5. **Ticket query closure**: Ch. 7 HTTP → team plugin, one change everywhere.
+5. **Ticket-query packaging is the Section 8.5 design**: from Chapter 7’s designed HTTP connection to a reusable plugin. Chapter 7’s full chain is unverified, and so is the Section 8.5 chain (review list).
 
 Next: tools and Skills ready—the app ships. Chapter 9: "售后客服" ("After-sales Support") share link and DingTalk, plus publish as MCP Server—the other half of bidirectional tools (→ MCP book Ch. 8).
 
@@ -431,12 +431,15 @@ By now you should be able to:
 
 ### Review checklist (before publish)
 
-None verified hands-on unless noted; verify before publish:
+Already checked, and kept out of the unverified list:
+
+- [x] Terminology aligned 2026-11-02 Ch. 1 README—Skill = versioned doc+code, sandbox, publish;
+
+The following items are not yet verified hands-on; verify before publish:
 
 - [ ] UI vs official v4.17.3 (tools, skill, plugin), verified 2026-11-01;
 - [ ] MCP set: create, parse, debug, single vs set model calls; Bearer vs custom header double-prefix errors;
 - [ ] Skill: new (template vs AI points), `entrypoint.sh`, publish/rollback, bind boundary (Agent only);
-- [x] Terminology aligned 2026-11-02 Ch. 1 README—Skill = versioned doc+code, sandbox, publish;
 - [ ] Plugin three states UI; team no sunsetting;
 - [ ] Section 8.5 full chain; mid-platform auth/response real contract;
 - [ ] Tool node on canvas wiring (source: picker only);

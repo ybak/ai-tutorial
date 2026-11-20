@@ -358,7 +358,7 @@ Also: help center static sites → web sync (commercial); cross-dept/version iss
 5. **Decision table**: frequency then shape; policy manual manual+review; FAQ scheduled; notices paired manual.
 6. **After sync, govern**: tags scope, permissions identity; process Chapter 13; workflow tags Chapter 7.
 
-Next: Chapter 6 app four forms; simple "售后客服" ("After-sales Support") with KB, prompt, opening, three input tests.
+Next: Chapter 6 app four forms; simple "售后客服" ("After-sales Support") with the knowledge base link and the opening on the app config page. Chapter 6 records that v4.17.3 docs have no "限定词" field, so constraints go in the prompt rules.
 
 ## Acceptance checklist
 
@@ -374,7 +374,7 @@ You should be able to:
 
 ### Review list (before publish)
 
-- [ ] UI vs v4.17.3 five source paths, verified 2026-11-01;
+- [ ] UI vs v4.17.3 four source paths (websync, collection_tags, collection_permission, third-party), verified 2026-11-01;
 - [ ] Web sync trigger/frequency UI;
 - [ ] API KB community availability;
 - [ ] DingTalk commercial and sync button;

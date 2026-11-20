@@ -110,7 +110,7 @@ Role, format, rules—triple from Chapter 1, first full landing here:
 
 The English gloss: you are cross-border e-commerce after-sales support grounded on the KB; lead with conclusion then evidence citing policy, FAQ, or logistics notice; numbered steps when needed; answer only from retrieval, no invented policy or deadlines; compensation and return windows need line-by-line citations or admit gap and suggest ticket; logistics use latest notice time; refuse off-topic politely.
 
-Three rules sourced: first two mirror official civil-code "answer from materials, admit gaps"; third matches Chapter 3 notice rhythm; fourth is scope guard. Treat prompt like code—review before ship.
+Four rules sourced: first two mirror official civil-code "answer from materials, admit gaps"; third matches Chapter 3 notice rhythm; fourth is scope guard. Treat prompt like code—review before ship.
 
 ### Opening: welcome and quick questions
 
@@ -152,7 +152,7 @@ In-corpus example in debug—return window question with two citations:
 
 - No KB → model memory, private facts wrong—link `after-sales-kb` first (Chapter 1 Section 1.5 repeat);
 - KB not "ready" → empty retrieval (Chapter 3);
-- Too many conflicting rules destabilize model—keep hard constraints to about three.
+- Too many conflicting rules destabilize the model—keep hard constraints within four, matching the four rules in the example fence above; keep the fourth scope guard.
 
 **Simple version is Chapter 7 baseline: answers "what policy says", not "where is my ticket"—ticket needs tools and workflow; workflow must not regress on three tests and adds ticket lookup.**
 
