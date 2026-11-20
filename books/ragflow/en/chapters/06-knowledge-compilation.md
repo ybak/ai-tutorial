@@ -165,6 +165,7 @@ The final shape of a Tree template is controlled by four parameters, and it is t
 
 | Parameter | What it does | Turn it up | Turn it down |
 |------|------|------|------|
+| Summarization Prompt (including Claim Extraction Prompt) | The prompt that extracts atomic claims from the leaf chunks before clustering; leave it empty to use the built-in rules, and customize it only when there is a domain-specific need (see below) | — | — |
 | Maximum Tokens | The maximum length of a node summary | Keeps more summary information; fits a complex document | The summary is tighter; fits a quick look at the whole |
 | Clustering Threshold | The match degree of content clustering | The division is stricter, and topic nodes are finer | More related content is merged, and the structure is more concentrated |
 | Clustering Ratio | The clustering ratio in the Tree structure | The levels are richer | Fewer nodes, and the whole is simpler |
@@ -342,7 +343,7 @@ By the time you have read this far, you should be able to:
 
 ## Further reading
 
-- **Chapter 4 (parsing and chunking)**. The raw-material side of compilation: an incomplete parse is the first suspect of poor artifact quality (the first step of the handling order in the official FAQ is to go back and check the parse).
+- **Chapter 4 (parsing and chunking)**. The raw-material side of compilation: an incomplete parse is the prime suspect for poor artifact quality (the first step of the handling order in the official FAQ is to go back and check the parse).
 - **Chapter 7 (retrieval testing and tuning)**. The final judge of an artifact: whether a navigation path improves location is verified with a retrieval test, not by eye.
 - **Chapter 10 (agents and workflows)**. The entry for creating a compilation template is on the Agent page. How artifacts and Skills enter the support Agent's orchestration meets in the support-Agent instance.
 - **Chapter 13 (team collaboration and knowledge-base operations)**. Where the update cycle at the end of this chapter is written into an SOP and the inspection beat is settled.

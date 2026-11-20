@@ -162,7 +162,7 @@ curl --request POST \
      --data '{"document_ids": ["<document_id>"]}'
 ```
 
-Step four, retrieval testing. Turn the parameters tuned in Chapter 7 into an API call (threshold `0.2`, keyword weight `0.7`, no rerank):
+Step four, retrieval testing. Turn the parameters tuned in Chapter 7 into an API call (threshold `0.2`, vector similarity weight `0.5`, no rerank). The matching field in the HTTP reference is `keywords_similarity_weight` (the vector weight is `1 - this value`, so the field is `0.5`):
 
 ```bash
 curl --request POST \
@@ -171,7 +171,8 @@ curl --request POST \
      --header 'Authorization: Bearer <YOUR_API_KEY>' \
      --data '{"question": "退货的钱什么时候到",
               "dataset_ids": ["<dataset_id>"],
-              "similarity_threshold": 0.2}'
+              "similarity_threshold": 0.2,
+              "keywords_similarity_weight": 0.5}'
 ```
 
 The sample question is kept in Chinese: "退货的钱什么时候到" ("When does the refund arrive?").

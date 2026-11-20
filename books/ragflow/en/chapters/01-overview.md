@@ -187,7 +187,7 @@ The book has 13 chapters. By this book's division they fall into 4 parts:
 | | 2 Deployment and model channels | Docker deployment, the configuration system, connecting models, verifying the first chain |
 | Building the knowledge base | 3 Datasets: the carrier of a knowledge base | Creation and permissions, file management, data source access and sync, metadata |
 | | 4 Parsing and chunking: from documents to Chunk | Choosing a built-in parsing method, Chunker parameters, table column roles |
-| | 5 Retrieval enrichment and indexing | The Extractor set of four, indexing strategy, child chunks |
+| | 5 Retrieval enrichment and indexing | The Extractor set of four, indexing strategy (sub-chunks are in Section 4.4.1) |
 | | 6 Knowledge compilation and knowledge artifacts | Generating a Wiki, navigation, and a graph; templates and dedicated configuration |
 | Applications | 7 Retrieval testing and tuning | Retrieval Testing, hybrid retrieval weights, a way to locate retrieval quality |
 | | 8 Chat assistants and sessions | Configuration, Agentic mode, the prompt and parameters, session management |

@@ -162,7 +162,7 @@ curl --request POST \
      --data '{"document_ids": ["<document_id>"]}'
 ```
 
-第四步，检索测试（Retrieval Testing）——把第 7 章调好的参数落成 API 调用（阈值 `0.2`、关键词权重 `0.7`、无 rerank）:
+第四步，检索测试（Retrieval Testing）——把第 7 章调好的参数落成 API 调用（阈值 `0.2`、向量相似度权重 `0.5`、无 rerank）。HTTP 参考里对应字段是 `keywords_similarity_weight`（向量权重为 `1 - 该值`，故取 `0.5`）:
 
 ```bash
 curl --request POST \
@@ -171,7 +171,8 @@ curl --request POST \
      --header 'Authorization: Bearer <YOUR_API_KEY>' \
      --data '{"question": "退货的钱什么时候到",
               "dataset_ids": ["<dataset_id>"],
-              "similarity_threshold": 0.2}'
+              "similarity_threshold": 0.2,
+              "keywords_similarity_weight": 0.5}'
 ```
 
 成功响应的 `data.chunks` 数组里，每个切片带 `content`、`similarity`、`term_similarity`、`vector_similarity`、`document_id` 等字段，`data.doc_aggs` 给出按文档聚合的命中计数——与第 7 章检索测试页看到的是同一套数据。

@@ -80,7 +80,7 @@ The dialog confirmed in testing for "create first" is below. This screenshot is 
 
 ![Confirmed in testing: Create dataset dialog: Name is filled with after-sales-kb, Embedding model is prefilled with text-embedding-v4 (demo-gateway), the parsing-method dropdown shows General with a Built in badge, and there is a Save button at the lower right](../assets/images/demo/ragflow-03-create-dataset.png)
 
-The three required items arrive together in the dialog: Name is required (after-sales-kb), Embedding model is required, and the parsing-method dropdown. The Built in badge beside General is what the Built-in type looks like on the screen. The Embedding model field is already prefilled with text-embedding-v4 (demo-gateway). The prefilled value comes from the tenant's default embedding, set in Chapter 2. BAAI/bge-m3 in the decision of the table above is this book's case setting. The hands-on screen uses text-embedding-v4 on the gateway side. Whichever you choose, the nature of "locked at creation" does not change.
+The three required items arrive together in the dialog: Name is required (after-sales-kb), Embedding model is required, and the parsing-method dropdown. The Built in badge beside General is what the Built-in type looks like on the screen. The Embedding model field is already prefilled with text-embedding-v4 (demo-gateway). The prefilled value comes from the tenant's default embedding, set in Chapter 2. BAAI/bge-m3 in the decision of the table below (the Section 3.2 decision table) is this book's case setting. The hands-on screen uses text-embedding-v4 on the gateway side. Whichever you choose, the nature of "locked at creation" does not change.
 
 ### The basic-information set of five
 

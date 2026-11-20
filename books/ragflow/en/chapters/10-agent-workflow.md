@@ -250,9 +250,9 @@ Entry: **Agent > Create agent > Create from blank**, and choose the type **Inges
 
 **Begin → Parser → Token Chunker → Transformer → Indexer**
 
-Transformer is optional. After Transformer you can also choose Compiler and take the knowledge-compilation path (one Compiler per canvas; the template group is prepared through **Compilation operator**; see Chapter 6).
+Title Chunker and Token Chunker are alternatives. Use Title Chunker when you chunk by heading structure, so the typical flow above does not draw it. Transformer is optional. After Transformer you can also choose Compiler and take the knowledge-compilation path (one Compiler per canvas; the template group is prepared through **Compilation operator**; see Chapter 6).
 
-### Five core components
+### Six core components
 
 | Component | Duty | The matching built-in concept in Chapters 4-6 |
 |------|------|------------------------|

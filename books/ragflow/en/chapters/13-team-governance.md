@@ -6,7 +6,7 @@ source: docs/guides/team/permission_system_overview/index.md
 
 # Chapter 13 Team collaboration and knowledge-base operations
 
-> Chapter guide: after-sales-kb is live. The platform is already steady (Chapter 12), and support is using the "After-sales Assistant" (Chapter 8) and the canvas support Agent (Chapter 10). Then the October revision arrives: the policy manual is replaced, the new clauses take effect only for some sites, and a few days later support is still citing the old clauses. That is knowledge rot: go-live is only the start, and a knowledge base with nobody governing it quietly goes bad. Old clauses are not withdrawn, chunks expire, nobody dares to touch it, and nobody is responsible. This chapter closes the book. It covers three operations jobs: permission and sharing governance, who can do what to what (13.2-13.4); the document update flow, making the new version reliably take effect (Section 13.5); and quality inspection, so decay is found in time (13.6-13.7). At the end, one full-flow drill of the October revision wraps up our running example, and the whole book's 12-chapter route is reviewed in one sentence each. By the end of this chapter, you can: configure permissions and sharing for a team, walk through one end-to-end update loop for a revision, inspect on a daily/weekly/monthly cadence, and take away a one-page operations SOP you can put into practice.
+> Chapter guide: after-sales-kb is live. The platform is already steady (Chapter 12), and support is using the "After-sales Assistant" (Chapter 8) and the canvas support Agent (Chapter 10). Then the October revision arrives: the policy manual is replaced, the new clauses take effect only for some sites, and a few days later support is still citing the old clauses. That is knowledge rot: go-live is only the start, and a knowledge base with nobody governing it quietly goes bad. Old clauses are not withdrawn, chunks expire, nobody dares to touch it, and nobody is responsible. This chapter closes the book. It covers three operations jobs: permission and sharing governance, who can do what to what (13.2-13.4); the document update flow, making the new version reliably take effect (Section 13.5); and quality inspection, so decay is found in time (13.6-13.7). At the end, one full-flow drill of the October revision wraps up our running example, and the whole book's 13-chapter route is reviewed in one sentence each. By the end of this chapter, you can: configure permissions and sharing for a team, walk through one end-to-end update loop for a revision, inspect on a daily/weekly/monthly cadence, and take away a one-page operations SOP you can put into practice.
 
 ```mermaid
 flowchart LR
@@ -137,7 +137,7 @@ The most important sentence of official original is placed here on its own: **a 
 
 ### Where the three resource types are shared
 
-Resources that support team sharing -- knowledge bases, Agents, chat assistants, search apps, and Memory -- each have their own configuration entry, and the landing point differs:
+The table in this section is the sharing entry for three resource types: knowledge bases, Agents, and Memory. Chat assistants and search apps also support team sharing. This chapter has no table rows for their entries; that is still to be added.
 
 | Resource | Sharing entry | Default | What team members can do after it is shared |
 |------|---------|--------|----------------------|
@@ -403,7 +403,7 @@ Finally, collect the whole road our running example walked: deploy, then build, 
 | 2 Deployment and model channels | Docker starts the service, the model channel is opened, and the first chain is verified | The engine runs for the first time |
 | 3 Datasets | The five decisions of creating a base, and connecting and syncing data sources | after-sales-kb is built, and permissions are set to Team |
 | 4 Parsing and chunking | Choosing a chunking method, column roles, and the meaning of re-parsing | Each of the three kinds of documents gets its own parsing plan |
-| 5 Retrieval enrichment and indexing | Extractor enrichment, index strategy, and sub-chunks | Question forms of the "charging case" kind are filled in |
+| 5 Retrieval enrichment and indexing | Extractor enrichment, index strategy (sub-chunks are in Section 4.4.1) | Question forms of the "charging case" kind are filled in |
 | 6 Knowledge compilation and knowledge artifacts | Chunks govern points, artifacts govern the surface; an update-prompt system | A PageIndex navigation artifact for the manual, the table of contents first and then drill down |
 | 7 Retrieval testing and tuning | The three-way location method, and the test set is an evaluation asset | A 32-item test set, and the parameters are settled and persisted |
 | 8 Chat assistants and sessions | Where the retrieval configuration is persisted, and Agentic mode | The "After-sales Assistant" goes live |

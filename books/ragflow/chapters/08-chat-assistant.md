@@ -277,7 +277,7 @@ API 侧对应 `quote` 参数,默认 `true`(docs/references/http_api_reference.md
 
 ![Chat 页右侧的 Chat setting 侧栏：助手「售后助手」选模型 deepseek-flash（demo-gateway），Opening greeting 已填开场白，Datasets 绑定 after-sales-kb（下拉展开，条目带「书舟」标签与 embedding 模型 qwen3-embedding:0.6b@local-ollama），下方可见 Empty response 的红色提示与 Show citations 开关](../assets/images/demo/ragflow-08-chat-dataset-bind.png)
 
-配置单的每一项在这块面板里都有落点——Opening greeting 对应开场白，Datasets 对应数据集绑定，展开 Advanced settings 后是 Empty response 文本域与检索相关设置，Show citations 开关就在其下；Datasets 条目上标注的 embedding 模型，正是第 3 章建库时选定的那一个。8.2.1 的官方提醒「创建时不必配完所有设置」在这里也成立：面板随时可从助手列表回到这枚齿轮继续改。
+配置单的每一项在这块面板里都有落点——Opening greeting 对应开场白，Datasets 对应数据集绑定，展开 Advanced settings 后是 Empty response 文本域与检索相关设置，Show citations 开关就在其下；两章截图里同名知识库 after-sales-kb 的 embedding 不一样：第 3 章是 text-embedding-v4（demo-gateway），本章是 qwen3-embedding:0.6b@local-ollama。读者不要理解成建库后中途换模型成功——第 3 章写明创建时锁定；可能是不同测试轮次。8.2.1 的官方提醒「创建时不必配完所有设置」在这里也成立：面板随时可从助手列表回到这枚齿轮继续改。
 
 ### 系统提示词(可直接抄改)
 
@@ -367,7 +367,7 @@ Q1 在真实实例里跑出来是下面这个样子。这张截图来自 2026-11
 
 ## 复核清单(发布前)
 
-- [x] 8.2 创建步骤、8.6 会话操作、8.4.1 生成参数的 Web 配置面已于 2026-11-04 实测(截图见本章):创建助手→齿轮进设置→System prompt/Empty response/检索参数逐一落盘→会话问答,与正文流程一致
+- [x] 8.2 创建步骤、8.6 会话操作,以及 Chat setting 面板(模型、开场白、数据集、Empty response、引用开关)已于 2026-11-04 实测(截图见本章):创建助手→齿轮进设置→上述面板项与会话问答,与正文流程一致。8.4.1 生成参数的界面编辑入口仍按正文,本书未实测,不计入本项
 - [x] 8.7 走查已于 2026-11-04 实测:Q1 带引用回答、域外问题触发 Empty response 兜底;**版本差异如实记录**——Empty response 已保存中文话术,rc2 运行时仍输出系统默认英文文案(自定义文案在该版本未生效,兜底行为本身兑现);Q2 多轮优化的对话走查仍待补
 - [ ] 多模型对比(docs/guides/chat/Mutimodel_comparison_and_FAQ.md)与 TTS、语音输入未纳入正文,待补选型实践
 - [ ] 全章跨章引用(第 3/4/5/7/9/10/11/12/13 章)发布前全量检查

@@ -250,9 +250,9 @@ Retrieval 在画布上从指定的知识库或 Memory 检索相关内容,既可�
 
 **Begin → Parser → Token Chunker → Transformer → Indexer**
 
-Transformer 可选;Transformer 之后也可选 Compiler 走知识编译(每画布限一个 Compiler,模板组经 **Compilation operator** 准备,见第 6 章)。
+Title Chunker 与 Token Chunker 二选一，按标题结构切片时才换上，所以上面的典型流没有画出它。Transformer 可选;Transformer 之后也可选 Compiler 走知识编译(每画布限一个 Compiler,模板组经 **Compilation operator** 准备,见第 6 章)。
 
-### 五个核心组件
+### 六个核心组件
 
 | 组件 | 职责 | 对应第 4-6 章内建侧概念 |
 |------|------|------------------------|
