@@ -56,7 +56,7 @@ Chapter 2’s note that the code sandbox and Volume Manager each have their own 
 
 Production secret governance boils down to three items, all with official backing:
 
-1. **Length and source**—Official guidance for production secrets is at least 32 characters; do not use sample, default, or weak values (per v4.17.3 remote-debug suite docs). Sandbox secrets later in this section and `AGENT_SANDBOX_PROXY_SECRET` in Section 11.3 follow the same rule; when reviewing Chapter 2 Section 2.3 secret minimums, apply the same spirit strictly;
+1. **Length and source**—Official guidance for production secrets is at least 32 characters; do not use sample, default, or weak values (per v4.17.3 remote-debug suite docs). On this section’s existing wording, that length requirement points only at Section 11.3’s proxy secret `AGENT_SANDBOX_PROXY_SECRET`. Do not read it as a second sandbox secret later in this section that you must also set. When reviewing Chapter 2 Section 2.3 secret minimums, apply the same spirit strictly;
 2. **No scattered copies**—Connection keys, tokens, and credentials are sensitive; do not put them in logs, screenshots, or public docs. Chapter 2’s conclusion (`docker-compose.yml` is the credential store) upgrades here to discipline: treat file access like key management;
 3. **Know the cost of re-running**—Re-running the one-click script in an already deployed directory regenerates DB passwords and `AES256_SECRET_KEY` and overwrites `docker-compose.yml`. To keep data, back up the original file, disable auto-generated passwords (or set `FASTGPT_AUTO_GENERATE_CREDENTIALS=false`), then copy passwords and keys back (per v4.17.3 general troubleshooting docs). Debug connection keys (connectionKey) return in plain text only when opening or refreshing a debug channel; refresh or close the channel immediately after leakage.
 
@@ -138,7 +138,7 @@ Chapter 2 Section 2.3 “S3 won’t connect, signature 403” is often the loopb
 | Tencent Cloud COS | `cos` | Bucket name must include account App ID suffix (e.g. `fastgpt-public-1250000000`); `STORAGE_COS_PROTOCOL` uses colon form (`https:`/`http:`); without cert do not set `https:`; anonymous read on public bucket; optional global acceleration, custom domain, proxy |
 | Cloudflare R2 | `r2` | `STORAGE_REGION` fixed `auto`; `STORAGE_R2_PUBLIC_ENDPOINT` required (public HTTPS domain bound to public bucket, not S3 API endpoint, no query string); no rewrite of presigned URL via `STORAGE_S3_CDN_ENDPOINT`; private objects should stay `short-proxy`; rate-limited `r2.dev` dev URLs not for production |
 
-MinIO sample (excerpt; full dotenv for other vendors on the same official doc page):
+MinIO sample (excerpt; full dotenv for other vendors on the same official doc page). `STORAGE_S3_ENDPOINT` in the excerpt is a loopback address, and this excerpt is a host-side example. The chapter says loopback cannot be used inside a container; inside a container use a container name (the table above gives `http://fastgpt-minio:9000`):
 
 ```dotenv
 STORAGE_VENDOR=minio

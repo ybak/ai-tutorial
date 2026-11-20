@@ -64,11 +64,11 @@ Four capability blocks and their material shape prerequisites, expanded in later
 
 ### Team: container for resources
 
-Team is the first container in the permission model—officially: each user may belong to multiple teams; the system creates one initial team per user; users cannot manually create extra teams yet.
+Team is the first container in the permission model. The permissions material says: each user may belong to multiple teams; the system creates one initial team per user; users cannot manually create extra teams yet. “One initial team per user” is that document’s wording, not this chapter’s current default.
 
 Looking back: Chapter 3 created `after-sales-kb`, Chapters 6 and 7 built "After-sales Support" ("售后客服")—those resources always hung in your team space; solo use hides it, multi-person collaboration makes it the first boundary.
 
-One documented tension to flag: “initial team” default behavior in team-mode material differs (Section 12.6)—two docs coexist; treat current-version hands-on behavior as truth (on review checklist).
+Both wordings stay until measured: this section’s permissions material says the system creates one initial team per user; Section 12.6’s team-mode material calls single-team the default mode and says new users do not get a default team—they join the Root team. Do not treat either sentence as the current default. The chapter review item is the authority; decide after a hands-on check.
 
 ### Three management subjects
 
@@ -282,7 +282,7 @@ Adapter exposes four standard APIs: getAuthURL, getUserInfo, org/list, user/list
 
 ### Three modes and behavior
 
-Official three team modes: single-team (default, one global team), multi-team, member sync mode (all members from external sync). Where new users land by registration path (from official docs):
+The team-mode material lists three modes and calls single-team that document’s default (one global team), plus multi-team and member-sync mode (members from an external system). “Single-team is the default” is that document’s wording and sits beside Section 12.2’s “initial team” wording; do not rewrite either into the current default before a hands-on check (end of this section and the review list). Where new users land by registration path (from official docs):
 
 | Team mode | SMS/email signup | Admin adds directly | SSO signup |
 |----------|----------------|------------------|------------|
@@ -296,7 +296,7 @@ Notes: single-team (v4.9+) stops per-user default teams—new users join Root’
 
 Entry: `Admin` → `System config` → `User config`—same page as Section 12.5 SSO.
 
-Version tension: Section 12.2 cites “system creates initial team per user”; team-mode doc says single-team default **does not** create default team—likely version drift; trust hands-on on current version (on review checklist).
+Version tension, stated as two coexisting wordings: Section 12.2 cites the permissions material, “the system creates one initial team per user”; the team-mode material marks single-team as its default and says new users do **not** get a default team. Likely version drift. Do not write either sentence as the current default before a hands-on check. The chapter review item is the authority; decide after that check.
 
 **Our recommendation: one company on one FastGPT—single-team; with member sync use sync mode; multi-team for platform scenarios—untrusted teams sharing one FastGPT—only then worth isolation complexity.**
 
@@ -349,7 +349,7 @@ ragflow book Chapter 13 splits KB governance: “system owns permissions, SOP ow
 3. **Three special identities balance**: admin cannot grow admin list; Owner unique per resource, transfer removes old; Root sole super-admin; team admin does not skip file permissions.
 4. **Invite links standard entry** (v4.9.1+): description immutable; validity three tiers, uses two tiers; disable irreversible; max 10 active links; dead links purge in 30 days.
 5. **SSO and sync commercial**: standard API + SSO-Service adapter; Feishu/WeCom both columns; DingTalk login-only; LDAP sync-only; Cron UTC.
-6. **Team mode sets landing**: single-team (default, Root—default wording has version tension Sections 12.2/12.6), multi-team (own default team), sync (external members); unified governance → single/sync; platform → multi.
+6. **Team mode sets landing**: the permissions wording “one initial team per user” and the team-mode wording “single-team default, new users join Root” both stand. Neither is the current default; the chapter review item decides after a hands-on check (Sections 12.2/12.6). Multi-team gives each user an owned default team; sync follows the external member system. Unified governance → single/sync; platform → multi.
 7. **After-sales split fixed**: all-members use app; ops group edit KB; engineering manage + team powers; four verification rows on review checklist.
 
 Next: permissions settled who can do what; “should we trust the content?” remains. Chapter 13 covers chat record review, citation reader, app evaluation, and quality inspection SOP—the other half of ops for "After-sales Support" ("售后客服").

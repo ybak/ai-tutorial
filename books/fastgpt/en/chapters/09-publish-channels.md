@@ -52,7 +52,7 @@ The “shape prerequisite” column—UI confirmed in testing—screenshot from 
 
 ![Taken on a local deployment: app Publish channels—native: passwordless window, API access, portal (commercial); third-party: Feishu, DingTalk, official account labeled commercial; WeChat personal untagged](../assets/images/shot-publish-channels.png)
 
-Community list matches the table: passwordless and API untagged; Feishu, DingTalk, official account “commercial”; portal commercial; WeChat personal untagged matches “source not tagged.”
+The community channel list matches the panorama table only on the channels this screenshot actually shows. Passwordless window and API access are untagged (community OK); Feishu, DingTalk, and the official account are marked commercial; the portal is commercial too; WeChat personal is untagged, matching the table’s “source not tagged” blank. The WeCom bot in the panorama table does not appear in this screenshot’s comparison.
 
 Two reading tips. Community boundary aligns Chapter 1: share link and API in community list; third-party publish and publish security on commercial side; **DingTalk and WeCom not listed separately in Ch. 1 table—this chapter gives per-channel prerequisites**—DingTalk closes Ch. 1 carried item in Section 9.3. Channels without shape tags (WeChat personal) stay “source not tagged,” no inference.
 
@@ -321,7 +321,7 @@ Section 9.2 three steps; example values (case, not official defaults):
 
 | Parameter | Example | Rationale |
 |------|---------|------|
-| Name | After-sales support–support team | Multi-channel recognition |
+| Name | After-sales support–support team (case value) | The case name is for telling channels apart. The link name built on this machine is “客服团队入口” (“Support team entry”, Section 9.2); it is not the same name as the case value |
 | Expiry | Quarterly policy review rhythm | Old links die with policy refresh |
 | QPM | Tighten by team size | Anti-script abuse |
 | Points cap | Safety ceiling | Team billed, stop when exceeded |

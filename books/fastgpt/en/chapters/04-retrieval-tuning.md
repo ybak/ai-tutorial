@@ -30,7 +30,7 @@ Three typical situations, three ways to use this chapter.
 
 **Users ask with ticket numbers, error codes, SKUs—semantic search misses**—Section 4.4: keyword full-text fits exact queries; backend follows vector DB; Milvus needs BM25 migration step.
 
-**Library mixes Q&A pairs and long docs—sometimes miss, sometimes flood**—Section 4.5 hybrid plus rerank for precision; quote limits by tokens for stability—official avoids topk for quotes because chunk lengths vary wildly in mixed libraries.
+**Library mixes Q&A pairs and long docs—sometimes miss, sometimes flood**—Section 4.5 hybrid plus rerank for precision; quote limits by tokens for stability. The quote limit is not a topk cap: official docs avoid topk for quotes because chunk lengths vary wildly in mixed libraries. Semantic recall still uses topk—that is a separate layer (Section 4.3), not a blanket retirement of topk.
 
 Prerequisite: Chapter 3 three types "ready", index model available (not ready → Section 3.4).
 
@@ -87,7 +87,7 @@ Official: semantic for natural language; full-text for IDs and codes; both → h
 
 ### Pros and cons
 
-Similarity is mathematical, not literary. Still topk recall then LLM judgment.
+Similarity is mathematical, not literary. Semantic recall still uses topk: take the top k nearest chunks, then hand them to the LLM. That is not the quote limit. The quote limit trims cited tokens and does not use topk (Section 4.6).
 
 | Pros | Cons |
 |------|------|
@@ -207,7 +207,7 @@ Mode (Sections 4.2–4.5) plus filter layer:
 
 | Parameter | Mechanism | Constraints |
 |------|------|----------|
-| Quote limit | Max n tokens quoted per search | No topk—mixed chunk lengths; tokens steadier |
+| Quote limit | Max n tokens quoted per search | Official docs do not use topk to cap this layer—mixed chunk lengths make a topk quote cap unstable; tokens are steadier. Semantic-recall topk remains (Section 4.3); it is not retired here |
 | Minimum relevance | 0–1 filter | Semantic or rerank only; filter not sort |
 | Question optimization | Coreference and expansion before search | Extra model call; optional for clear questions or speed |
 
@@ -253,7 +253,7 @@ No universal defaults—stance table by document shape (**book stance**, verify 
 |------|---------|------|---------|---------|
 | After-sales Policy Manual | Natural language clauses + "article N" cites | Hybrid + rerank | Strict minimum relevance; optimization on | Official: hybrid richer; rerank usually helps |
 | Product FAQ | Colloquial near Q&A text | Semantic start | Optimization as needed; quote limit low impact | Semantic fits natural language |
-| Shipping time notices | Carrier names, day counts | Hybrid, full-text lean | Looser minimum relevance; quote limit caps duplicates | Full-text for proper nouns |
+| Shipping time notices | Carrier names, day counts | Hybrid, full-text lean | Minimum relevance applies only for semantic search or when rerank is on. This row uses hybrid search and does not turn rerank on; there is no measured record of rerank enabled here, so the looser threshold does not apply on this row. Keep the "do not drop short notices" lean for when one of those two conditions holds. Quote limit caps overlapping old and new notices | Full-text for proper nouns |
 
 Three shared rules from official table:
 1. **One param at a time**—retest same question;
@@ -268,7 +268,7 @@ Tune order: three plan sets, fixed test questions per type, verify quotes in cha
 2. **Pick by shape**: semantic / full-text / hybrid—**hybrid default for `after-sales-kb` in business terms**.
 3. **Full-text follows vector DB**: Milvus BM25 vs Mongo `$text`; eight-step migration; old table not auto-deleted.
 4. **Minimum relevance is filter not sort**: semantic or rerank; rerank 0–1 often better filter.
-5. **Quote by tokens not topk**; distinguish from `quoteMaxToken`.
+5. **Quote limit is tokens, not a topk cap on quotes**; semantic recall still uses topk (Section 4.3). Distinguish the quote limit from `quoteMaxToken`.
 6. **Phenomenon table steers**; optimization costs a call; chat details verify.
 
 Next: build and search done—operations is "keep current." Chapter 5 sync, tags, permissions; Chapter 3 three sync routes land there.
@@ -277,11 +277,11 @@ Next: build and search done—operations is "keep current." Chapter 5 sync, tags
 
 You should be able to:
 
-- ☐ Draw six-step chain, optional steps, model-dependent steps;
+- ☐ Draw the six-step chain and name the one optional step marked on the figure (rerank), plus the step that depends on model capability;
 - ☐ Match three modes to question styles and justify plan for new doc;
 - ☐ Explain full-text backend vs vector DB and Milvus BM25 prerequisites;
 - ☐ State minimum relevance two constraints;
-- ☐ Separate search quote limit vs `quoteMaxToken` and why no topk;
+- ☐ Separate the search-side quote limit from model-side `quoteMaxToken`, and say why the quote limit is not a topk cap while semantic recall still uses topk;
 - ☐ Two phenomena → two adjustments each;
 - ☐ Three doc types: plan + lean, verify in chat details.
 

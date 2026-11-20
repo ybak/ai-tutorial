@@ -209,7 +209,7 @@ List columns—progress, executor, app, start/end, composite score—answer “h
 
 ### Official FAQ bad-case map
 
-Two official FAQ articles (app build + chat box), four attribution classes with fixes:
+Two official FAQ articles (app build + chat box). The table has six rows, so six attribution classes. The chapter does not explain how each row folds into the four disposal exits later, and this section does not invent that fold:
 
 | Attribution | Bad case | Official fix | Link |
 |------|------|---------|------|
@@ -224,11 +224,11 @@ Version notes: thinking FAQ for 4.9.1–4.14.x; book baseline v4.17.3 for legacy
 
 ### Bad-case governance loop
 
-One bad case: collect, attribute, fix, regress. Four attribution exits differ but share one regression line:
+One bad case: collect, attribute, fix, regress. The table above is six attribution classes. Knowledge, orchestration, rendering, and model on the figure are four disposal exits, not a folding of those six rows; the chapter never maps each row onto those exits. Whichever exit you take, the regression line is the same:
 
 ```mermaid
 flowchart LR
-    A["Collect<br/>Chat logs · eval detail · feedback"] --> B{"Four attributions<br/>Section 13.5"}
+    A["Collect<br/>Chat logs · eval detail · feedback"] --> B{"Four disposal exits<br/>not a fold of the six rows"}
     B -->|Knowledge| C["Update KB<br/>Annotate"]
     B -->|Orchestration| D["Change nodes and prompts<br/>Publish"]
     B -->|Rendering| E["Output guidance<br/>Check allowlist"]
@@ -240,7 +240,7 @@ flowchart LR
     G --> H["Sink into eval set<br/>Ledger trail"]
 ```
 
-*Bad-case loop (original diagram; four attributions from table above)*
+*Bad-case loop (original diagram; the four disposal exits are not a folding of the six rows above)*
 
 Easiest break: “sink”—fixed cases not in eval set return on the next prompt change. ragflow book Chapter 13 calls this “tickets feed the test set—test set grows with business”; FastGPT counterparts are eval set and annotation KB (→ ragflow book).
 
@@ -292,7 +292,7 @@ One week walked through (numbers are example settings, not confirmed in testing)
 3. **Verifiable citations**: from v4.9.1 chunk reader, full text + highlight; quality score explains selection; visibility limits externals.
 4. **HTML rendering boundaries**: v4.17.3 native pipeline replaces iframe; allowlist strips scripts, events, inline style, dangerous protocols—“incomplete” often security, not bad case.
 5. **Eval regression dashboard**: v4.11.0+ Beta, only answer-accuracy metric today, CSV max 1000 pairs; composite vs last, rows for attribution; retrieval regressions via searchTest.
-6. **Bad-case loop not a flat list**: collect → four attributions → fix → regress → sink; break at sink and cases return.
+6. **Bad-case loop not a flat list**: collect → four disposal exits (knowledge / orchestration / rendering / model; the Section 13.5 table is six classes and is not folded here) → fix → regress → sink; break at sink and cases return.
 7. **Weekly checklist for “are answers right”**: eight checks, three roles, periodic and trigger items, ledger as proof.
 
 The book closes here: Chapter 1 shape choice through deploy (Chapter 2), KB (Chapters 3–5), apps and workflow (Chapters 6–7), tools and skills (Chapter 8), publish and integration (Chapters 9–10), ops and governance (Chapters 11–12)—"After-sales Support" ("售后客服") from build to use; this chapter adds operations. Next step outside the book: adapt Section 13.6 checklist to your team with real names and cadence. Further: platform Agent consuming "After-sales Support" via MCP (→ mcp book Chapter 8), deep chat analytics (→ langfuse book), chunk and inspection methodology vs ragflow (→ ragflow book).

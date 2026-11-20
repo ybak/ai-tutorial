@@ -56,7 +56,7 @@ flowchart LR
 
 生产环境的密钥治理归结为三件事，都有官方依据：
 
-1. **长度与来源**——官方对生产密钥的统一口径是至少 32 位，不要使用示例值、默认值或弱口令（依据 v4.17.3 远程调试套件文档）；本节稍后的沙盒密钥与 11.3 的 `AGENT_SANDBOX_PROXY_SECRET` 都适用，第 2 章 2.3 各项密钥的长度下限在复核时按同一精神从紧掌握；
+1. **长度与来源**——官方对生产密钥的统一口径是至少 32 位，不要使用示例值、默认值或弱口令（依据 v4.17.3 远程调试套件文档）。按本节既有口径，这一长度要求只指向 11.3 的代理密钥 `AGENT_SANDBOX_PROXY_SECRET`，不另说成还要再用一把本节稍后的沙盒密钥。第 2 章 2.3 各项密钥的长度下限在复核时按同一精神从紧掌握；
 2. **不落散落介质**——连接密钥、Token 与凭证属于敏感信息，禁止写入日志、截图或公开文档；第 2 章的结论（`docker-compose.yml` 就是凭证库）在这里升级为纪律：该文件的访问权限按密钥管理；
 3. **知晓重跑的代价**——在已部署目录重新运行一键脚本，会重新生成数据库密码与 `AES256_SECRET_KEY` 并覆盖 `docker-compose.yml`；要保留数据，先备份原文件，并选择不自动生成密码（或设置 `FASTGPT_AUTO_GENERATE_CREDENTIALS=false`），再把原密码与密钥拷回去（依据 v4.17.3 通用排查文档）。调试类连接密钥（connectionKey）只在开启或刷新调试通道时明文返回，泄露后应立即刷新或关闭通道。
 
@@ -138,7 +138,7 @@ S3 兼容变量里最容易出事故的是两个「地址」的分工：
 | 腾讯云 COS | `cos` | 桶名必须含账号 App ID 后缀（如 `fastgpt-public-1250000000`）；`STORAGE_COS_PROTOCOL` 取值带冒号（`https:`/`http:`），无证书别设 `https:`；public 桶配匿名读；可选全球加速、自定义域名与代理 |
 | Cloudflare R2 | `r2` | `STORAGE_REGION` 固定填 `auto`；`STORAGE_R2_PUBLIC_ENDPOINT` 必配（公开桶绑定的公开 HTTPS 域名，不是 S3 API endpoint，不带查询参数）；不支持经 `STORAGE_S3_CDN_ENDPOINT` 重写预签名 URL，私有对象建议保持 `short-proxy`；受速率限制的 `r2.dev` 开发 URL 不建议生产使用 |
 
-MinIO 示例（节选；其余厂商的完整 dotenv 见官方文档同页）：
+MinIO 示例（节选；其余厂商的完整 dotenv 见官方文档同页）。节选里的 `STORAGE_S3_ENDPOINT` 是回环地址，这是宿主机侧示例；正文写明容器内不能用回环地址，容器内应改用容器名（上表示例 `http://fastgpt-minio:9000`）：
 
 ```dotenv
 STORAGE_VENDOR=minio
