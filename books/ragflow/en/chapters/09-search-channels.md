@@ -255,7 +255,7 @@ By the time you reach here, you should be able to:
 
 - **Chapter 7 (retrieval testing and tuning).** The principles and the tuning method of the four retrieval-strategy parameters of a Search app. The Search page can use the test question set settled in Chapter 7 directly, for an exit-level regression.
 - **Chapter 8 (chat assistants and sessions).** The object that answers questions behind a channel. Tune the Chat itself before you connect a channel.
-- **Chapter 10 (Agents and workflows).** The Workflow Agent that web embedding supports, and the Flow Agent a WeCom channel can bind. Their canvas and publish mechanism are expanded in this chapter.
+- **Chapter 10 (Agents and workflows).** The Workflow Agent that web embedding supports, and the Flow Agent a WeCom channel can bind. Their canvas and publish mechanism are expanded in Chapter 10.
 - **Chapter 11 (outward integration: API and MCP).** The program side of outward integration: let an external system consume the same knowledge base through an API or MCP.
 - **Chapter 12 (production operations).** The configuration, monitoring, and operations surface after an exit goes live.
 

@@ -80,7 +80,7 @@ flowchart LR
 
 ![实测 Create dataset 弹窗：Name 填 after-sales-kb，Embedding model 预填 text-embedding-v4（demo-gateway），解析方法下拉显示 General 并带 Built in 徽标，右下角 Save 按钮](../assets/images/demo/ragflow-03-create-dataset.png)
 
-必设三项在弹窗里一次到齐：Name 必填（after-sales-kb）、Embedding model 必填、解析方法下拉——General 旁的 Built in 徽标即 Built-in 类型在界面上的样子。Embedding model 一栏已自动预填 text-embedding-v4（demo-gateway），预填值来自第 2 章设定的租户默认 embedding；上表决策里的 BAAI/bge-m3 是本书案例设定，实测画面用的是网关侧的 text-embedding-v4，无论选哪个，「创建时锁定」的性质不变。
+必设三项在弹窗里一次到齐：Name 必填（after-sales-kb）、Embedding model 必填、解析方法下拉——General 旁的 Built in 徽标即 Built-in 类型在界面上的样子。Embedding model 一栏已自动预填 text-embedding-v4（demo-gateway），预填值来自第 2 章设定的租户默认 embedding；下表（3.2 决策表）里的 BAAI/bge-m3 是本书案例设定，实测画面用的是网关侧的 text-embedding-v4，无论选哪个，「创建时锁定」的性质不变。
 
 ### 基本信息五件套
 

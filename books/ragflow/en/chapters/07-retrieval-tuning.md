@@ -59,7 +59,7 @@ flowchart LR
 Two conventions among the five steps have to be set down first:
 
 - **"Measure" always comes before "change".** Have a baseline before any parameter adjustment, or you cannot say whether the change made things better or worse. The official documentation stresses the same point: test repeatedly with multiple representative queries, and set the parameters from the overall recall, rather than tuning the configuration from a single test.
-- **"Change" has three layers, and the further forward a layer is, the higher its cost.** Retrieval configuration (this chapter) changes sliders and switches. Chunks (Chapter 4) and enrichment (Chapter 5) change the data itself, and that requires parsing again. The generation side (Chapter 8) changes the prompt and the model. If an earlier layer can solve it, do not drag it into a later layer.
+- **"Change" has three layers, and the further back a layer is, the higher its cost.** Retrieval configuration (this chapter) changes sliders and switches. Chunks (Chapter 4) and enrichment (Chapter 5) change the data itself, and that requires parsing again. The generation side (Chapter 8) changes the prompt and the model. If an earlier layer can solve it, do not drag it into a later layer.
 
 Five terms that recur in this chapter are defined here, once:
 
@@ -115,7 +115,7 @@ Outside that official worked example, this book recomputed the same formula on a
 
 ![Retrieval test results for the query "退货时限是几天" ("How many days is the return window?"): the first row is an FAQ table chunk from product-faq.xlsx, labeled Hybrid similarity 46.25, Term similarity 31.51, Vector similarity 80.62, with the query keywords highlighted in cyan](../assets/images/demo/ragflow-07-retrieval-testing.png)
 
-The first hit is exactly the "退货时限是几天" ("How many days is the return window?") row of product-faq.xlsx. It has the four-column table shape Title/Content/Category/Year, and the content column gives the answer "自签收之日起 30 个自然日内可无理由退货" ("No-questions-asked returns within 30 calendar days of receipt"). The second is clause 2.2 of the policy handbook, on cross-border orders (Hybrid 41.00). The scores can be recomputed row by row: 0.7×31.51+0.3×80.62=46.25, and the second row 0.7×24.10+0.3×80.42=41.00. The composite-score formula above holds on real data, and the query keywords are also marked with a cyan highlight in the results.
+The first hit is exactly the "退货时限是几天" ("How many days is the return window?") row of product-faq.xlsx. It has the four-column table shape Title/Content/Category/Year, and the content column gives the answer "自签收之日起 30 个自然日内可无理由退货" ("No-questions-asked returns within 30 calendar days of receipt"). The second is clause 2.2 of the policy handbook, on cross-border orders (Hybrid 41.00). The scores can be recomputed row by row: 0.7×31.51+0.3×80.62=46.243, and the UI reading is 46.25 (the component scores are already shown rounded); the second row is 0.7×24.10+0.3×80.42=40.996, and the UI reading is 41.00. The composite-score formula above holds on real data, and the query keywords are also marked with a cyan highlight in the results.
 
 ### Running a baseline and recording it
 
@@ -404,8 +404,8 @@ By the time you reach here, you should be able to:
 ## Review checklist (before publication)
 
 - [ ] Check the whole chapter against the original text of retrieval_testing.md, search_settings.md, configuration.md (the PageRank and Basic Information sections), and notes_and_faqs.md (the retrieval section) (source material verified 2026-10-27)
-- [x] Outside the official worked example "composite score 28.56", recomputed on a real run on 2026-11-04: the scores of two results for the query "退货时限是几天" ("How many days is the return window?") are 0.7×31.51+0.3×80.62=46.25 and 0.7×24.10+0.3×80.42=41.00 (screenshot in Section 7.2). The formula holds on real data
+- [x] Outside the official worked example "composite score 28.56", recomputed on a real run on 2026-11-04: the scores of two results for the query "退货时限是几天" ("How many days is the return window?") are 0.7×31.51+0.3×80.62=46.243 (UI reading 46.25; the component scores are already shown rounded) and 0.7×24.10+0.3×80.42=40.996 (UI reading 41.00) (screenshot in Section 7.2). The formula holds on real data
 - [x] The Retrieval Testing page in Section 7.2 and part of the UI path in Section 7.7 were confirmed in testing on 2026-11-04 (screenshots in this chapter). The walkthrough of the Metadata filter configuration is still to be added
-- [x] The Top parameter: the chat-assistant-side Top N default of 8 has been confirmed by measurement (consistent with the table in Section 8.4.2 of the body). The default reading of the same-named field on the retrieval test page is still to be added
+- [x] The Top parameter: the chat-assistant-side Top N default of 8 has been confirmed by measurement. The default reading of the same-named field on the retrieval test page is still to be added
 - [ ] The Example numbers for MRR / hit rate (0.41→0.63) are values set for the case, not verified hands-on data. They are already stated in the body in the voice of our running example. Confirm there is no ambiguity
 - [ ] A screenshot of the configuration entry, on the Agent retrieval component side, for "test parameters are not persisted" is still to be added (cross-check in Chapter 10)

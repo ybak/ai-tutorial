@@ -1,7 +1,7 @@
 # RAGFlow:从入门到进阶
 
 > 状态:**初稿成稿(2026-10-27)——13 章全部完成,基于官方文档(v1.0.0-rc2,核实日期 2026-10-27)逐章对照撰写;已过全书一致性统检(贯穿案例命名、章级/小节级交叉引用、术语中英对照、全角标点)。2026-11-04 在本机 Docker 部署的 RAGFlow v1.0.0-rc2 实例上跑通贯穿案例全链路(部署升级→模型通道→数据集→解析→检索测试→聊天助手→Search→团队共享→Admin UI),实测截图 30 张按「引导句→图→解读」三段式插入各章(`assets/images/demo/`),相关界面类复核清单项随之核销;与书稿表述的版本差异(如 Empty response 自定义文案在 rc2 未生效、Artifacts 下拉不含 To Skills、切片模板实为 12 种)已在对应插图解读中如实标注。**
-> ⚠️ 形态欠账:与 mcp 书相同,各章为骨架齐全的紧凑章(235-434 行/章),距书稿标准(≥500 行/章,见[编写规范](../../docs/book-writing-guide.md))的增厚为后续欠账;API/SDK 调用类代码示例仍未实测,相关复核清单项继续挂账。
+> ⚠️ 形态欠账:与 mcp 书相同,各章为骨架齐全的紧凑章(241-453 行/章),距书稿标准(≥500 行/章,见[编写规范](../../docs/book-writing-guide.md))的增厚为后续欠账;API/SDK 调用类代码示例仍未实测,相关复核清单项继续挂账。
 
 ## 定位
 
@@ -48,7 +48,7 @@ RAG 引擎实战,从搭建知识库到生产级检索调优。本书以 RAGFlow 
 | [第 2 章 部署与模型通道](chapters/02-deploy-models.md) | Docker 部署、配置体系、在线/本地模型接入、首条链路验证 | 中 |
 | [第 3 章 数据集:知识库的载体](chapters/03-dataset-basics.md) | 创建与权限、文件管理、数据源接入与同步、元数据 | 中 |
 | [第 4 章 解析与切片:从文档到 Chunk](chapters/04-parsing-chunking.md) | 11 种内建解析方法选型、Parser/视觉模型、Chunker 参数、表列角色 | 重 |
-| [第 5 章 检索增强与索引](chapters/05-enrichment-indexing.md) | Extractor 四件套(关键词/问题/标签/上下文)、Indexer 索引策略、子切片 | 中 |
+| [第 5 章 检索增强与索引](chapters/05-enrichment-indexing.md) | Extractor 四件套(关键词/问题/标签/上下文)、Indexer 索引策略（子切片见第 4 章 4.4.1） | 中 |
 | [第 6 章 知识编译与知识工件](chapters/06-knowledge-compilation.md) | Wiki/导航/图谱生成、模板与专属配置、与 Agent 上下文引擎的关系 | 中 |
 | [第 7 章 检索测试与调优](chapters/07-retrieval-tuning.md) | Retrieval Testing、混合检索权重、多数据集 PageRank、检索质量定位法 | 重 |
 | [第 8 章 聊天助手与会话](chapters/08-chat-assistant.md) | Chat Assistant 配置、Agentic 模式、Prompt 与参数、会话管理 | 中 |

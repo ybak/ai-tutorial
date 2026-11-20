@@ -418,7 +418,7 @@ Runner 镜像、容量、内存、服务超时与网络访问属于部署侧设�
 
 ## 复核清单(发布前)
 
-- [x] Admin UI(Service status、User management)已于 2026-11-04 实测(截图见 12.6.2):入口为主站 /admin(9381 根路径返回 JSON),仅 Superuser 可进(普通账号 403);`docker compose`、`migration.sh backup`、SSL 七步、CLI 命令族仍待按节补测
+- [x] Admin UI(Service status、User management)已于 2026-11-04 实测(截图见 12.6.2):入口为主站 /admin(9381 根路径返回 JSON),仅 Superuser 可进(普通账号 403);`docker compose`、`migration.sh backup`、12.2.3 的三组 SSL 命令、CLI 命令族仍待按节补测
 - [ ] v0.27.2 → v1.0.0-rc1 迁移全流程未演练(不可逆操作,需专用可丢弃环境)
 - [ ] Admin UI 三页的界面元素与 v1.0.0-rc2 实际版本逐一对照
 - [ ] 自托管 Langfuse 对接实测(trace 字段与异步投递行为)

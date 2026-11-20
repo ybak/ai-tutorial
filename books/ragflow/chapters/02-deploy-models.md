@@ -30,7 +30,7 @@ flowchart LR
 
 **装好了，但模型没接上或想换 Provider**——直接看 2.4。验证按钮报错九成出在 Base URL 与网络可达性：RAGFlow 跑在容器里，`localhost` 不是你的宿主机。
 
-**要改端口、换文档引擎，或开始为上线做准备**——看 2.3 理解两份配置文件的分工与生效方式；生产化的密码治理、备份与升级管理在（见第 12 章）展开。
+**要改端口、换文档引擎，或开始为上线做准备**——看 2.3 理解两份配置文件的分工与生效方式；生产化的密码治理、备份与升级管理在第 12 章展开。
 
 前置：一台满足 2.2 前置资源的机器与 Docker；第 1 章的 RAG 基本概念。本章不要求任何编程背景，全部操作都在命令行与网页界面完成。
 
@@ -128,8 +128,10 @@ docker compose -f docker-compose.yml up -d
 
 ```bash
 docker ps
-docker logs -f ragflow-cpu
+docker compose -f docker-compose.yml logs -f ragflow-cpu
 ```
+
+这里跟的是 compose 服务名，工作目录仍是第 3 步的 `ragflow/docker`。容器名带项目前缀，第 12 章示例写成 `docker-ragflow-cpu-1`。
 
 初始化完成后，从另一台终端通过 web 端口检查 API 与依赖健康：
 
@@ -172,9 +174,9 @@ curl -f http://localhost/api/v1/system/healthz
 | `ENABLE_REGISTER` | 1 | 是否开放用户注册；对内部署建议设 0 |
 | `RAGFLOW_IMAGE` | — | 镜像与 tag，须与 checkout 的 release tag 匹配 |
 
-`service_conf.yaml.template` 这一层本章只需记住两点：它是模板而非最终文件（启动时生成，不要直接改生成物）；涉及代理与真实 IP 时关注 `api.trusted_proxies`（默认只信任镜像内 nginx 的回环地址，显式列表是**替换**而非追加）。`MEM_LIMIT` 的值也定义在这一层的 MySQL 连接池等参数（如 `max_connections` 默认 900）——服务面调优在第 12 章展开。
+`service_conf.yaml.template` 这一层本章只需记住两点：它是模板而非最终文件（启动时生成，不要直接改生成物）；涉及代理与真实 IP 时关注 `api.trusted_proxies`（默认只信任镜像内 nginx 的回环地址，显式列表是**替换**而非追加）。`MEM_LIMIT` 是 `.env` 中每个容器的内存上限；MySQL 连接池等参数（如 `max_connections` 默认 900）在这一层定义。服务面调优在第 12 章展开。
 
-**生效方式**：对以上任何配置的修改，都需要重启全部容器才能生效：
+**生效方式**：对以上任何配置的修改，都需要重启全部容器才能生效。下面这条与第 12 章相同，路径相对仓库根目录；若还停在第 3 步的 `ragflow/docker`，先回到仓库根目录再执行：
 
 ```bash
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
@@ -200,7 +202,7 @@ RAGFlow 按角色使用模型，官方文档列出七类：
 | TTS | 语音合成 | 文本转语音 | 语音播报、语音交互 |
 | OCR | 光学字符识别 | 识别图片或扫描件中的文字 | 扫描件、票据识别 |
 
-检索问答的主链由前三类串成：**embedding 模型把查询与切片向量化、按相似度召回候选，rerank 模型对候选重排，LLM 基于选中的知识生成答案**。贯穿到售后场景：客服问「退货时限是几天」，问题被 embedding 模型向量化后在 `after-sales-kb` 的切片里召回政策条目，chat 模型据此作答。起步清单由此得出：**跑通「检索 + 生成」至少需要 chat 与 embedding 两类模型**；rerank 是第 7 章调优时的增强项；VLM/ASR/TTS/OCR 本书的售后场景用不到（《售后政策手册》的表格与版面由 DeepDoc 的 CPU 推理承担，不依赖你另配视觉模型）。RAGFlow 也支持 HTTP API 把这些能力暴露给外部应用，接入方式在（见第 11 章）。
+检索问答的主链由前三类串成：**embedding 模型把查询与切片向量化、按相似度召回候选，rerank 模型对候选重排，LLM 基于选中的知识生成答案**。贯穿到售后场景：客服问「退货时限是几天」，问题被 embedding 模型向量化后在 `after-sales-kb` 的切片里召回政策条目，chat 模型据此作答。起步清单由此得出：**跑通「检索 + 生成」至少需要 chat 与 embedding 两类模型**；rerank 是第 7 章调优时的增强项；VLM/ASR/TTS/OCR 本书的售后场景用不到（《售后政策手册》的表格与版面由 DeepDoc 的 CPU 推理承担，不依赖你另配视觉模型）。RAGFlow 也支持 HTTP API 把这些能力暴露给外部应用，接入方式见第 11 章。
 
 ### 2.4.2 在线 Provider 接入
 
@@ -278,6 +280,8 @@ vllm serve openbmb/MiniCPM5-2B --served-model-name MiniCPM5-2B \
   --host 0.0.0.0 --port 8000 --dtype auto --max-model-len 8192
 ```
 
+两处模型名分别按各自示例原文书写：Ollama 示例是 `openbmb/minicpm5-2b`，vLLM 示例是 `openbmb/MiniCPM5-2B`。本书未对照官方仓库核对是否同一模型。
+
 接入时 Provider 选 **VLLM**，Base URL 以 `/v1` 结尾；未配置 `--api-key` 时 API Key 留空，配置了则填同一个值。
 
 **TEI——`.env` 内置的本地 embedding 服务**：启用 `tei-cpu` 或 `tei-gpu` profile，用 `TEI_MODEL` 指定模型、`TEI_PORT`（默认 6380）对外暴露，适合不想为 embedding 单独装一套工具栈的场景。
@@ -317,7 +321,7 @@ sudo docker exec -it <RAGFLOW_CONTAINER> curl http://host.docker.internal:11434/
 | ② 上传文档 | 数据集 **Files** 页 **Add file > Upload file**；可勾选 **Parse on creation** 自动解析，否则选中文档点 **Run** | 解析状态推进到完成；卡住时看文档 **Logs** 与 `ragflow-cpu` 服务日志 |
 | ③ 解析干预 | 点开已完成解析的文件进入 **Chunk** 页：悬停快照预览，双击文本手动修改或加关键词；再到 **Retrieval Testing** 的 **Test text** 里试问 | 切片不是黑盒：看得见、改得动、测得了；《售后政策手册》的表格有没有被切成可用的块，在这一步眼见为实 |
 | ④ 建聊天助手 | **Chat** → **Create chat**；在 **Chat setting** 里选中刚解析的数据集、选定 chat 模型，检查 **System prompt**，设好 **Empty response** | 聊天助手（Chat Assistant）与数据集、模型的绑定生效；Empty response 是「知识库里没有答案」时的兜底话术 |
-| ⑤ 提问 | 打开聊天窗口就文档内容提问；直选问题选 **Naive**，需要深入调查的选 **Agentic** | **答案附真实引用、来源可溯**——这是 RAGFlow 的立身之本，也是链路打通的唯一权威判据 |
+| ⑤ 提问 | 打开聊天窗口就文档内容提问；直接问题选 **Naive**，需要深入调查的选 **Agentic** | **答案附真实引用、来源可溯**——这是 RAGFlow 的立身之本，也是链路打通的唯一权威判据 |
 
 落到贯穿案例：① 建数据集（名取 `after-sales-kb`），② 只上传 `after-sales-policy.pdf`（50 页、含表格，首次解析正好感受 CPU 推理的耗时量级），③ 在 **Retrieval Testing** 里问「退货时限是几天」看召回的政策切片，④ 建助手「售后助手」，⑤ 问「跨境订单的退货时限和运费承担」——拿到一条带引用的回答，本章的验收就完成了。两个补充：其一，解析方法的选择（50 页 PDF 用哪种、XLSX 用哪种）是第 4 章的主题，本章先用 Built-in 的默认推荐；其二，**售后政策问答必须设置 Empty response**——政策类问题答错比不答更糟，留空意味着允许模型在无据可依时自由发挥（本书立场：知识库问答上线前这一项不允许留空）。解析与切片的深入干预（见第 4 章），聊天助手的完整配置（见第 8 章）。
 
@@ -364,4 +368,4 @@ sudo docker exec -it <RAGFLOW_CONTAINER> curl http://host.docker.internal:11434/
 - [ ] 2.1 组件-职责表与 2.1 拓扑图对照 `docker-compose-base.yml` 实际渲染结果核对（当前依 configuration.md 文字描述归纳）
 - [ ] `MEM_LIMIT` 默认值 8073741824 字节（约 7.52 GiB）与 `docker stats` 实测值对照复核
 - [ ] Ollama / vLLM 示例模型（`openbmb/minicpm5-2b`、`qwen3-embedding:0.6b`）的可用性与命名以实测时两家仓库为准
-- [ ] `shipping-notice.eml`（邮件原件）是否在支持格式列表内未验证——quickstart 格式列表未含 eml，第 3 章数据源接入时实证
+- [x] `shipping-notice.eml`（邮件原件）受支持，见 3.3 实测：eml 切出 1 chunk，且 Parse 列显示 Email

@@ -152,7 +152,7 @@ PDF is the format with the most problems in practice, and it also has the most c
 | Remove original table of contents (remove the original table of contents) | Removes the table of contents that comes with the PDF during parsing, so it does not enter chunks and retrieval results as if it were body text | When contents pages would be treated as body text |
 | Remove headers and footers | Recognizes and removes the headers and footers repeated on every page, cutting irrelevant content in the knowledge base | When every page has a header / footer / page number |
 | Page range | Set a start and end page, and add more than one range, to skip pages that do not need processing | When a long document should only contribute some chapters |
-| Disable vision model (disable the vision model) | When on, parsing does not call a vision model; when off, a vision model can help understand a complex layout or mixed image-and-text content | Decide by document complexity (see Section 4.3.7) |
+| Disable vision model (disable the vision model) | When on, parsing does not call a vision model; when off, a vision model can help understand a complex layout or mixed image-and-text content | Decide by document complexity (see Section 4.3.6) |
 | Model (vision model) | Choose the vision model parsing needs; the stronger the model, the more complete its understanding of a complex layout may be, and quality and token consumption change with it | When a vision model is needed |
 
 External models are shown in the parser dropdown grouped by model provider. Whether one is available depends on the providers already configured and on their capabilities. The same is true of external models for table parsing and image parsing, and later sections will not repeat it.
@@ -346,9 +346,9 @@ Metadata is half an exception. After you edit it by hand, interface filters can 
 | Behavior did not change after the configuration changed | Reparse semantics: configuration does not reach back | Reparse the related documents (Section 4.6.3) |
 | A column-role change did not take effect | It takes effect only for documents parsed later | Reparse tables that were already parsed (Section 4.5) |
 
-## 4.7 Running case: chunking plans for three documents
+## 4.7 Running case: chunking plans for three documents (four files)
 
-Back to the dataset `after-sales-kb`. The three kinds of material differ sharply in form, and each one stands for a selection path. Look at the overview first, then take each document apart for "why this choice" and "the expected failure mode". The latter is part of the plan, not a disclaimer.
+Back to the dataset `after-sales-kb`. The three kinds of material differ sharply in form, and each one stands for a selection path. The table below is four files: the shipping-time notice is one document with two carriers (`shipping-notice.html` and `shipping-notice.eml`). Look at the overview first, then take each document apart for "why this choice" and "the expected failure mode". The latter is part of the plan, not a disclaimer.
 
 | Document | Form of the material | Chunk method | Key configuration |
 |------|---------|---------|---------|
@@ -383,7 +383,7 @@ Turn on two more switches. Turn **Set first chunk as global context** on, so the
 
 **Expected failure modes.** First, the HTML edition and the mail edition of the same content are both stored, the same announcement appears twice in the retrieval results, and it takes up Top N slots. **Our recommendation: when the same content enters the same dataset in more than one carrier, keep only one copy as the main retrieval source, and disable the other or build a separate dataset for it.** If you keep the mail edition, note that its attachments (which may be another complete PDF) are also extracted and turned into chunks. Judge whether that attachment should be stored on its own according to the form of the document. Second, the announcement is updated often and the old and new versions coexist, so the old version must be disabled or deleted. For "timeliness" knowledge, a freshness error is more dangerous than a gap. Leave this to the update process in Chapter 13.
 
-After the three documents finish parsing, spot-check chunk quality on the chunk management page first (Section 4.6.1), then run a retrieval test together to verify (see Chapter 7). That is the next battlefield.
+After the four files in the table above finish parsing, spot-check chunk quality on the chunk management page first (Section 4.6.1), then run a retrieval test together to verify (see Chapter 7). That is the next battlefield.
 
 ## Chapter summary
 
@@ -428,7 +428,7 @@ By the time you have read this far, you should be able to:
 ## Further reading
 
 - **Chapter 3 (datasets: the carrier of the knowledge base)**. The prerequisite of this chapter's configuration page: creating a dataset, uploading files, and choosing the Embedding model. The compatibility check for the Embedding model is explained there.
-- **Chapter 5 (retrieval enrichment and indexing)**. The last two stages of the pipeline: the Extractor's four-piece set and the Indexer indexing strategy. The linked effect of sub-chunks and retrieval is also developed there.
+- **Chapter 5 (retrieval enrichment and indexing)**. The last two stages of the pipeline: the Extractor's four-piece set and the Indexer indexing strategy. Sub-chunks are in Section 4.4.1 General, Use sub-chunks for retrieval, and not in Chapter 5.
 - **Chapter 7 (retrieval testing and tuning)**. Whether a chunk is good is for the retrieval test to say. The full investigation method for "nothing retrieved", and the similarity parameters, are only named in this chapter.
 - **Chapter 10 (agents and workflows)**. The custom ingestion pipeline for when Built-in cannot meet the need: arranging processing nodes on the canvas.
 - **Chapter 13 (team collaboration and knowledge-base operations)**. The chunk-governance actions in this chapter are promoted to an operations-inspection SOP. The flow for replacing old documents with new ones is in the "update process" section.
@@ -440,6 +440,6 @@ By the time you have read this far, you should be able to:
 - [ ] Still to be confirmed in testing: switching PDF parsers, a comparison of parse results from tuning General/Title parameters one by one, and the three Manual column roles (the demo data passed with General chunking and did not take the Manual path)
 - [ ] The defaults for General Chunker's Overlap ratio, Table context window, and Image context window are not given in the documentation; fill them in from an interface measurement
 - [ ] "The correspondence between chunk method and Chunker configuration group" (for example, whether Manual/Book/Laws correspond to Title Chunker) is not stated in the official documentation; confirm it from an interface measurement
-- [ ] The split behavior of the Table method's "one row per chunk" when it meets an over-long row (>512 tokens); confirm it from an interface measurement
-- [ ] Actually produce the three documents of our running example, upload and parse them, and verify the heading-regex and column-role plans
+- [ ] The split behavior of the Table method's "one row per chunk" when it meets an over-long row (longer than General's suggested chunk length; see Recommended chunk size in Section 4.4.1); confirm it from an interface measurement. 512 is only General's suggested length. This book has no separate hands-on check of an over-long Table row
+- [ ] Actually produce the four files of our running example (three documents; the notice has html and eml), upload and parse them, and verify the heading-regex and column-role plans
 - [ ] Check that the operation flowchart at the head of the chapter and the 4.1 pipeline diagram render natively on the GitHub web view

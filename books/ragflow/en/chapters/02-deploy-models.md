@@ -128,8 +128,10 @@ Watch the version correspondence. When you switch to another version, the tag in
 
 ```bash
 docker ps
-docker logs -f ragflow-cpu
+docker compose -f docker-compose.yml logs -f ragflow-cpu
 ```
+
+This follows the Compose service name. The working directory is still `ragflow/docker` from step 3. The container name carries the project prefix. The example in Chapter 12 is `docker-ragflow-cpu-1`.
 
 After initialization finishes, check the health of the API and the dependencies through the web port, from another terminal:
 
@@ -172,9 +174,9 @@ Changing a port, switching the document engine, and connecting an external datab
 | `ENABLE_REGISTER` | 1 | Whether user registration is open. For an internal deployment, set it to 0 |
 | `RAGFLOW_IMAGE` | — | The image and tag. It must match the release tag you checked out |
 
-At the `service_conf.yaml.template` layer, this chapter only needs you to remember two points. It is a template, not the final file (it is generated at startup; do not edit the generated file directly). When a proxy and the real IP are involved, watch `api.trusted_proxies` (by default it trusts only the loopback address of the nginx inside the image; an explicit list **replaces** rather than appends). The value of `MEM_LIMIT` is also defined among this layer's MySQL connection-pool parameters and the like (such as `max_connections`, which defaults to 900). Tuning the service surface is developed in Chapter 12.
+At the `service_conf.yaml.template` layer, this chapter only needs you to remember two points. It is a template, not the final file (it is generated at startup; do not edit the generated file directly). When a proxy and the real IP are involved, watch `api.trusted_proxies` (by default it trusts only the loopback address of the nginx inside the image; an explicit list **replaces** rather than appends). `MEM_LIMIT` is the memory cap of each container in `.env`. MySQL connection-pool parameters (such as `max_connections`, which defaults to 900) are defined in this layer. Tuning the service surface is developed in Chapter 12.
 
-**How a change takes effect**: a change to any of the configuration above needs a restart of every container before it takes effect:
+**How a change takes effect**: a change to any of the configuration above needs a restart of every container before it takes effect. The command below is the same as in Chapter 12, and the paths are relative to the repository root. If you are still in `ragflow/docker` from step 3, return to the repository root first:
 
 ```bash
 docker compose --env-file docker/.env -f docker/docker-compose.yml up -d
@@ -278,6 +280,8 @@ vllm serve openbmb/MiniCPM5-2B --served-model-name MiniCPM5-2B \
   --host 0.0.0.0 --port 8000 --dtype auto --max-model-len 8192
 ```
 
+The two model names are written as in each Example's original wording: the Ollama Example is `openbmb/minicpm5-2b`, and the vLLM Example is `openbmb/MiniCPM5-2B`. This book has not checked the official repositories to see whether they are the same model.
+
 When you connect it, select **VLLM** as the Provider. The Base URL ends with `/v1`. If `--api-key` is not configured, leave the API Key empty. If it is configured, fill in the same value.
 
 **TEI, the local embedding service built into `.env`**: enable the `tei-cpu` or `tei-gpu` profile, name the model with `TEI_MODEL`, and expose it with `TEI_PORT` (the default is 6380). It fits a scene where you do not want to install a separate tool stack just for embedding.
@@ -364,4 +368,4 @@ By the time you have read this far, you should be able to:
 - [ ] The component-duty table in Section 2.1 and the topology figure in Section 2.1 checked against what `docker-compose-base.yml` actually renders (currently summarized from the prose of configuration.md)
 - [ ] The `MEM_LIMIT` default of 8073741824 bytes (about 7.52 GiB) checked against a `docker stats` value from the hands-on run
 - [ ] Availability and naming of the Ollama / vLLM Example models (`openbmb/minicpm5-2b`, `qwen3-embedding:0.6b`) follow the two repositories at the time of measurement
-- [ ] Whether `shipping-notice.eml` (the original mail) is inside the supported-format list was not verified. The quickstart format list does not include eml. Verify it empirically when Chapter 3 connects a data source
+- [x] `shipping-notice.eml` (the original mail) is supported. See the hands-on run in Section 3.3: the eml file yields 1 chunk, and the Parse column shows Email

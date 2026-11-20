@@ -418,7 +418,7 @@ By the time you have read this far, you should be able to:
 
 ## Review checklist (before publication)
 
-- [x] The Admin UI (Service status, User management) was confirmed in testing on 2026-11-04 (screenshots in Section 12.6.2): the entry is /admin on the main site (the root path of 9381 returns JSON), and only a Superuser can enter (an ordinary account gets 403); `docker compose`, `migration.sh backup`, the seven SSL steps, and the CLI command families are still to be verified hands-on section by section
+- [x] The Admin UI (Service status, User management) was confirmed in testing on 2026-11-04 (screenshots in Section 12.6.2): the entry is /admin on the main site (the root path of 9381 returns JSON), and only a Superuser can enter (an ordinary account gets 403); `docker compose`, `migration.sh backup`, the three SSL command groups in Section 12.2.3, and the CLI command families are still to be verified hands-on section by section
 - [ ] The full v0.27.2 to v1.0.0-rc1 migration flow has not been drilled (an irreversible operation, and it needs a dedicated environment that can be thrown away)
 - [ ] Check the interface elements of the Admin UI's three pages one by one against the actual v1.0.0-rc2 version
 - [ ] A hands-on check of the connection to self-hosted Langfuse (trace fields and asynchronous delivery behavior)
