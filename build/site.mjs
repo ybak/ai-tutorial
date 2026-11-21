@@ -382,13 +382,14 @@ export function renderEnglishHome() {
 <p class="cover-subtitle">Hands-on, Chinese-first AI application tutorials. Every book is tested locally.</p>
 <hr class="cover-rule">
 </section>
-<p>Most books are available in Chinese only. English editions so far: LiteLLM, RAGFlow, FastGPT, MCP, and Langfuse.</p>
+<p>Most books are available in Chinese only. English editions so far: LiteLLM, RAGFlow, FastGPT, MCP, Langfuse, and CopilotKit.</p>
 <ul>
 <li><a href="litellm/index.html">LiteLLM: Multi-Model Gateway, Quotas, and Fallback</a></li>
 <li><a href="ragflow/index.html">RAGFlow: From First Steps to Production</a></li>
 <li><a href="fastgpt/index.html">FastGPT: From First Steps to Production</a></li>
 <li><a href="mcp/index.html">MCP: A Cross-Framework Tool Protocol</a></li>
 <li><a href="langfuse/index.html">Langfuse: LLM Observability and Evaluation</a></li>
+<li><a href="copilotkit/index.html">CopilotKit: Bringing an AI Agent into the Frontend</a></li>
 <li><a href="${README_EN_URL}">English README (README.en.md)</a></li>
 <li><a href="../index.html">Chinese shelf</a></li>
 </ul>`;
