@@ -53,6 +53,29 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: "part-1", title: "Part 1 Getting Started", chapters: [
+    { file: "01-overview.md", chapter: 1, title: "Getting to Know MCP", sources: ["docs/2026-07-28/getting-started/intro.mdx"] },
+    { file: "02-core-concepts.md", chapter: 2, title: "Core Protocol Concepts", sources: ["docs/specification/2026-07-28/basic/index.mdx", "docs/specification/2026-07-28/server/discover.mdx"] },
+    { file: "03-spec-versions.md", chapter: 3, title: "Spec Versions and Compatibility", sources: ["docs/specification/2026-07-28/changelog.mdx"] },
+    { file: "04-quickstart.md", chapter: 4, title: "Quick Start", sources: ["docs/2026-07-28/sdk.mdx"] },
+  ]},
+  { id: "part-2", title: "Part 2 Building the Server", chapters: [
+    { file: "05-build-server.md", chapter: 5, title: "Building a Complete Server", sources: ["docs/2026-07-28/develop/build-server.mdx"] },
+    { file: "06-tool-authoring.md", chapter: 6, title: "Tool Authoring in Practice", sources: ["docs/specification/2026-07-28/server/tools.mdx"] },
+  ]},
+  { id: "part-3", title: "Part 3 Scale and Integration", chapters: [
+    { file: "07-mcp-at-scale.md", chapter: 7, title: "At Scale: MCP for a Business Platform", sources: [] },
+    { file: "08-client-integrations.md", chapter: 8, title: "Cross-Framework Client Integration", sources: ["docs/2026-07-28/develop/build-client.mdx"] },
+    { file: "09-debugging.md", chapter: 9, title: "Debugging and the Inspector", sources: ["docs/2026-07-28/tools/debugging.mdx"] },
+  ]},
+  { id: "part-4", title: "Part 4 Production and Governance", chapters: [
+    { file: "10-deploy-security.md", chapter: 10, title: "Deployment and Security", sources: ["docs/specification/2026-07-28/basic/authorization/index.mdx", "docs/2026-07-28/tutorials/security/security_best_practices.mdx"] },
+    { file: "11-extensions.md", chapter: 11, title: "Agent Skills and the Extension Ecosystem", sources: ["docs/extensions/overview.mdx", "docs/2026-07-28/develop/build-with-agent-skills.mdx"] },
+    { file: "12-adoption-roadmap.md", chapter: 12, title: "An Enterprise Adoption Roadmap", sources: [] },
+  ]},
+];
+
 /**
  * 原创书无源文档链接映射,返回空 Map(接口与 agentscope-java.book.buildLinkMap 对齐)。
  * @returns {Map<string, string>} 空 Map
@@ -62,4 +85,22 @@ function buildLinkMap() {
 }
 
 // 构建映射类字段收敛为 book 字段(与 agentscope-java.mjs 同款,所有消费方从 book 出发)
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'MCP: A Cross-Framework Tool Protocol',
+      subtitle: 'From the core protocol to platform-scale adoption',
+      tagline: 'Model Context Protocol, the cross-framework standard for connecting tools once',
+      sourceNote: 'Written from the MCP official specification of 2026-07-28 and the official docs, including what the team verified hands-on',
+      sourceDescription: 'The official MCP specification repository modelcontextprotocol/modelcontextprotocol (2026-07-28) and the official teaching docs',
+      licenseNote: 'The MCP specification and docs are published under an open license. This book is study notes, distributed under this repository\'s license.',
+      trademarkNote: 'Model Context Protocol and related trademarks belong to their owners. This book is not affiliated with the MCP project or Anthropic.',
+      date: '2026-10-24',
+      chaptersDir: 'books/mcp/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});
