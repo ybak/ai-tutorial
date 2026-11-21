@@ -325,6 +325,8 @@ test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => 
   assert.ok(html.includes("FastGPT: From First Steps to Production"));
   assert.ok(html.includes('href="mcp/index.html"'));
   assert.ok(html.includes("MCP: A Cross-Framework Tool Protocol"));
+  assert.ok(html.includes('href="langfuse/index.html"'));
+  assert.ok(html.includes("Langfuse: LLM Observability and Evaluation"));
 });
 
 test("中文渲染缺省文案不变,英文 pager 用英文", () => {
@@ -753,6 +755,7 @@ test("英文下一本：FastGPT 的下一本没有英文版，只链到英文首
   assert.ok(rec.blurb.includes("RAGFlow"));
   assert.ok(rec.blurb.includes("FastGPT"));
   assert.ok(rec.blurb.includes("MCP"));
+  assert.ok(rec.blurb.includes("Langfuse"));
   const html = renderNextBookFooter(en);
   assert.ok(html.includes("Next book"));
   assert.ok(html.includes('href="../../index.html"'));
@@ -760,6 +763,99 @@ test("英文下一本：FastGPT 的下一本没有英文版，只链到英文首
   assert.ok(html.includes(">Chinese shelf</a>"));
   assert.ok(!html.includes('href="../../copilotkit/'));
   assert.ok(!html.includes("/en/copilotkit"));
+  assert.ok(!html.includes("/en/mcp"));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!HARD_SELL.test(html));
+});
+
+test("langfuse 中英文章节文件名一一对应,命令与配置一致,mermaid 与 text 只比数量", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: langfuse } = await import("./books/langfuse.mjs");
+  const en = localizedBook(langfuse, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "langfuse");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/langfuse/en/chapters");
+  assert.equal(en.assetsDir, langfuse.assetsDir);
+  const zhFiles = langfuse.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 13);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fenceTags = (text) => [...text.matchAll(/```([^\n]*)\n/g)].map((m) => m[1]);
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  const stripComments = (body, lang) => body.split("\n").map((line) => {
+    if ((lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") && /^\s*#/.test(line)) return "";
+    if (lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") return line.replace(/\s+#.*$/, "");
+    return line;
+  }).filter((line) => line !== "").join("\n");
+
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, langfuse.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    assert.deepEqual(fenceTags(enText), fenceTags(zh), `${file} fence tags`);
+    for (const lang of ["bash", "python", "yaml", "json"]) {
+      assert.deepEqual(
+        fences(enText, lang).map((body) => stripComments(body, lang)),
+        fences(zh, lang).map((body) => stripComments(body, lang)),
+        `${file} ${lang} code`,
+      );
+    }
+    for (const lang of ["text", "mermaid"]) {
+      assert.equal(fences(enText, lang).length, fences(zh, lang).length, `${file} ${lang} count`);
+    }
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+  }
+});
+
+test("langfuse 英文章节引用的实拍图与中文相同,且都能解析到中文 assets", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (dir) => {
+    const byFile = {};
+    const all = new Set();
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md")).sort()) {
+      const text = fs.readFileSync(path.join(dir, file), "utf8");
+      const refs = [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+      assert.equal(text.includes("../../assets/"), false, `${file} must not use ../../assets/`);
+      assert.equal(text.includes("/en/assets/"), false, `${file} must not point at /en/assets/`);
+      byFile[file] = refs;
+      for (const ref of refs) all.add(ref);
+    }
+    return { byFile, all };
+  };
+  const zh = imageRefs(path.join(root, "books/langfuse/chapters"));
+  const en = imageRefs(path.join(root, "books/langfuse/en/chapters"));
+  assert.deepEqual([...en.all].sort(), [...zh.all].sort());
+  assert.equal(en.all.size, 30);
+  for (const file of Object.keys(zh.byFile)) {
+    assert.deepEqual(en.byFile[file], zh.byFile[file], `${file} image order`);
+  }
+  for (const ref of en.all) {
+    assert.ok(ref.startsWith("../assets/images/"), ref);
+    const abs = path.join(root, "books/langfuse", ref.replace(/^\.\.\//, ""));
+    assert.equal(fs.existsSync(abs), true, `${ref} resolves under books/langfuse/assets`);
+  }
+});
+
+test("英文下一本：Langfuse 的下一本 LiteLLM 已有英文版，不链 /en/mcp/", async () => {
+  const { book: langfuse } = await import("./books/langfuse.mjs");
+  const en = localizedBook(langfuse, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "litellm");
+  assert.equal(rec.href, "../../litellm/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "LiteLLM: Multi-Model Gateway, Quotas, and Fallback");
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes('href="../../litellm/index.html"'));
+  assert.ok(!html.includes("/en/mcp"));
+  assert.ok(!html.includes('href="../../mcp/'));
+  assert.ok(!html.includes('href="../../../index.html"'));
   assert.ok(!html.includes("下一本"));
   assert.ok(!HARD_SELL.test(html));
 });
