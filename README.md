@@ -22,7 +22,7 @@
 | 书 | 一句话 | 章节 | 在线阅读 |
 | --- | --- | --- | --- |
 | [AgentScope Java 2.0:从入门到进阶](books/agentscope-java/README.md) | 从第一个 Agent 到生产级 Agent 平台 | 7 篇 44 章 | [/agentscope-java/](https://ybak.github.io/ai-tutorial/agentscope-java/) |
-| [MCP:跨框架工具接入协议](books/mcp/README.md) | 从核心协议到中台规模化 | 4 篇 12 章 | [/mcp/](https://ybak.github.io/ai-tutorial/mcp/) |
+| [MCP:跨框架工具接入协议](books/mcp/README.md) | 从核心协议到中台规模化 | 4 篇 12 章 | [/mcp/](https://ybak.github.io/ai-tutorial/mcp/) · [English](https://ybak.github.io/ai-tutorial/en/mcp/) |
 | [RAGFlow:从入门到进阶](books/ragflow/README.md) | 从搭建知识库到生产级检索调优 | 4 篇 13 章 | [/ragflow/](https://ybak.github.io/ai-tutorial/ragflow/) · [English](https://ybak.github.io/ai-tutorial/en/ragflow/) |
 | [CopilotKit:从前端接入 AI Agent](books/copilotkit/README.md) | 在 React 应用中植入 copilot 体验,从组件到自治 Agent(含可运行 demo 与实测截图) | 4 篇 8 章 | [/copilotkit/](https://ybak.github.io/ai-tutorial/copilotkit/) |
 | [FastGPT:从入门到进阶](books/fastgpt/README.md) | 知识库与工作流,从搭建到生产运营 | 4 篇 13 章 | [/fastgpt/](https://ybak.github.io/ai-tutorial/fastgpt/) · [English](https://ybak.github.io/ai-tutorial/en/fastgpt/) |

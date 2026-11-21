@@ -52,7 +52,7 @@ export const UI = {
     filterPrefix: 'Book: ',
     nextBookKicker: 'Next book',
     nextBookShelfNote: 'This book is not in the recommendation order. The English shelf lists what has been translated.',
-    nextBookScope: 'The English edition currently includes LiteLLM, RAGFlow, FastGPT, and Langfuse. Other books on this path are on the Chinese shelf.',
+    nextBookScope: 'The English edition currently includes LiteLLM, RAGFlow, FastGPT, MCP, and Langfuse. Other books on this path are on the Chinese shelf.',
     chineseShelf: 'Chinese shelf',
     repoLead: 'Source for this chapter is in',
     repoLinkLabel: 'ybak/ai-tutorial',
