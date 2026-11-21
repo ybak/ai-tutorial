@@ -54,3 +54,5 @@ agentscope-java 的上游文档在只读仓库 `../agentscope-java/docs/v2/zh`�
 FastGPT 的英文稿在 `books/fastgpt/en/chapters/`，站点路径是 `/en/fastgpt/`。截图仍用 `books/fastgpt/assets/`，章节写 `../assets/images/`。
 
 Langfuse 的英文稿在 `books/langfuse/en/chapters/`，站点路径是 `/en/langfuse/`。截图仍用 `books/langfuse/assets/`，章节写 `../assets/images/`。
+
+CopilotKit 的英文稿在 `books/copilotkit/en/chapters/`，站点路径是 `/en/copilotkit/`。截图仍用 `books/copilotkit/assets/`，章节写 `../assets/images/`。
