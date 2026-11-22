@@ -37,8 +37,38 @@ const PARTS = [
   ]},
 ];
 
+const EN_PARTS = [
+  { id: 'part-1', title: 'Part 1 The Problem and the Shape', chapters: [
+    { file: '01-problem-and-four-traits.md', chapter: 1, title: 'The problem and the four traits: from a single session to a continuous entity', sources: [] },
+  ]},
+  { id: 'part-2', title: 'Part 2 Two Layers and Events', chapters: [
+    { file: '02-router-worker-and-events.md', chapter: 2, title: 'Two-layer Router/Worker and event-driven design', sources: [] },
+  ]},
+  { id: 'part-3', title: 'Part 3 Async, Persistence, and Self-healing', chapters: [
+    { file: '03-async-persistence-watchdog.md', chapter: 3, title: 'Async multi-channel, keeping compute and state apart, and Watchdog', sources: [] },
+  ]},
+];
+
 function buildLinkMap() {
   return new Map();
 }
 
-Object.assign(book, { PARTS, EXCLUDED_SOURCES: [], buildLinkMap });
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES: [],
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'Super-agent Design, Explored through Grok Bot',
+      subtitle: 'Four traits and Router/Worker: from the article to one workday on a platform team',
+      tagline: 'The four traits and five modules, with Grok Bot as the comparison for a continuous, efficient, proactive, persistent assistant',
+      sourceNote: 'Rewritten from the problem domain and architecture of the DeepSeek Harness team WeChat article "Super-agent Design Exploration" (checked 2026-11-07). Grok Bot is the comparison instance: visible behavior was confirmed in testing, and the conventions are written so a platform team can execute them. Implementation-logic paragraphs are marked as inference throughout, and are not an official disclosure. The Routines panel is not illustrated until that panel is open and confirmed in testing',
+      sourceDescription: 'The DeepSeek Harness team public WeChat article "Super-agent Design Exploration: Toward a More Autonomous Agent System" (checked 2026-11-07)',
+      licenseNote: 'This book is study notes and a comparison exploration, distributed under this repository\'s license. It is not an official description of a DeepSeek or Grok Bot product.',
+      trademarkNote: 'DeepSeek, Grok Bot, and related trademarks belong to their owners. This book is not affiliated with those projects.',
+      date: '2026-11-07',
+      chaptersDir: 'books/super-agent/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});

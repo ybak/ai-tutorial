@@ -56,3 +56,5 @@ FastGPT 的英文稿在 `books/fastgpt/en/chapters/`，站点路径是 `/en/fast
 Langfuse 的英文稿在 `books/langfuse/en/chapters/`，站点路径是 `/en/langfuse/`。截图仍用 `books/langfuse/assets/`，章节写 `../assets/images/`。
 
 CopilotKit 的英文稿在 `books/copilotkit/en/chapters/`，站点路径是 `/en/copilotkit/`。截图仍用 `books/copilotkit/assets/`，章节写 `../assets/images/`。
+
+Super-agent 的英文稿在 `books/super-agent/en/chapters/`，站点路径是 `/en/super-agent/`。截图仍用 `books/super-agent/assets/`，章节写 `../assets/images/`。
