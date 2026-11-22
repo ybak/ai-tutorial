@@ -329,7 +329,8 @@ test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => 
   assert.ok(html.includes("Langfuse: LLM Observability and Evaluation"));
   assert.ok(html.includes('href="copilotkit/index.html"'));
   assert.ok(html.includes("CopilotKit: Bringing an AI Agent into the Frontend"));
-  assert.ok(!html.includes("super-agent/index.html"));
+  assert.ok(html.includes('href="super-agent/index.html"'));
+  assert.ok(html.includes("Super-agent Design, Explored through Grok Bot"));
   assert.ok(!html.includes("agentscope-java/index.html"));
 });
 
@@ -618,6 +619,12 @@ test("英文下一本只链到已有英文页：LiteLLM 落到英文首页并注
   assert.equal(rec.href, "../../index.html");
   assert.equal(rec.shelfHref, "../../../index.html");
   assert.ok(rec.blurb.includes("LiteLLM"));
+  assert.ok(rec.blurb.includes("RAGFlow"));
+  assert.ok(rec.blurb.includes("FastGPT"));
+  assert.ok(rec.blurb.includes("MCP"));
+  assert.ok(rec.blurb.includes("Langfuse"));
+  assert.ok(rec.blurb.includes("CopilotKit"));
+  assert.ok(rec.blurb.includes("Super-agent"));
   const html = renderNextBookFooter(en);
   assert.ok(html.includes("Next book"));
   assert.ok(html.includes("AI Tutorial Shelf"));
@@ -1024,29 +1031,114 @@ test("copilotkit 英文章节引用的实拍图与中文相同,且都能解析�
   }
 });
 
-test("英文下一本：CopilotKit 的下一本没有英文版，只链到英文首页和中文书架", async () => {
+test("英文下一本：CopilotKit 的下一本 Super-agent 已有英文版，链到英文分册", async () => {
   const { book: copilotkit } = await import("./books/copilotkit.mjs");
   const en = localizedBook(copilotkit, "en");
   const rec = resolveNextBook(en);
-  assert.equal(rec.kind, "en-home");
-  assert.equal(rec.bookId, null);
-  assert.equal(rec.href, "../../index.html");
-  assert.equal(rec.shelfHref, "../../../index.html");
-  assert.ok(rec.blurb.includes("LiteLLM"));
-  assert.ok(rec.blurb.includes("RAGFlow"));
-  assert.ok(rec.blurb.includes("FastGPT"));
-  assert.ok(rec.blurb.includes("MCP"));
-  assert.ok(rec.blurb.includes("Langfuse"));
-  assert.ok(rec.blurb.includes("CopilotKit"));
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "super-agent");
+  assert.equal(rec.href, "../../super-agent/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "Super-agent Design, Explored through Grok Bot");
   const html = renderNextBookFooter(en);
   assert.ok(html.includes("Next book"));
-  assert.ok(html.includes("The English edition currently includes LiteLLM"));
-  assert.ok(html.includes('href="../../index.html"'));
-  assert.ok(html.includes('href="../../../index.html"'));
-  assert.ok(html.includes(">Chinese shelf</a>"));
-  assert.ok(!html.includes('href="../../super-agent/'));
-  assert.ok(!html.includes("/en/super-agent"));
+  assert.ok(html.includes('href="../../super-agent/index.html"'));
+  assert.ok(!html.includes('href="../../../index.html"'));
   assert.ok(!html.includes("/en/agentscope-java"));
+  assert.ok(!html.includes('href="../../agentscope-java/'));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!HARD_SELL.test(html));
+});
+
+test("super-agent 中英文章节文件名一一对应,命令与配置一致,mermaid 与 text 只比数量", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: superAgent } = await import("./books/super-agent.mjs");
+  const en = localizedBook(superAgent, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "super-agent");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/super-agent/en/chapters");
+  assert.equal(en.assetsDir, superAgent.assetsDir);
+  const zhFiles = superAgent.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 3);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fenceTags = (text) => [...text.matchAll(/```([^\n]*)\n/g)].map((m) => m[1]);
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  const stripComments = (body, lang) => body.split("\n").map((line) => {
+    if ((lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") && /^\s*#/.test(line)) return "";
+    if (lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") return line.replace(/\s+#.*$/, "");
+    return line;
+  }).filter((line) => line !== "").join("\n");
+
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, superAgent.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    assert.deepEqual(fenceTags(enText), fenceTags(zh), `${file} fence tags`);
+    for (const lang of ["bash", "python", "yaml", "json"]) {
+      assert.deepEqual(
+        fences(enText, lang).map((body) => stripComments(body, lang)),
+        fences(zh, lang).map((body) => stripComments(body, lang)),
+        `${file} ${lang} code`,
+      );
+    }
+    for (const lang of ["text", "mermaid"]) {
+      assert.equal(fences(enText, lang).length, fences(zh, lang).length, `${file} ${lang} count`);
+    }
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+  }
+});
+
+test("super-agent 英文章节引用的实拍图与中文相同,且都能解析到中文 assets", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (dir) => {
+    const byFile = {};
+    const all = new Set();
+    for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md")).sort()) {
+      const text = fs.readFileSync(path.join(dir, file), "utf8");
+      const refs = [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+      assert.equal(text.includes("../../assets/"), false, `${file} must not use ../../assets/`);
+      assert.equal(text.includes("/en/assets/"), false, `${file} must not point at /en/assets/`);
+      byFile[file] = refs;
+      for (const ref of refs) all.add(ref);
+    }
+    return { byFile, all };
+  };
+  const zh = imageRefs(path.join(root, "books/super-agent/chapters"));
+  const en = imageRefs(path.join(root, "books/super-agent/en/chapters"));
+  assert.deepEqual([...en.all].sort(), [...zh.all].sort());
+  assert.equal(en.all.size, 8);
+  for (const file of Object.keys(zh.byFile)) {
+    assert.deepEqual(en.byFile[file], zh.byFile[file], `${file} image order`);
+  }
+  for (const ref of en.all) {
+    assert.ok(ref.startsWith("../assets/images/"), ref);
+    const abs = path.join(root, "books/super-agent", ref.replace(/^\.\.\//, ""));
+    assert.equal(fs.existsSync(abs), true, `${ref} resolves under books/super-agent/assets`);
+  }
+});
+
+test("英文下一本：Super-agent 的下一本 Langfuse 已有英文版，不链 /en/agentscope-java/", async () => {
+  const { book: superAgent } = await import("./books/super-agent.mjs");
+  const en = localizedBook(superAgent, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "langfuse");
+  assert.equal(rec.href, "../../langfuse/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "Langfuse: LLM Observability and Evaluation");
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes('href="../../langfuse/index.html"'));
+  assert.ok(!html.includes("/en/agentscope-java"));
+  assert.ok(!html.includes('href="../../agentscope-java/'));
+  assert.ok(!html.includes('href="../../../index.html"'));
+  assert.ok(!html.includes(">Chinese shelf</a>"));
   assert.ok(!html.includes("下一本"));
   assert.ok(!HARD_SELL.test(html));
 });
