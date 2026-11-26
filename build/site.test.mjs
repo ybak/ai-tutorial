@@ -331,7 +331,8 @@ test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => 
   assert.ok(html.includes("CopilotKit: Bringing an AI Agent into the Frontend"));
   assert.ok(html.includes('href="super-agent/index.html"'));
   assert.ok(html.includes("Super-agent Design, Explored through Grok Bot"));
-  assert.ok(!html.includes("agentscope-java/index.html"));
+  assert.ok(html.includes('href="agentscope-java/index.html"'));
+  assert.ok(html.includes("AgentScope Java 2.0: From First Steps to Production"));
 });
 
 test("中文渲染缺省文案不变,英文 pager 用英文", () => {
@@ -552,9 +553,11 @@ test("buildSite 英文子站与中文路径并存,语言切换指向对方同章
   assert.ok(zhChapter.includes('href="../chapters/'));
   assert.ok(!HARD_SELL.test(zhAside));
   assert.ok(enAside.includes("Next book"));
-  assert.ok(enAside.includes('href="../../index.html"'));
-  assert.ok(enAside.includes('href="../../../index.html"'));
-  assert.ok(!enAside.includes('href="../../agentscope-java/'));
+  assert.ok(enAside.includes('href="../../agentscope-java/index.html"'));
+  assert.ok(enAside.includes("AgentScope Java 2.0: From First Steps to Production"));
+  assert.ok(!enAside.includes('href="../../index.html"'));
+  assert.ok(!enAside.includes('href="../../../index.html"'));
+  assert.ok(!enAside.includes(">Chinese shelf</a>"));
   assert.ok(!enAside.includes("下一本"));
   assert.ok(!HARD_SELL.test(enAside));
   const zhHome = fs.readFileSync(path.join(zhDir, "index.html"), "utf8");
@@ -610,48 +613,48 @@ test("下一本推荐成环：中文链到另一本已发布书，不指向自�
   assert.ok(!renderIndexPage(book, flattenPages(book.PARTS)).includes('class="next-book"'));
 });
 
-test("英文下一本只链到已有英文页：LiteLLM 落到英文首页并注明范围", async () => {
+test("英文下一本：LiteLLM 的下一本 AgentScope Java 已有英文版，链到英文分册", async () => {
   const { book: litellm } = await import("./books/litellm.mjs");
   const en = localizedBook(litellm, "en");
   const rec = resolveNextBook(en);
-  assert.equal(rec.kind, "en-home");
-  assert.equal(rec.bookId, null);
-  assert.equal(rec.href, "../../index.html");
-  assert.equal(rec.shelfHref, "../../../index.html");
-  assert.ok(rec.blurb.includes("LiteLLM"));
-  assert.ok(rec.blurb.includes("RAGFlow"));
-  assert.ok(rec.blurb.includes("FastGPT"));
-  assert.ok(rec.blurb.includes("MCP"));
-  assert.ok(rec.blurb.includes("Langfuse"));
-  assert.ok(rec.blurb.includes("CopilotKit"));
-  assert.ok(rec.blurb.includes("Super-agent"));
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "agentscope-java");
+  assert.equal(rec.href, "../../agentscope-java/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "AgentScope Java 2.0: From First Steps to Production");
   const html = renderNextBookFooter(en);
   assert.ok(html.includes("Next book"));
-  assert.ok(html.includes("AI Tutorial Shelf"));
-  assert.ok(html.includes("The English edition currently includes LiteLLM"));
-  assert.ok(html.includes('href="../../index.html"'));
-  assert.ok(html.includes('href="../../../index.html"'));
-  assert.ok(html.includes(">Chinese shelf</a>"));
+  assert.ok(html.includes('href="../../agentscope-java/index.html"'));
+  assert.ok(html.includes("AgentScope Java 2.0: From First Steps to Production"));
+  assert.ok(!html.includes('href="../../../index.html"'));
+  assert.ok(!html.includes(">Chinese shelf</a>"));
   assert.ok(html.includes('href="https://github.com/ybak/ai-tutorial"'));
   assert.ok(html.includes("Open an issue"));
   assert.ok(!html.includes("下一本"));
-  assert.ok(!html.includes('href="../../agentscope-java/'));
   assert.ok(!html.includes('href="../../litellm/'));
   assert.ok(!html.includes("/en/agentscope-java"));
   assert.ok(!HARD_SELL.test(html));
 
-  const withEnglishNext = BUILDABLE_BOOKS.map((b) => b.bookId === "agentscope-java"
-    ? { ...b, locales: { en: { title: "AgentScope Java", tagline: "From the first agent to a platform", chaptersDir: b.chaptersDir, PARTS: b.PARTS } } }
+  const withoutEnglishNext = BUILDABLE_BOOKS.map((b) => b.bookId === "agentscope-java"
+    ? { ...b, locales: undefined }
     : b);
-  const translated = resolveNextBook(en, withEnglishNext);
-  assert.equal(translated.kind, "book");
-  assert.equal(translated.bookId, "agentscope-java");
-  assert.equal(translated.href, "../../agentscope-java/index.html");
-  assert.equal(translated.title, "AgentScope Java");
-  const translatedHtml = renderNextBookFooter(en, withEnglishNext);
-  assert.ok(translatedHtml.includes('href="../../agentscope-java/index.html"'));
-  assert.ok(!translatedHtml.includes('href="../../../index.html"'));
-  assert.ok(!translatedHtml.includes("currently includes LiteLLM"));
+  const fallback = resolveNextBook(en, withoutEnglishNext);
+  assert.equal(fallback.kind, "en-home");
+  assert.equal(fallback.href, "../../index.html");
+  assert.equal(fallback.shelfHref, "../../../index.html");
+  assert.ok(fallback.blurb.includes("AgentScope Java"));
+  assert.ok(fallback.blurb.includes("LiteLLM"));
+  assert.ok(fallback.blurb.includes("RAGFlow"));
+  assert.ok(fallback.blurb.includes("FastGPT"));
+  assert.ok(fallback.blurb.includes("MCP"));
+  assert.ok(fallback.blurb.includes("Langfuse"));
+  assert.ok(fallback.blurb.includes("CopilotKit"));
+  assert.ok(fallback.blurb.includes("Super-agent"));
+  const fallbackHtml = renderNextBookFooter(en, withoutEnglishNext);
+  assert.ok(fallbackHtml.includes("The English edition currently includes AgentScope Java"));
+  assert.ok(fallbackHtml.includes('href="../../index.html"'));
+  assert.ok(fallbackHtml.includes(">Chinese shelf</a>"));
+  assert.ok(!fallbackHtml.includes('href="../../agentscope-java/'));
 });
 
 test("英文下一本：RAGFlow 的下一本 FastGPT 已有英文版，链到英文分册", async () => {
@@ -1139,6 +1142,96 @@ test("英文下一本：Super-agent 的下一本 Langfuse 已有英文版，不�
   assert.ok(!html.includes('href="../../agentscope-java/'));
   assert.ok(!html.includes('href="../../../index.html"'));
   assert.ok(!html.includes(">Chinese shelf</a>"));
+  assert.ok(!html.includes("下一本"));
+  assert.ok(!HARD_SELL.test(html));
+});
+
+test("agentscope-java 英文版这一批与中文对应章节围栏一致, mermaid 只比数量", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: agentscopeJava } = await import("./books/agentscope-java.mjs");
+  const en = localizedBook(agentscopeJava, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "agentscope-java");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/agentscope-java/en/chapters");
+  assert.equal(en.assetsDir, agentscopeJava.assetsDir);
+  assert.equal(en.title, "AgentScope Java 2.0: From First Steps to Production");
+  const enFiles = [...new Set(en.PARTS.flatMap((p) => [p.intro, ...p.chapters.map((c) => c.file)].filter(Boolean)))];
+  assert.deepEqual(enFiles, [
+    "preface.md",
+    "part-1-intro.md",
+    "01-overview.md",
+    "02-quickstart.md",
+    "03-concept-map.md",
+  ]);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fenceTags = (text) => [...text.matchAll(/```([^\n]*)\n/g)].map((m) => m[1]);
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  const stripComments = (body, lang) => body.split("\n").map((line) => {
+    if ((lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") && /^\s*#/.test(line)) return "";
+    if (lang === "yaml" || lang === "bash" || lang === "python" || lang === "json") return line.replace(/\s+#.*$/, "");
+    return line;
+  }).filter((line) => line !== "").join("\n");
+
+  for (const file of enFiles) {
+    const zh = fs.readFileSync(path.join(root, agentscopeJava.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    assert.deepEqual(fenceTags(enText), fenceTags(zh), `${file} fence tags`);
+    for (const lang of ["bash", "python", "yaml", "json"]) {
+      assert.deepEqual(
+        fences(enText, lang).map((body) => stripComments(body, lang)),
+        fences(zh, lang).map((body) => stripComments(body, lang)),
+        `${file} ${lang} code`,
+      );
+    }
+    for (const lang of ["text", "mermaid"]) {
+      assert.equal(fences(enText, lang).length, fences(zh, lang).length, `${file} ${lang} count`);
+    }
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+    assert.equal(enText.includes("「") || enText.includes("」"), false, `${file} corner quotes`);
+    assert.equal(/screenshot was measured/i.test(enText), false, `${file} measured phrase`);
+    assert.equal(/\bis fulfilled\b/i.test(enText), false, `${file} fulfilled`);
+  }
+});
+
+test("agentscope-java 英文这一批的图与中文相同, 且解析到中文 assets", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const root = path.resolve(import.meta.dirname, "..");
+  const imageRefs = (file) => {
+    const text = fs.readFileSync(file, "utf8");
+    assert.equal(text.includes("../../assets/"), false);
+    assert.equal(text.includes("/en/assets/"), false);
+    return [...text.matchAll(/\]\((\.\.\/assets\/images\/[^)\s]+)\)/g)].map((m) => m[1]);
+  };
+  const zhDir = path.join(root, "books/agentscope-java/chapters");
+  const enDir = path.join(root, "books/agentscope-java/en/chapters");
+  for (const file of ["preface.md", "part-1-intro.md", "01-overview.md", "03-concept-map.md"]) {
+    assert.deepEqual(imageRefs(path.join(enDir, file)), imageRefs(path.join(zhDir, file)), file);
+  }
+  const shot = "../assets/images/demo/fw-02-quickstart.png";
+  assert.deepEqual(imageRefs(path.join(enDir, "02-quickstart.md")), [shot]);
+  assert.deepEqual(imageRefs(path.join(zhDir, "02-quickstart.md")), [shot]);
+  assert.equal(fs.existsSync(path.join(root, "books/agentscope-java/assets/images/demo/fw-02-quickstart.png")), true);
+});
+
+test("英文下一本：AgentScope Java 的下一本 MCP 已有英文版，链到英文分册", async () => {
+  const { book: agentscopeJava } = await import("./books/agentscope-java.mjs");
+  const en = localizedBook(agentscopeJava, "en");
+  const rec = resolveNextBook(en);
+  assert.equal(rec.kind, "book");
+  assert.equal(rec.bookId, "mcp");
+  assert.equal(rec.href, "../../mcp/index.html");
+  assert.equal(rec.shelfHref, null);
+  assert.equal(rec.title, "MCP: A Cross-Framework Tool Protocol");
+  const html = renderNextBookFooter(en);
+  assert.ok(html.includes("Next book"));
+  assert.ok(html.includes('href="../../mcp/index.html"'));
+  assert.ok(!html.includes('href="../../../index.html"'));
+  assert.ok(!html.includes(">Chinese shelf</a>"));
+  assert.ok(!html.includes("/en/cli"));
   assert.ok(!html.includes("下一本"));
   assert.ok(!HARD_SELL.test(html));
 });

@@ -162,4 +162,33 @@ function buildLinkMap() {
 
 // Ruling-4：构建映射类字段收敛为 book 字段——所有消费方从 book 出发
 // （book.PARTS / book.buildLinkMap() / book.EXCLUDED_SOURCES），模块级直引清零。
-Object.assign(book, { PARTS, EXCLUDED_SOURCES, buildLinkMap });
+const EN_PARTS = [
+  { id: "part-0", title: "Preface", intro: "preface.md", chapters: [
+    { file: "preface.md", chapter: null, title: "Preface: AgentScope 2.0 and How to Use This Book", sources: ["intro.md", "docs/index.md"] },
+  ]},
+  { id: "part-1", title: "Part 1 Getting Started", intro: "part-1-intro.md", chapters: [
+    { file: "01-overview.md", chapter: 1, title: "Getting to Know AgentScope 2.0", sources: ["docs/index.md"] },
+    { file: "02-quickstart.md", chapter: 2, title: "Quick Start", sources: ["docs/quickstart.md"] },
+    { file: "03-concept-map.md", chapter: 3, title: "Core Concept Map", sources: ["docs/building-blocks/agent.md", "docs/harness/architecture.md"] },
+  ]},
+];
+
+Object.assign(book, {
+  PARTS,
+  EXCLUDED_SOURCES,
+  buildLinkMap,
+  locales: {
+    en: {
+      title: 'AgentScope Java 2.0: From First Steps to Production',
+      subtitle: 'A hands-on tutorial for building agents',
+      tagline: 'English edition, Part 1: from a first look at AgentScope 2.0 to a running agent',
+      sourceNote: 'Reorganized from the official AgentScope Java v2 Chinese documentation into a tutorial. The cross-border commerce demo records its hands-on scope and remaining limits in that demo\'s verification notes',
+      sourceDescription: 'The Chinese documentation under docs/v2/zh in the official AgentScope repository agentscope-java',
+      licenseNote: 'The upstream project is released under the Apache License 2.0 (see agentscope-java/LICENSE). This book is a study reorganization of that documentation and is distributed under the same license.',
+      trademarkNote: 'AgentScope and related trademarks belong to their owners. This book is not affiliated with the Apache project or its maintainers.',
+      date: '2026-10-11',
+      chaptersDir: 'books/agentscope-java/en/chapters',
+      PARTS: EN_PARTS,
+    },
+  },
+});
