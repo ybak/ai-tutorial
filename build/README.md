@@ -58,3 +58,5 @@ Langfuse 的英文稿在 `books/langfuse/en/chapters/`，站点路径是 `/en/la
 CopilotKit 的英文稿在 `books/copilotkit/en/chapters/`，站点路径是 `/en/copilotkit/`。截图仍用 `books/copilotkit/assets/`，章节写 `../assets/images/`。
 
 Super-agent 的英文稿在 `books/super-agent/en/chapters/`，站点路径是 `/en/super-agent/`。截图仍用 `books/super-agent/assets/`，章节写 `../assets/images/`。
+
+AgentScope Java 的英文稿在 `books/agentscope-java/en/chapters/`，站点路径是 `/en/agentscope-java/`。这一版是序言和第一篇（第 1–3 章）。截图仍用 `books/agentscope-java/assets/`，章节写 `../assets/images/`。
