@@ -29,3 +29,4 @@ books/copilotkit/demo/starfish-console/node_modules/
 books/litellm/demo/.env
 # LangChain 书本地虚拟环境，不入库
 books/langchain/demo/.venv/
+books/langchain/demo/**/__pycache__/
