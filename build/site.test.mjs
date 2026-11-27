@@ -195,7 +195,7 @@ test("runSite 产出旧路径 stub 且清场重建无残留", async () => {
   const path = await import("node:path");
   // runSite 需要每本 published 书的源目录存在;章节文件缺失仅 warn,不影响 stub
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "site-run-"));
-  for (const id of ["agentscope-java", "mcp", "ragflow", "copilotkit", "fastgpt", "super-agent", "langfuse", "litellm"]) {
+  for (const id of ["agentscope-java", "mcp", "ragflow", "copilotkit", "fastgpt", "super-agent", "langfuse", "litellm", "langchain"]) {
     fs.mkdirSync(path.join(tmp, "books", id, "chapters"), { recursive: true });
     fs.mkdirSync(path.join(tmp, "books", id, "assets"), { recursive: true });
   }
@@ -331,6 +331,8 @@ test("renderEnglishHome 链到 LiteLLM、RAGFlow 英文版和 README.en", () => 
   assert.ok(html.includes("CopilotKit: Bringing an AI Agent into the Frontend"));
   assert.ok(html.includes('href="super-agent/index.html"'));
   assert.ok(html.includes("Super-agent Design, Explored through Grok Bot"));
+  assert.ok(html.includes('href="langchain/index.html"'));
+  assert.ok(html.includes("LangChain and LangGraph: From One Chain to a Support Graph"));
   assert.ok(!html.includes("agentscope-java/index.html"));
 });
 
@@ -563,7 +565,8 @@ test("buildSite 英文子站与中文路径并存,语言切换指向对方同章
 });
 
 const NEXT_BOOK = {
-  "agentscope-java": "mcp",
+  "agentscope-java": "langchain",
+  langchain: "mcp",
   mcp: "ragflow",
   ragflow: "fastgpt",
   fastgpt: "copilotkit",
@@ -575,7 +578,7 @@ const NEXT_BOOK = {
 
 test("下一本推荐成环：中文链到另一本已发布书，不指向自己", () => {
   const ids = new Set(BUILDABLE_BOOKS.map((b) => b.bookId));
-  assert.equal(ids.size, 8);
+  assert.equal(ids.size, 9);
   const targets = [];
   for (const [from, to] of Object.entries(NEXT_BOOK)) {
     const current = BUILDABLE_BOOKS.find((b) => b.bookId === from);
@@ -1141,5 +1144,33 @@ test("英文下一本：Super-agent 的下一本 Langfuse 已有英文版，不�
   assert.ok(!html.includes(">Chinese shelf</a>"));
   assert.ok(!html.includes("下一本"));
   assert.ok(!HARD_SELL.test(html));
+});
+
+test("langchain 中英文章节文件名一一对应,代码与运行输出围栏保持原样", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { book: langchain } = await import("./books/langchain.mjs");
+  const en = localizedBook(langchain, "en");
+  assert.ok(en);
+  assert.equal(en.bookId, "langchain");
+  assert.equal(en.localePrefix, "en");
+  assert.equal(en.chaptersDir, "books/langchain/en/chapters");
+  assert.equal(en.assetsDir, langchain.assetsDir);
+  const zhFiles = langchain.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  const enFiles = en.PARTS.flatMap((p) => p.chapters.map((c) => c.file));
+  assert.deepEqual(enFiles, zhFiles);
+  assert.equal(zhFiles.length, 8);
+
+  const root = path.resolve(import.meta.dirname, "..");
+  const fences = (text, lang) => [...text.matchAll(new RegExp("```" + lang + "\\n([\\s\\S]*?)```", "g"))].map((m) => m[1]);
+  for (const file of zhFiles) {
+    const zh = fs.readFileSync(path.join(root, langchain.chaptersDir, file), "utf8");
+    const enText = fs.readFileSync(path.join(root, en.chaptersDir, file), "utf8");
+    assert.equal((enText.match(/^## /gm) || []).length, (zh.match(/^## /gm) || []).length, `${file} section count`);
+    for (const lang of ["bash", "python", "text"]) {
+      assert.deepEqual(fences(enText, lang), fences(zh, lang), `${file} ${lang} code`);
+    }
+    assert.equal(fences(enText, "mermaid").length, fences(zh, "mermaid").length, `${file} mermaid count`);
+  }
 });
 

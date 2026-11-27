@@ -397,7 +397,7 @@ print("sqlite_reopen_next", ",".join(nxt) if nxt else "")
 
 `snap.next` 在图已经走到 `END` 时为空。空值在布尔判断里为假，于是打印空字符串。`print` 在两个参数之间仍会放一个空格。所以这一行的样子是键名、一个空格、然后什么都没有。输出里看不见节点名，不是因为打印语句被跳过。`run_all.py` 的对应行写出来就是 `sqlite_reopen_next` 后面带着那个空格。
 
-若 `next` 里有名字，`"," .join` 会把它们用逗号接成一个字符串。这次没有名字，分支没有走到 `join`。不要把这一行脑补成 `sqlite_reopen_next END` 或 `sqlite_reopen_next __end__`。输出里没有这些词。
+若 `next` 里有名字，`",".join` 会把它们用逗号接成一个字符串。这次没有名字，分支没有走到 `join`。不要把这一行脑补成 `sqlite_reopen_next END` 或 `sqlite_reopen_next __end__`。输出里没有这些词。
 
 最后一次 `invoke` 的输入是 `{"n": snap.values["n"]}`。读到的是 1，所以输入是 `{"n": 1}`。`increment` 把它变成 2。`sqlite_second_step` 是 2。这里用方括号取值：若 `n` 不在 `values` 里，会在 `invoke` 之前失败，而不会悄悄传入 `None`。打印行用 `.get`，是为了在值为空时仍能打出一行；这次值是 1，两种取法一致。
 

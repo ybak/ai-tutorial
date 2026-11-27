@@ -27,3 +27,5 @@ books/copilotkit/demo/starfish-console/.env
 books/copilotkit/demo/starfish-console/node_modules/
 # LiteLLM 书本地实验密钥
 books/litellm/demo/.env
+# LangChain 书本地虚拟环境，不入库
+books/langchain/demo/.venv/

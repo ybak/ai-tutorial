@@ -58,3 +58,5 @@ Langfuse 的英文稿在 `books/langfuse/en/chapters/`，站点路径是 `/en/la
 CopilotKit 的英文稿在 `books/copilotkit/en/chapters/`，站点路径是 `/en/copilotkit/`。截图仍用 `books/copilotkit/assets/`，章节写 `../assets/images/`。
 
 Super-agent 的英文稿在 `books/super-agent/en/chapters/`，站点路径是 `/en/super-agent/`。截图仍用 `books/super-agent/assets/`，章节写 `../assets/images/`。
+
+LangChain 的英文稿在 `books/langchain/en/chapters/`，站点路径是 `/en/langchain/`。这本书没有实拍图。demo 在 `books/langchain/demo/`。
