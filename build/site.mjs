@@ -157,12 +157,13 @@ export function renderSidebar(parts, currentHref) {
 }
 
 /**
- * 学习路径上的下一本。八本已发布书成环，不推荐正在读的这一本。
- * 顺序按平台搭建往下走：Agent → 工具协议 → 知识库 → 工作流 → 界面 →
- * 长期助手 → 可观测 → 模型网关，再回到 Agent。
+ * 学习路径上的下一本。九本已发布书成环，不推荐正在读的这一本。
+ * 顺序按平台搭建往下走：Java Agent → Python 链与图 → 工具协议 → 知识库 →
+ * 工作流 → 界面 → 长期助手 → 可观测 → 模型网关，再回到 Java Agent。
  */
 const NEXT_BOOK_ID = {
-  'agentscope-java': 'mcp',
+  'agentscope-java': 'langchain',
+  langchain: 'mcp',
   mcp: 'ragflow',
   ragflow: 'fastgpt',
   fastgpt: 'copilotkit',
@@ -174,7 +175,8 @@ const NEXT_BOOK_ID = {
 
 /** 中文推荐理由。书名由卡片标题承担，这里只说明为什么接着读。 */
 const NEXT_BOOK_REASON_ZH = {
-  'agentscope-java': 'Agent 能跑起来之后，外部工具要有统一接法。下一本是 MCP。',
+  'agentscope-java': 'Java 平台上的 Agent 能跑之后，同一张售后单用 LangChain / LangGraph 写成可暂停的 Python 图。',
+  langchain: '图里的查单要能被别的框架复用。下一本是 MCP。',
   mcp: '工具协议接上之后，知识从哪来是下一块。RAGFlow 从知识库讲到检索调优。',
   ragflow: '检索有了之后，FastGPT 把知识库问答和工作流接到业务里。',
   fastgpt: '后端流程定了，CopilotKit 负责把 Agent 放进已有的界面。',
@@ -382,8 +384,9 @@ export function renderEnglishHome() {
 <p class="cover-subtitle">Hands-on, Chinese-first AI application tutorials. Every book is tested locally.</p>
 <hr class="cover-rule">
 </section>
-<p>Most books are available in Chinese only. English editions so far: LiteLLM, RAGFlow, FastGPT, MCP, Langfuse, CopilotKit, and Super-agent.</p>
+<p>Most books are available in Chinese only. English editions so far: LiteLLM, RAGFlow, FastGPT, MCP, Langfuse, CopilotKit, Super-agent, and LangChain.</p>
 <ul>
+<li><a href="langchain/index.html">LangChain and LangGraph: From One Chain to a Support Graph</a></li>
 <li><a href="litellm/index.html">LiteLLM: Multi-Model Gateway, Quotas, and Fallback</a></li>
 <li><a href="ragflow/index.html">RAGFlow: From First Steps to Production</a></li>
 <li><a href="fastgpt/index.html">FastGPT: From First Steps to Production</a></li>

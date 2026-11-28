@@ -1,0 +1,6 @@
+# Pinned on 2026-11-27 after a local install (Python 3.12).
+# No provider package: langchain-openai is intentionally absent.
+# Model calls in this demo use FakeListChatModel / GenericFakeChatModel.
+langchain==1.5.2
+langgraph==1.2.24
+langgraph-checkpoint-sqlite==3.1.3
